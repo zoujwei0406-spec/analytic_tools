@@ -1,0 +1,15 @@
+{
+  "name": "evidence-review-scanners",
+  "private": true,
+  "version": "0.2.0",
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  },
+  "dependencies": {
+    "@eslint/js": "^10.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^10.0.0",
+    "globals": "^16.0.0",
+    "pyright": "1.1.414"
+  }
+}

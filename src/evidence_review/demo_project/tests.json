@@ -1,0 +1,8 @@
+{
+  "sources": ["main.c", "fees.c", "memory.c"],
+  "tests": [
+    {"name": "below_threshold", "args": ["99"], "expected_stdout": "10\n"},
+    {"name": "above_threshold", "args": ["101"], "expected_stdout": "0\n"},
+    {"name": "at_threshold", "args": ["100"], "expected_stdout": "0\n"}
+  ]
+}

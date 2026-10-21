@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Evidence Review · 全流程设计图</title>
+<style>*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf1f7;color:#17304e;font:16px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}header,main{max-width:1440px;margin:auto;padding:32px}header{padding-bottom:8px}h1{font-size:34px;margin:0 0 12px}h2{font-size:23px;margin:0}.intro{max-width:1000px;color:#536985;margin:0 0 18px}nav{display:flex;flex-wrap:wrap;gap:12px}a{color:#235f9f;text-decoration:none}nav a,.section-head a{background:white;border:1px solid #c5d1e1;border-radius:8px;padding:7px 14px}nav a:hover,.section-head a:hover{background:#dfeaf9}section{margin-bottom:32px;border:1px solid #c5d1e1;border-radius:16px;background:#f6f8fc;overflow:hidden;scroll-margin-top:20px}.section-head{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #d9e2ee}.section-head a{margin-left:8px;font-size:14px;display:inline-block}.diagram{overflow-x:auto}.diagram svg{display:block;width:100%;height:auto;min-width:860px}.caption{color:#536985;font-size:14px}.notice{padding:16px 20px;border-left:4px solid #d1ae6b;background:#fff5e4;border-radius:6px;max-width:1100px}footer{padding:8px 0 24px;color:#536985;font-size:14px}@media(max-width:700px){header,main{padding:20px}h1{font-size:27px}.section-head{align-items:flex-start;flex-direction:column}.section-head a{margin:0 8px 0 0}}@media print{body{background:white}header,main{padding:0;max-width:none}nav,.section-head a{display:none}.notice{font-size:11px}section{break-before:page;margin:0;border:0}.section-head{padding:8px 0}.diagram svg{min-width:0;max-height:245mm;width:100%}.diagram{overflow:visible}footer{font-size:10px}}</style></head><body>
+<header><h1>Evidence Review · 程序分析全流程</h1><p class="intro">对应当前 0.2.0 实现。源码导入、静态扫描、可选 SBFL、候选组织、证据驱动模型复核与报告输出。页面内嵌三张 SVG，无需联网或加载外部库。</p>
+<nav><a href="#overview">01 整体流程</a><a href="#model-review">02 模型闭环</a><a href="#coverage">03 覆盖采集</a><a href="design.md">完整设计文档</a></nav>
+<p class="caption">窄屏可横向滚动查看；浏览器可缩放或打印。蓝色为处理步骤，黄色为决策/校验/反馈，绿色为有效结果路径，红色为失败或耗尽状态。</p>
+<div class="notice">排序分数不等于缺陷概率；源码已提供不等于分析正确；completed 表示流程要求完成。原始静态诊断、模型发现与不确定项应分别阅读。</div></header>
+<main><section id="overview"><div class="section-head"><h2>整体分析流程</h2></div><div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1970" viewBox="0 0 1320 1970" role="img" aria-labelledby="title-overview desc-overview">
+<title id="title-overview">01  整体分析流程</title><desc id="desc-overview">analyze 不执行目标代码；覆盖数据与模型均为可选输入。</desc>
+<defs><marker id="arrow-overview" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5c708c"/></marker></defs>
+<style>text{font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;fill:#17304e} .title{font-size:30px;font-weight:700} .sub{font-size:17px;fill:#536985} .node{font-size:18px;font-weight:600} .small{font-size:16px;font-weight:400} .edge{fill:none;stroke:#5c708c;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-overview)} .label{font-size:16px;fill:#475c78;paint-order:stroke;stroke:#f6f8fc;stroke-width:7;stroke-linejoin:round} .note{font-size:17px;fill:#536985}</style>
+<rect width="1320" height="1970" fill="#f6f8fc"/>
+<text x="48" y="58" class="title">01  整体分析流程</text>
+<text x="48" y="96" class="sub">analyze 不执行目标代码；覆盖数据与模型均为可选输入。</text>
+<rect x="380" y="145" width="560" height="70" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="172.0" text-anchor="middle" class="node">入口：analyze 文件或目录</text>
+<text x="660.0" y="200.0" text-anchor="middle" class="small">参数指定导入范围、覆盖数据、模型与预算</text>
+<rect x="380" y="250" width="560" height="100" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="278.0" text-anchor="middle" class="node">源码导入与语法索引</text>
+<text x="660.0" y="306.0" text-anchor="middle" class="small">字节快照 / SHA-256 / 语言识别</text>
+<text x="660.0" y="334.0" text-anchor="middle" class="small">Tree-sitter 函数与直接调用候选</text>
+<rect x="380" y="390" width="560" height="100" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="418.0" text-anchor="middle" class="node">按语言运行静态扫描器</text>
+<text x="660.0" y="446.0" text-anchor="middle" class="small">Cppcheck / Bandit + Ruff + Pyright / ESLint</text>
+<text x="660.0" y="474.0" text-anchor="middle" class="small">统一 D 编号；保留工具状态与原始诊断</text>
+<path d="M660,520.0 L775.0,575 L660,630.0 L545.0,575 Z" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="660" y="581" text-anchor="middle" class="node">提供 spectra？</text>
+<rect x="60" y="680" width="290" height="90" rx="14" fill="#ffffff" stroke="#b7c5d6" stroke-width="1.5"/>
+<text x="205.0" y="717.0" text-anchor="middle" class="node">不使用 SBFL</text>
+<text x="205.0" y="745.0" text-anchor="middle" class="small">status = not_provided</text>
+<rect x="980" y="520" width="290" height="110" rx="14" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="1125.0" y="553.0" text-anchor="middle" class="node">验证覆盖 JSON</text>
+<text x="1125.0" y="581.0" text-anchor="middle" class="small">schema / 文件 / 行号</text>
+<text x="1125.0" y="609.0" text-anchor="middle" class="small">完整 source_hashes 匹配</text>
+<rect x="980" y="685" width="290" height="105" rx="14" fill="#eaf8f1" stroke="#85b89f" stroke-width="1.5"/>
+<text x="1125.0" y="715.5" text-anchor="middle" class="node">Ochiai 行可疑度</text>
+<text x="1125.0" y="743.5" text-anchor="middle" class="small">排除 error；无失败测试时</text>
+<text x="1125.0" y="771.5" text-anchor="middle" class="small">no_failing_tests</text>
+<rect x="980" y="250" width="290" height="115" rx="14" fill="#ffffff" stroke="#b7c5d6" stroke-width="1.5"/>
+<text x="1125.0" y="285.5" text-anchor="middle" class="node">独立覆盖数据来源</text>
+<text x="1125.0" y="313.5" text-anchor="middle" class="small">collect 真实执行简单 C 测试</text>
+<text x="1125.0" y="341.5" text-anchor="middle" class="small">或其他语言外部逐测试采集</text>
+<rect x="380" y="850" width="560" height="100" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="878.0" text-anchor="middle" class="node">聚合候选并进行 RRF 排序</text>
+<text x="660.0" y="906.0" text-anchor="middle" class="small">静态严重性名次 + SBFL 可疑度名次</text>
+<text x="660.0" y="934.0" text-anchor="middle" class="small">函数内聚合；无函数则文件位置</text>
+<rect x="380" y="990" width="560" height="90" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="1027.0" text-anchor="middle" class="node">选择审查范围与 top-k</text>
+<text x="660.0" y="1055.0" text-anchor="middle" class="small">candidates：线索候选；files：所有导入文件</text>
+<rect x="380" y="1120" width="560" height="100" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="1148.0" text-anchor="middle" class="node">逐候选建立初始 E 证据</text>
+<text x="660.0" y="1176.0" text-anchor="middle" class="small">函数前 80 行 / 位置附近 / 文件前 80 行</text>
+<text x="660.0" y="1204.0" text-anchor="middle" class="small">function、fixed、adaptive 决定取证方式</text>
+<path d="M660,1255.0 L775.0,1310 L660,1365.0 L545.0,1310 Z" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="660" y="1316" text-anchor="middle" class="node">启用 model？</text>
+<rect x="60" y="1440" width="290" height="90" rx="14" fill="#ffffff" stroke="#b7c5d6" stroke-width="1.5"/>
+<text x="205.0" y="1477.0" text-anchor="middle" class="node">只记录已提取上下文</text>
+<text x="205.0" y="1505.0" text-anchor="middle" class="small">status = not_run</text>
+<rect x="980" y="1250" width="290" height="130" rx="14" fill="#eaf8f1" stroke="#85b89f" stroke-width="1.5"/>
+<text x="1125.0" y="1279.0" text-anchor="middle" class="node">Ollama 有界审查</text>
+<text x="1125.0" y="1307.0" text-anchor="middle" class="small">白名单只读工具与结论校验</text>
+<text x="1125.0" y="1335.0" text-anchor="middle" class="small">files：逐项清单与补查</text>
+<text x="1125.0" y="1363.0" text-anchor="middle" class="small">详见模型闭环图</text>
+<rect x="980" y="1440" width="290" height="90" rx="14" fill="#eaf8f1" stroke="#85b89f" stroke-width="1.5"/>
+<text x="1125.0" y="1477.0" text-anchor="middle" class="node">保存模型处理结果</text>
+<text x="1125.0" y="1505.0" text-anchor="middle" class="small">有效部分 / 不确定性 / 轨迹</text>
+<rect x="380" y="1590" width="560" height="100" rx="14" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="660.0" y="1618.0" text-anchor="middle" class="node">所有选中候选处理完成</text>
+<text x="660.0" y="1646.0" text-anchor="middle" class="small">检查磁盘源码与导入快照一致</text>
+<text x="660.0" y="1674.0" text-anchor="middle" class="small">源码变化：顶层错误退出 2</text>
+<rect x="380" y="1730" width="560" height="90" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="1767.0" text-anchor="middle" class="node">输出 report.json 与 report.html</text>
+<text x="660.0" y="1795.0" text-anchor="middle" class="small">原始诊断 / 未选候选 / 证据 / 模型状态</text>
+<rect x="380" y="1860" width="560" height="65" rx="14" fill="#ffffff" stroke="#b7c5d6" stroke-width="1.5"/>
+<text x="660.0" y="1898.5" text-anchor="middle" class="node">退出 0 或 2；发现疑似问题本身不决定退出码</text>
+<path class="edge" d="M660.0,215 L660.0,250"/>
+<path class="edge" d="M660.0,350 L660.0,390"/>
+<path class="edge" d="M660.0,490 L660.0,520.0"/>
+<path class="edge" d="M660.0,950 L660.0,990"/>
+<path class="edge" d="M660.0,1080 L660.0,1120"/>
+<path class="edge" d="M660.0,1220 L660.0,1255.0"/>
+<path class="edge" d="M660.0,1690 L660.0,1730"/>
+<path class="edge" d="M660.0,1820 L660.0,1860"/>
+<path class="edge" d="M545,575 L205,575 L205,680"/>
+<text x="380" y="560" text-anchor="middle" class="label">否</text>
+<path class="edge" d="M775,575 L980,575"/>
+<text x="870" y="560" text-anchor="middle" class="label">是</text>
+<path class="edge" d="M1125,365 L1125,520" stroke-dasharray="7 6"/>
+<text x="1125" y="445" text-anchor="middle" class="label">独立生成的 spectra</text>
+<path class="edge" d="M1125.0,630 L1125.0,685"/>
+<text x="1173.0" y="657.5" text-anchor="middle" class="label">有效</text>
+<path class="edge" d="M205,770 L205,900 L380,900"/>
+<path class="edge" d="M1125,790 L1125,900 L940,900"/>
+<path class="edge" d="M545,1310 L205,1310 L205,1440"/>
+<text x="380" y="1295" text-anchor="middle" class="label">否</text>
+<path class="edge" d="M775,1310 L980,1310"/>
+<text x="870" y="1295" text-anchor="middle" class="label">是</text>
+<path class="edge" d="M1125.0,1380 L1125.0,1440"/>
+<path class="edge" d="M205,1530 L205,1640 L380,1640"/>
+<path class="edge" d="M1125,1530 L1125,1640 L940,1640"/>
+<text x="48" y="1960" class="note">说明：覆盖校验失败等顶层错误可能没有完整报告；扫描 partial 或模型失败通常仍保留已取得结果。</text>
+</svg>
+</div></section>
+<section id="model-review"><div class="section-head"><h2>模型审查闭环</h2></div><div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1930" viewBox="0 0 1320 1930" role="img" aria-labelledby="title-model-review desc-model-review">
+<title id="title-model-review">02  模型审查、证据与补查闭环</title><desc id="desc-model-review">每个候选独立预算；R 为同一反馈汇合点。结构完成不等于语义正确。</desc>
+<defs><marker id="arrow-model-review" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5c708c"/></marker></defs>
+<style>text{font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;fill:#17304e} .title{font-size:30px;font-weight:700} .sub{font-size:17px;fill:#536985} .node{font-size:18px;font-weight:600} .small{font-size:16px;font-weight:400} .edge{fill:none;stroke:#5c708c;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-model-review)} .label{font-size:16px;fill:#475c78;paint-order:stroke;stroke:#f6f8fc;stroke-width:7;stroke-linejoin:round} .note{font-size:17px;fill:#536985}</style>
+<rect width="1320" height="1930" fill="#f6f8fc"/>
+<text x="48" y="58" class="title">02  模型审查、证据与补查闭环</text>
+<text x="48" y="96" class="sub">每个候选独立预算；R 为同一反馈汇合点。结构完成不等于语义正确。</text>
+<rect x="410" y="145" width="500" height="75" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="174.5" text-anchor="middle" class="node">已选候选 + 初始 E 证据</text>
+<text x="660.0" y="202.5" text-anchor="middle" class="small">候选信息、带行号源码、输入范围</text>
+<rect x="410" y="255" width="500" height="105" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="285.5" text-anchor="middle" class="node">按审查范围准备任务</text>
+<text x="660.0" y="313.5" text-anchor="middle" class="small">files：诊断 / 函数 / 模块 / 循环下标清单</text>
+<text x="660.0" y="341.5" text-anchor="middle" class="small">candidates：候选 verdict 协议</text>
+<rect x="410" y="400" width="500" height="100" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="428.0" text-anchor="middle" class="node">选择本轮工具与提交 Schema</text>
+<text x="660.0" y="456.0" text-anchor="middle" class="small">adaptive 按需取证；function / fixed 仅提交</text>
+<text x="660.0" y="484.0" text-anchor="middle" class="small">整文件模式：所有导入文件全提供时仅提交</text>
+<rect x="410" y="540" width="500" height="95" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="565.5" text-anchor="middle" class="node">请求 Ollama /api/chat</text>
+<text x="660.0" y="593.5" text-anchor="middle" class="small">工具调用协议，或整文件仅提交时 JSON Schema</text>
+<text x="660.0" y="621.5" text-anchor="middle" class="small">等待提示每 15 秒；超时按单次请求计算</text>
+<path d="M660,670.0 L775.0,725 L660,780.0 L545.0,725 Z" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="660" y="731" text-anchor="middle" class="node">模型返回内容？</text>
+<rect x="40" y="860" width="300" height="125" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="190.0" y="886.5" text-anchor="middle" class="node">只读源码 / 调用查询</text>
+<text x="190.0" y="914.5" text-anchor="middle" class="small">检查白名单、ID、范围与预算</text>
+<text x="190.0" y="942.5" text-anchor="middle" class="small">仅读取已导入快照</text>
+<text x="190.0" y="970.5" text-anchor="middle" class="small">返回 E 证据或校验错误</text>
+<rect x="410" y="860" width="500" height="95" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="899.5" text-anchor="middle" class="node">submit_review：结论位置与引用校验</text>
+<text x="660.0" y="927.5" text-anchor="middle" class="small">真实文件行号、合法字段、实际提供的源码</text>
+<rect x="980" y="860" width="300" height="110" rx="14" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="1130.0" y="893.0" text-anchor="middle" class="node">无调用 / 无效调用 / 无效提交</text>
+<text x="1130.0" y="921.0" text-anchor="middle" class="small">提示继续或返回具体校验反馈</text>
+<text x="1130.0" y="949.0" text-anchor="middle" class="small">剩余预算内再尝试</text>
+<rect x="980" y="540" width="300" height="95" rx="14" fill="#fff0ee" stroke="#cc9990" stroke-width="1.5"/>
+<text x="1130.0" y="565.5" text-anchor="middle" class="node">请求或响应失败</text>
+<text x="1130.0" y="593.5" text-anchor="middle" class="small">status = error</text>
+<text x="1130.0" y="621.5" text-anchor="middle" class="small">保留已取得结果</text>
+<rect x="410" y="1005" width="500" height="100" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="1033.0" text-anchor="middle" class="node">files：增量保存源码定位有效的发现</text>
+<text x="660.0" y="1061.0" text-anchor="middle" class="small">F 编号稳定；同键使用最新有效修订</text>
+<text x="660.0" y="1089.0" text-anchor="middle" class="small">清单无效也尽量保留有效发现</text>
+<rect x="40" y="1105" width="300" height="95" rx="14" fill="#eaf8f1" stroke="#85b89f" stroke-width="1.5"/>
+<text x="190.0" y="1130.5" text-anchor="middle" class="node">candidates：有效提交即可完成</text>
+<text x="190.0" y="1158.5" text-anchor="middle" class="small">status = completed</text>
+<text x="190.0" y="1186.5" text-anchor="middle" class="small">保存候选 verdict</text>
+<rect x="410" y="1160" width="500" height="105" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="1190.5" text-anchor="middle" class="node">校验逐项记录、撤回与一致性</text>
+<text x="660.0" y="1218.5" text-anchor="middle" class="small">非不确定意见需提供相关源码范围</text>
+<text x="660.0" y="1246.5" text-anchor="middle" class="small">缺项与矛盾必须显式保留或反馈</text>
+<path d="M660,1320.0 L785.0,1380 L660,1440.0 L535.0,1380 Z" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="660" y="1386" text-anchor="middle" class="node">清单与补查均完成？</text>
+<rect x="980" y="1285" width="300" height="155" rx="14" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="1130.0" y="1326.5" text-anchor="middle" class="node">未完成：要求补齐或定向复查</text>
+<text x="1130.0" y="1354.5" text-anchor="middle" class="small">首次复查所有循环下标任务</text>
+<text x="1130.0" y="1382.5" text-anchor="middle" class="small">复查无发现 / 不确定项及已有发现</text>
+<text x="1130.0" y="1410.5" text-anchor="middle" class="small">必须新交记录；允许带理由撤回</text>
+<rect x="410" y="1500" width="500" height="105" rx="14" fill="#eaf8f1" stroke="#85b89f" stroke-width="1.5"/>
+<text x="660.0" y="1530.5" text-anchor="middle" class="node">files：completed</text>
+<text x="660.0" y="1558.5" text-anchor="middle" class="small">缺项清空且已完成所需补查</text>
+<text x="660.0" y="1586.5" text-anchor="middle" class="small">意见仍可 inconclusive；不代表正确</text>
+<rect x="40" y="1440" width="300" height="145" rx="14" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="190.0" y="1476.5" text-anchor="middle" class="node">反馈与剩余预算检查</text>
+<text x="190.0" y="1504.5" text-anchor="middle" class="small">记录工具事件、反馈追加到历史</text>
+<text x="190.0" y="1532.5" text-anchor="middle" class="small">还有轮次和调用次数：返回请求</text>
+<text x="190.0" y="1560.5" text-anchor="middle" class="small">耗尽：保留部分结果</text>
+<rect x="40" y="1660" width="300" height="85" rx="14" fill="#fff0ee" stroke="#cc9990" stroke-width="1.5"/>
+<text x="190.0" y="1694.5" text-anchor="middle" class="node">预算耗尽</text>
+<text x="190.0" y="1722.5" text-anchor="middle" class="small">status = budget_exhausted</text>
+<circle cx="190" cy="1040" r="19" fill="#ffffff" stroke="#5c708c" stroke-width="2"/><text x="190" y="1046" text-anchor="middle" class="node">R</text>
+<circle cx="1130" cy="1025" r="19" fill="#ffffff" stroke="#5c708c" stroke-width="2"/><text x="1130" y="1031" text-anchor="middle" class="node">R</text>
+<circle cx="1130" cy="1500" r="19" fill="#ffffff" stroke="#5c708c" stroke-width="2"/><text x="1130" y="1506" text-anchor="middle" class="node">R</text>
+<circle cx="190" cy="1380" r="19" fill="#ffffff" stroke="#5c708c" stroke-width="2"/><text x="190" y="1386" text-anchor="middle" class="node">R</text>
+<path class="edge" d="M660.0,220 L660.0,255"/>
+<path class="edge" d="M660.0,360 L660.0,400"/>
+<path class="edge" d="M660.0,500 L660.0,540"/>
+<path class="edge" d="M660.0,635 L660.0,670.0"/>
+<path class="edge" d="M660.0,955 L660.0,1005"/>
+<path class="edge" d="M660.0,1105 L660.0,1160"/>
+<path class="edge" d="M660.0,1265 L660.0,1320.0"/>
+<path class="edge" d="M660.0,1440.0 L660.0,1500"/>
+<path class="edge" d="M545,725 L190,725 L190,860"/>
+<text x="365" y="710" text-anchor="middle" class="label">查询工具</text>
+<path class="edge" d="M660,780 L660,860"/>
+<text x="710" y="825" text-anchor="middle" class="label">提交</text>
+<path class="edge" d="M775,725 L1130,725 L1130,860"/>
+<text x="1050" y="710" text-anchor="middle" class="label">未形成有效调用</text>
+<path class="edge" d="M910,587 L980,587"/>
+<text x="946" y="570" text-anchor="middle" class="label">失败</text>
+<path class="edge" d="M190,985 L190,1021"/>
+<path class="edge" d="M1130,970 L1130,1006"/>
+<path class="edge" d="M910,907 L980,907"/>
+<text x="946" y="890" text-anchor="middle" class="label">无效</text>
+<path class="edge" d="M410,907 L370,907 L370,1152 L340,1152"/>
+<text x="284" y="1080" text-anchor="middle" class="label">候选模式有效</text>
+<path class="edge" d="M910,1212 L950,1212 L950,915 L980,915"/>
+<text x="1010" y="1190" text-anchor="middle" class="label">校验失败</text>
+<path class="edge" d="M785,1380 L980,1380"/>
+<text x="875" y="1365" text-anchor="middle" class="label">否</text>
+<text x="710" y="1475" class="note">是</text>
+<path class="edge" d="M1130,1440 L1130,1481"/>
+<path class="edge" d="M190,1399 L190,1440"/>
+<path class="edge" d="M40,1510 L20,1510 L20,450 L410,450"/>
+<text x="170" y="435" text-anchor="middle" class="label">有剩余：下一轮</text>
+<path class="edge" d="M190,1585 L190,1660"/>
+<text x="240" y="1635" text-anchor="middle" class="label">耗尽</text>
+<text x="410" y="1680" class="note">清单：诊断 D、函数/模块、Python 显式循环内的独立下标任务。</text>
+<text x="410" y="1720" class="note">下标任务生成与引用校验均不是静态越界证明。</text>
+<text x="48" y="1815" class="note">R 汇合规则：工具返回、校验反馈和补查请求均回到相同的预算检查与下一轮逻辑。</text>
+<text x="48" y="1855" class="note">单轮可能返回多个调用；max-calls 包含提交和无效调用，初始源码提取不计此次数。</text>
+<text x="48" y="1895" class="note">图省略了重复提交细节；原始工具事件保留在 model-trace.jsonl，源码证据由 E 编号关联。</text>
+</svg>
+</div></section>
+<section id="coverage"><div class="section-head"><h2>覆盖采集与 SBFL</h2></div><div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1770" viewBox="0 0 1320 1770" role="img" aria-labelledby="title-coverage desc-coverage">
+<title id="title-coverage">03  真实逐测试覆盖与 SBFL</title><desc id="desc-coverage">collect 是独立执行路径；当前内置采集仅适配简单 C 程序。</desc>
+<defs><marker id="arrow-coverage" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5c708c"/></marker></defs>
+<style>text{font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;fill:#17304e} .title{font-size:30px;font-weight:700} .sub{font-size:17px;fill:#536985} .node{font-size:18px;font-weight:600} .small{font-size:16px;font-weight:400} .edge{fill:none;stroke:#5c708c;stroke-width:2;stroke-linejoin:round;marker-end:url(#arrow-coverage)} .label{font-size:16px;fill:#475c78;paint-order:stroke;stroke:#f6f8fc;stroke-width:7;stroke-linejoin:round} .note{font-size:17px;fill:#536985}</style>
+<rect width="1320" height="1770" fill="#f6f8fc"/>
+<text x="48" y="58" class="title">03  真实逐测试覆盖与 SBFL</text>
+<text x="48" y="96" class="sub">collect 是独立执行路径；当前内置采集仅适配简单 C 程序。</text>
+<rect x="410" y="145" width="500" height="80" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="177.0" text-anchor="middle" class="node">入口：collect + manifest</text>
+<text x="660.0" y="205.0" text-anchor="middle" class="small">本机实际执行用户提供的 C 程序</text>
+<rect x="410" y="265" width="500" height="100" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="293.0" text-anchor="middle" class="node">导入源码与哈希；校验测试清单</text>
+<text x="660.0" y="321.0" text-anchor="middle" class="small">sources 必须为已导入 .c</text>
+<text x="660.0" y="349.0" text-anchor="middle" class="small">测试名、参数、stdout 与退出码预期</text>
+<rect x="410" y="405" width="500" height="100" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="433.0" text-anchor="middle" class="node">定位 LLVM 工具并插桩编译</text>
+<text x="660.0" y="461.0" text-anchor="middle" class="small">clang / llvm-profdata / llvm-cov</text>
+<text x="660.0" y="489.0" text-anchor="middle" class="small">临时目录可执行文件；O0 / profile / mapping</text>
+<rect x="410" y="545" width="500" height="95" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="570.5" text-anchor="middle" class="node">逐测试独立运行并采集覆盖</text>
+<text x="660.0" y="598.5" text-anchor="middle" class="small">每例独立 profraw；默认单测超时 10 秒</text>
+<text x="660.0" y="626.5" text-anchor="middle" class="small">合并 profile，导出 LCOV 并映射导入源码</text>
+<path d="M660,675.0 L785.0,735 L660,795.0 L535.0,735 Z" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="660" y="741" text-anchor="middle" class="node">执行及覆盖采集有效？</text>
+<rect x="40" y="875" width="300" height="115" rx="14" fill="#fff0ee" stroke="#cc9990" stroke-width="1.5"/>
+<text x="190.0" y="910.5" text-anchor="middle" class="node">outcome = error</text>
+<text x="190.0" y="938.5" text-anchor="middle" class="small">超时 / 无 profile / 无覆盖等</text>
+<text x="190.0" y="966.5" text-anchor="middle" class="small">不参与后续 SBFL</text>
+<path d="M660,860.0 L795.0,925 L660,990.0 L525.0,925 Z" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="660" y="917" text-anchor="middle" class="node">stdout 与退出码</text>
+<text x="660" y="945" text-anchor="middle" class="small">均符合预期？</text>
+<rect x="410" y="1070" width="230" height="85" rx="14" fill="#eaf8f1" stroke="#85b89f" stroke-width="1.5"/>
+<text x="525.0" y="1118.5" text-anchor="middle" class="node">outcome = pass</text>
+<rect x="680" y="1070" width="230" height="85" rx="14" fill="#fff5e4" stroke="#d1ae6b" stroke-width="1.5"/>
+<text x="795.0" y="1118.5" text-anchor="middle" class="node">outcome = fail</text>
+<rect x="410" y="1230" width="500" height="100" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="1258.0" text-anchor="middle" class="node">汇总所有测试并检查源码未变</text>
+<text x="660.0" y="1286.0" text-anchor="middle" class="small">输出 schema v1 spectra.json</text>
+<text x="660.0" y="1314.0" text-anchor="middle" class="small">source_hashes + tests + covered + origin</text>
+<rect x="980" y="1060" width="300" height="125" rx="14" fill="#ffffff" stroke="#b7c5d6" stroke-width="1.5"/>
+<text x="1130.0" y="1100.5" text-anchor="middle" class="node">其他语言外部采集</text>
+<text x="1130.0" y="1128.5" text-anchor="middle" class="small">逐测试结果与执行行集合</text>
+<text x="1130.0" y="1156.5" text-anchor="middle" class="small">转换为相同 schema v1</text>
+<rect x="410" y="1370" width="500" height="100" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="1398.0" text-anchor="middle" class="node">另行 analyze --spectra</text>
+<text x="660.0" y="1426.0" text-anchor="middle" class="small">校验 schema、测试名、行号和完整哈希集合</text>
+<text x="660.0" y="1454.0" text-anchor="middle" class="small">排除 error；按 pass / fail 计算</text>
+<rect x="410" y="1510" width="500" height="120" rx="14" fill="#edf4ff" stroke="#8faed6" stroke-width="1.5"/>
+<text x="660.0" y="1534.0" text-anchor="middle" class="node">有失败：Ochiai 行可疑度</text>
+<text x="660.0" y="1562.0" text-anchor="middle" class="small">ef / sqrt(F × (ef + ep))</text>
+<text x="660.0" y="1590.0" text-anchor="middle" class="small">无失败：no_failing_tests；不证明安全</text>
+<text x="660.0" y="1618.0" text-anchor="middle" class="small">正分数行按函数最大值聚合，进入 RRF</text>
+<path class="edge" d="M660.0,225 L660.0,265"/>
+<path class="edge" d="M660.0,365 L660.0,405"/>
+<path class="edge" d="M660.0,505 L660.0,545"/>
+<path class="edge" d="M660.0,640 L660.0,675.0"/>
+<path class="edge" d="M660.0,795.0 L660.0,860.0"/>
+<path class="edge" d="M660.0,1330 L660.0,1370"/>
+<path class="edge" d="M660.0,1470 L660.0,1510"/>
+<text x="710" y="835" class="note">是</text>
+<path class="edge" d="M535,735 L190,735 L190,875"/>
+<text x="365" y="720" text-anchor="middle" class="label">否</text>
+<path class="edge" d="M535,925 L525,925 L525,1070"/>
+<text x="485" y="1025" text-anchor="middle" class="label">是</text>
+<path class="edge" d="M795,925 L795,1070"/>
+<text x="835" y="1025" text-anchor="middle" class="label">否</text>
+<path class="edge" d="M525,1155 L525,1190 L660,1190 L660,1230"/>
+<path class="edge" d="M795,1155 L795,1190 L660,1190"/>
+<path class="edge" d="M190,990 L190,1280 L410,1280"/>
+<path class="edge" d="M1130,1185 L1130,1420 L910,1420" stroke-dasharray="7 6"/>
+<text x="1130" y="1320" text-anchor="middle" class="label">外部 spectra</text>
+<text x="48" y="1690" class="note">F：失败测试总数；ef：覆盖该行的失败测试数；ep：覆盖该行的通过测试数。</text>
+<text x="48" y="1730" class="note">注意：analyze 不会隐式触发 collect；人工 synthetic-demo 数据仅用于教学演示。</text>
+</svg>
+</div></section><footer>设计说明与实际限制见 design.md；本页是设计说明，不是新一轮分析报告。图中省略了部分协议细节，准确参数、失败路径及已知误报请结合设计文档与源码阅读。</footer></main></body></html>

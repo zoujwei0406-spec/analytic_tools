@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evidence-review"
+version = "0.2.0"
+description = "Multi-language code review with static diagnostics, AST context, optional SBFL and bounded tool calling"
+requires-python = ">=3.11"
+dependencies = [
+  "tree-sitter>=0.25,<0.26", "tree-sitter-c>=0.24,<0.25", "cppcheck==1.5.3",
+  "tree-sitter-cpp>=0.23,<0.24", "tree-sitter-python>=0.25,<0.26",
+  "tree-sitter-javascript>=0.25,<0.26", "tree-sitter-typescript>=0.23,<0.24",
+  "bandit>=1.8,<2", "ruff>=0.14,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+
+[project.scripts]
+evidence-review = "evidence_review.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+evidence_review = ["eslint_runner.mjs", "demo_project/*.c", "demo_project/*.h", "demo_project/*.json", "demo_multilang/*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

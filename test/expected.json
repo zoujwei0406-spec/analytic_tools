@@ -1,0 +1,982 @@
+{
+  "schema_version": 1,
+  "description": "人工设计的教学缺陷标签，包含条件性风险和显式业务约定；不是标准基准或动态复现结果。",
+  "cases": [
+    {
+      "file": "c/clean.c",
+      "language": "c",
+      "group": "clean",
+      "issues": []
+    },
+    {
+      "file": "c/defects.c",
+      "language": "c",
+      "group": "defects",
+      "issues": [
+        {
+          "id": "C-01",
+          "file": "c/defects.c",
+          "line": 6,
+          "title": "数组读取越界",
+          "condition": "合法下标是 0–3，执行该函数即越界。",
+          "category": "memory",
+          "static_rules": [
+            "arrayIndexOutOfBounds"
+          ]
+        },
+        {
+          "id": "C-02",
+          "file": "c/defects.c",
+          "line": 11,
+          "title": "数组写入越界",
+          "condition": "数组只有两个元素，合法下标是 0–1。",
+          "category": "memory",
+          "static_rules": [
+            "arrayIndexOutOfBounds"
+          ]
+        },
+        {
+          "id": "C-03",
+          "file": "c/defects.c",
+          "line": 17,
+          "title": "整数除零",
+          "condition": "divisor 已被赋值为 0。",
+          "category": "arithmetic",
+          "static_rules": [
+            "zerodiv"
+          ]
+        },
+        {
+          "id": "C-04",
+          "file": "c/defects.c",
+          "line": 22,
+          "title": "空指针解引用",
+          "condition": "value 为 NULL。",
+          "category": "memory",
+          "static_rules": [
+            "nullPointer"
+          ]
+        },
+        {
+          "id": "C-05",
+          "file": "c/defects.c",
+          "line": 30,
+          "title": "释放后读取",
+          "condition": "分配成功后释放，再解引用已释放地址。",
+          "category": "memory",
+          "static_rules": [
+            "deallocuse",
+            "deallocret"
+          ]
+        },
+        {
+          "id": "C-06",
+          "file": "c/defects.c",
+          "line": 36,
+          "title": "重复释放",
+          "condition": "分配非空地址后第二次 free；free(NULL) 本身无害。",
+          "category": "memory",
+          "static_rules": [
+            "doubleFree"
+          ]
+        },
+        {
+          "id": "C-07",
+          "file": "c/defects.c",
+          "line": 41,
+          "title": "读取未初始化变量",
+          "condition": "total 从未赋值。",
+          "category": "initialization",
+          "static_rules": [
+            "uninitvar"
+          ]
+        },
+        {
+          "id": "C-08",
+          "file": "c/defects.c",
+          "line": 46,
+          "title": "返回栈变量地址",
+          "condition": "函数返回后 result 的生命周期结束。",
+          "category": "memory",
+          "static_rules": [
+            "returnDanglingLifetime",
+            "returnAddressOfAutoVariable"
+          ]
+        },
+        {
+          "id": "C-09",
+          "file": "c/defects.c",
+          "line": 53,
+          "title": "堆内存泄漏",
+          "condition": "分配成功的 value 在返回前没有释放，也没有转移所有权。",
+          "category": "memory",
+          "static_rules": [
+            "memleak"
+          ]
+        },
+        {
+          "id": "C-10",
+          "file": "c/defects.c",
+          "line": 58,
+          "title": "字符串复制溢出",
+          "condition": "包括终止符在内的输入长度大于目标容量 4。",
+          "category": "memory",
+          "static_rules": [
+            "bufferAccessOutOfBounds"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "c/logic.c",
+      "language": "c",
+      "group": "logic",
+      "issues": [
+        {
+          "id": "C-11",
+          "file": "c/logic.c",
+          "line": 4,
+          "title": "平均值发生整数截断",
+          "condition": "例如 values=[1,2]、count=2，预期 1.5，返回 1.0。",
+          "category": "logic",
+          "static_rules": []
+        },
+        {
+          "id": "C-12",
+          "file": "c/logic.c",
+          "line": 4,
+          "title": "空输入导致整数除零",
+          "condition": "count=0 时除数为零；约定应拒绝空输入。",
+          "category": "arithmetic",
+          "static_rules": []
+        },
+        {
+          "id": "C-13",
+          "file": "c/logic.c",
+          "line": 9,
+          "title": "免邮边界错误",
+          "condition": "约定满 100 免邮，subtotal=100 时应返回 0，实际返回 10。",
+          "category": "contract",
+          "static_rules": []
+        },
+        {
+          "id": "C-14",
+          "file": "c/logic.c",
+          "line": 14,
+          "title": "全负数集合最大值错误",
+          "condition": "约定输入非空；[-5,-2] 的最大值应为 -2，实际返回 0。",
+          "category": "logic",
+          "static_rules": []
+        },
+        {
+          "id": "C-15",
+          "file": "c/logic.c",
+          "line": 27,
+          "title": "二分查找不推进，可能无限循环",
+          "condition": "有序数组 [1,3] 查找 2 时 low=0、high=1，middle=0，low 不变。",
+          "category": "termination",
+          "static_rules": []
+        }
+      ]
+    },
+    {
+      "file": "c/syntax_error.c",
+      "language": "c",
+      "group": "syntax_error",
+      "issues": [
+        {
+          "id": "C-16",
+          "file": "c/syntax_error.c",
+          "line": 1,
+          "title": "函数参数缺少右括号",
+          "condition": "解析阶段；可能遮蔽后续错误。",
+          "category": "syntax",
+          "static_rules": [
+            "syntaxError"
+          ]
+        },
+        {
+          "id": "C-17",
+          "file": "c/syntax_error.c",
+          "line": 2,
+          "title": "赋值语句缺少分号",
+          "condition": "先补全参数列表，随后该行仍缺少分号。",
+          "category": "syntax",
+          "static_rules": []
+        }
+      ]
+    },
+    {
+      "file": "cpp/clean.cpp",
+      "language": "cpp",
+      "group": "clean",
+      "issues": []
+    },
+    {
+      "file": "cpp/defects.cpp",
+      "language": "cpp",
+      "group": "defects",
+      "issues": [
+        {
+          "id": "CPP-01",
+          "file": "cpp/defects.cpp",
+          "line": 5,
+          "title": "数组读取越界",
+          "condition": "合法下标是 0–2。",
+          "category": "memory",
+          "static_rules": [
+            "arrayIndexOutOfBounds"
+          ]
+        },
+        {
+          "id": "CPP-02",
+          "file": "cpp/defects.cpp",
+          "line": 10,
+          "title": "空指针解引用",
+          "condition": "value 为 nullptr。",
+          "category": "memory",
+          "static_rules": [
+            "nullPointer"
+          ]
+        },
+        {
+          "id": "CPP-03",
+          "file": "cpp/defects.cpp",
+          "line": 15,
+          "title": "读取未初始化变量",
+          "condition": "result 从未赋值。",
+          "category": "initialization",
+          "static_rules": [
+            "uninitvar"
+          ]
+        },
+        {
+          "id": "CPP-04",
+          "file": "cpp/defects.cpp",
+          "line": 20,
+          "title": "new[] 与 delete 不匹配",
+          "condition": "数组分配需要匹配 delete[]。",
+          "category": "memory",
+          "static_rules": [
+            "mismatchAllocDealloc"
+          ]
+        },
+        {
+          "id": "CPP-05",
+          "file": "cpp/defects.cpp",
+          "line": 26,
+          "title": "delete 后读取",
+          "condition": "value 已在上一行释放。",
+          "category": "memory",
+          "static_rules": [
+            "deallocuse",
+            "deallocret"
+          ]
+        },
+        {
+          "id": "CPP-06",
+          "file": "cpp/defects.cpp",
+          "line": 32,
+          "title": "重复 delete",
+          "condition": "同一非空分配被释放两次。",
+          "category": "memory",
+          "static_rules": [
+            "doubleFree"
+          ]
+        },
+        {
+          "id": "CPP-07",
+          "file": "cpp/defects.cpp",
+          "line": 37,
+          "title": "返回局部变量引用",
+          "condition": "函数返回后局部变量生命周期结束，引用悬空。",
+          "category": "memory",
+          "static_rules": [
+            "returnDanglingLifetime",
+            "returnReference"
+          ]
+        },
+        {
+          "id": "CPP-08",
+          "file": "cpp/defects.cpp",
+          "line": 42,
+          "title": "new 分配未释放",
+          "condition": "函数只返回数值，分配的内存失去所有者。",
+          "category": "memory",
+          "static_rules": [
+            "memleak"
+          ]
+        },
+        {
+          "id": "CPP-09",
+          "file": "cpp/defects.cpp",
+          "line": 49,
+          "title": "使用已经失效的迭代器",
+          "condition": "reserve 的参数大于当前 capacity，发生重新分配后原迭代器失效。",
+          "category": "memory",
+          "static_rules": [
+            "invalidContainer",
+            "invalidContainerReference",
+            "invalidIterator1",
+            "invalidIterator2",
+            "invalidIterator3"
+          ]
+        },
+        {
+          "id": "CPP-10",
+          "file": "cpp/defects.cpp",
+          "line": 54,
+          "title": "数组写入越界",
+          "condition": "数组只有两个元素。",
+          "category": "memory",
+          "static_rules": [
+            "arrayIndexOutOfBounds"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "cpp/logic.cpp",
+      "language": "cpp",
+      "group": "logic",
+      "issues": [
+        {
+          "id": "CPP-11",
+          "file": "cpp/logic.cpp",
+          "line": 7,
+          "title": "平均值发生整数截断",
+          "condition": "[1,2] 的预期平均值为 1.5，整数除法得到 1。",
+          "category": "logic",
+          "static_rules": []
+        },
+        {
+          "id": "CPP-12",
+          "file": "cpp/logic.cpp",
+          "line": 7,
+          "title": "空向量导致整数除零",
+          "condition": "values.empty() 时 size() 为零。",
+          "category": "arithmetic",
+          "static_rules": []
+        },
+        {
+          "id": "CPP-13",
+          "file": "cpp/logic.cpp",
+          "line": 12,
+          "title": "去重后没有删除尾部",
+          "condition": "约定返回去重集合；[1,1,2] 去重后 size 应为 2，实际仍为 3。",
+          "category": "logic",
+          "static_rules": [
+            "ignoredReturnValue",
+            "uselessCallsRemove"
+          ]
+        },
+        {
+          "id": "CPP-14",
+          "file": "cpp/logic.cpp",
+          "line": 17,
+          "title": "全负数集合最大值错误",
+          "condition": "非空输入 [-5,-2] 返回 0，而不是 -2。",
+          "category": "logic",
+          "static_rules": []
+        },
+        {
+          "id": "CPP-15",
+          "file": "cpp/logic.cpp",
+          "line": 24,
+          "title": "免邮边界错误",
+          "condition": "约定满 100 免邮；100 被收取运费。",
+          "category": "contract",
+          "static_rules": []
+        }
+      ]
+    },
+    {
+      "file": "cpp/syntax_error.cpp",
+      "language": "cpp",
+      "group": "syntax_error",
+      "issues": [
+        {
+          "id": "CPP-16",
+          "file": "cpp/syntax_error.cpp",
+          "line": 3,
+          "title": "return 语句缺少分号",
+          "condition": "解析阶段。",
+          "category": "syntax",
+          "static_rules": [
+            "syntaxError",
+            "internalAstError"
+          ]
+        },
+        {
+          "id": "CPP-17",
+          "file": "cpp/syntax_error.cpp",
+          "line": 4,
+          "title": "类定义末尾缺少分号",
+          "condition": "修复成员函数语法后，类结尾仍应为 };。",
+          "category": "syntax",
+          "static_rules": []
+        }
+      ]
+    },
+    {
+      "file": "javascript/clean.js",
+      "language": "javascript",
+      "group": "clean",
+      "issues": []
+    },
+    {
+      "file": "javascript/defects.js",
+      "language": "javascript",
+      "group": "defects",
+      "issues": [
+        {
+          "id": "JAVASCRIPT-01",
+          "file": "javascript/defects.js",
+          "line": 2,
+          "title": "不可信表达式执行",
+          "condition": "text 不可信时执行任意 JavaScript。",
+          "category": "security",
+          "static_rules": [
+            "no-eval"
+          ]
+        },
+        {
+          "id": "JAVASCRIPT-02",
+          "file": "javascript/defects.js",
+          "line": 6,
+          "title": "不可信内容构造动态函数",
+          "condition": "expression 不可信且生成的函数被调用时可能执行注入代码。",
+          "category": "security",
+          "static_rules": [
+            "no-new-func"
+          ]
+        },
+        {
+          "id": "JAVASCRIPT-03",
+          "file": "javascript/defects.js",
+          "line": 10,
+          "title": "引用未定义名称",
+          "condition": "调用 calculateTotal 时缺少 missingFee。",
+          "category": "name",
+          "static_rules": [
+            "no-undef"
+          ]
+        },
+        {
+          "id": "JAVASCRIPT-04",
+          "file": "javascript/defects.js",
+          "line": 15,
+          "title": "重新赋值 const",
+          "condition": "调用 changeConstant 时对常量赋值。",
+          "category": "type",
+          "static_rules": [
+            "no-const-assign"
+          ]
+        },
+        {
+          "id": "JAVASCRIPT-05",
+          "file": "javascript/defects.js",
+          "line": 20,
+          "title": "可疑的自身比较",
+          "condition": "比较没有使用第二个值；NaN 与自身比较为 false，其余通常为 true，应核对比较意图。",
+          "category": "suspicious",
+          "static_rules": [
+            "no-self-compare"
+          ]
+        },
+        {
+          "id": "JAVASCRIPT-06",
+          "file": "javascript/defects.js",
+          "line": 25,
+          "title": "return 后的不可达语句",
+          "condition": "前一行无条件返回，此语句永不执行。",
+          "category": "control_flow",
+          "static_rules": [
+            "no-unreachable"
+          ]
+        },
+        {
+          "id": "JAVASCRIPT-07",
+          "file": "javascript/defects.js",
+          "line": 29,
+          "title": "重复对象键覆盖配置",
+          "condition": "后面的 retries 覆盖前面的值。",
+          "category": "state",
+          "static_rules": [
+            "no-dupe-keys"
+          ]
+        },
+        {
+          "id": "JAVASCRIPT-08",
+          "file": "javascript/defects.js",
+          "line": 36,
+          "title": "finally 返回值吞掉异常",
+          "condition": "try 抛出错误后，finally 的 return 覆盖异常。",
+          "category": "control_flow",
+          "static_rules": [
+            "no-unsafe-finally"
+          ]
+        },
+        {
+          "id": "JAVASCRIPT-09",
+          "file": "javascript/defects.js",
+          "line": 41,
+          "title": "异步 Promise executor 可能丢失异常",
+          "condition": "loader 拒绝时异步 executor 返回的 Promise 被外层构造器忽略，外层可能一直 pending。",
+          "category": "async",
+          "static_rules": [
+            "no-async-promise-executor"
+          ]
+        },
+        {
+          "id": "JAVASCRIPT-10",
+          "file": "javascript/defects.js",
+          "line": 49,
+          "title": "读取 null 的属性",
+          "condition": "user 明确为 null。",
+          "category": "type",
+          "static_rules": []
+        }
+      ]
+    },
+    {
+      "file": "javascript/logic.js",
+      "language": "javascript",
+      "group": "logic",
+      "issues": [
+        {
+          "id": "JAVASCRIPT-11",
+          "file": "javascript/logic.js",
+          "line": 2,
+          "title": "数值排序使用默认字典序",
+          "condition": "约定数值升序；[2,10,1] 返回 [1,10,2]。",
+          "category": "logic",
+          "static_rules": []
+        },
+        {
+          "id": "JAVASCRIPT-12",
+          "file": "javascript/logic.js",
+          "line": 8,
+          "title": "最后一对含越界 undefined",
+          "condition": "非空数组最后一次迭代读取越界位置；JavaScript 此处返回 undefined，不是必然抛出异常。",
+          "category": "bounds",
+          "static_rules": []
+        },
+        {
+          "id": "JAVASCRIPT-13",
+          "file": "javascript/logic.js",
+          "line": 15,
+          "title": "免邮边界错误",
+          "condition": "约定满 100 免邮；100 被收取运费。",
+          "category": "contract",
+          "static_rules": []
+        },
+        {
+          "id": "JAVASCRIPT-14",
+          "file": "javascript/logic.js",
+          "line": 19,
+          "title": "map 回调缺少 return",
+          "condition": "[1,2] 预期得到 [2,4]，实际得到 [undefined,undefined]。",
+          "category": "logic",
+          "static_rules": []
+        },
+        {
+          "id": "JAVASCRIPT-15",
+          "file": "javascript/logic.js",
+          "line": 23,
+          "title": "空数组均值为 NaN",
+          "condition": "mean([]) 得到 0/0 即 NaN，约定应拒绝空输入；不是 Python 式除零异常。",
+          "category": "arithmetic",
+          "static_rules": []
+        }
+      ]
+    },
+    {
+      "file": "javascript/syntax_error.js",
+      "language": "javascript",
+      "group": "syntax_error",
+      "issues": [
+        {
+          "id": "JAVASCRIPT-16",
+          "file": "javascript/syntax_error.js",
+          "line": 1,
+          "title": "函数参数缺少右括号",
+          "condition": "解析阶段；后续未定义变量可能被遮蔽。",
+          "category": "syntax",
+          "static_rules": [
+            "parse-error"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "python/clean.py",
+      "language": "python",
+      "group": "clean",
+      "issues": []
+    },
+    {
+      "file": "python/defects.py",
+      "language": "python",
+      "group": "defects",
+      "issues": [
+        {
+          "id": "PYTHON-01",
+          "file": "python/defects.py",
+          "line": 7,
+          "title": "不可信表达式执行",
+          "condition": "text 来自不可信输入时可执行任意 Python 表达式。",
+          "category": "security",
+          "static_rules": [
+            "B307"
+          ]
+        },
+        {
+          "id": "PYTHON-02",
+          "file": "python/defects.py",
+          "line": 11,
+          "title": "不可信反序列化",
+          "condition": "payload 不可信时可能执行代码。",
+          "category": "security",
+          "static_rules": [
+            "B301"
+          ]
+        },
+        {
+          "id": "PYTHON-03",
+          "file": "python/defects.py",
+          "line": 15,
+          "title": "Shell 命令注入",
+          "condition": "command 拼入不可信内容时，shell=True 允许解释 Shell 语法。",
+          "category": "security",
+          "static_rules": [
+            "B602"
+          ]
+        },
+        {
+          "id": "PYTHON-04",
+          "file": "python/defects.py",
+          "line": 19,
+          "title": "使用 assert 做权限检查",
+          "condition": "Python 以优化模式运行时断言可被移除，非管理员也可能得到数据。",
+          "category": "security",
+          "static_rules": [
+            "B101"
+          ]
+        },
+        {
+          "id": "PYTHON-05",
+          "file": "python/defects.py",
+          "line": 24,
+          "title": "密码重置令牌使用非密码学随机数",
+          "condition": "该返回值用作安全令牌时，普通伪随机数不适合安全用途。",
+          "category": "security",
+          "static_rules": [
+            "B311"
+          ]
+        },
+        {
+          "id": "PYTHON-06",
+          "file": "python/defects.py",
+          "line": 28,
+          "title": "引用未定义名称",
+          "condition": "调用 order_total 时缺少全局名称 missing_fee。",
+          "category": "name",
+          "static_rules": [
+            "F821",
+            "reportUndefinedVariable"
+          ]
+        },
+        {
+          "id": "PYTHON-07",
+          "file": "python/defects.py",
+          "line": 32,
+          "title": "list 不存在 push 方法",
+          "condition": "values 为 Python list 时触发 AttributeError。",
+          "category": "type",
+          "static_rules": []
+        },
+        {
+          "id": "PYTHON-08",
+          "file": "python/defects.py",
+          "line": 38,
+          "title": "字符串与数值直接相加",
+          "condition": "非空数值列表计算出 average 后，拼接字符串触发 TypeError。",
+          "category": "type",
+          "static_rules": [
+            "reportOperatorIssue"
+          ]
+        },
+        {
+          "id": "PYTHON-09",
+          "file": "python/defects.py",
+          "line": 41,
+          "title": "可变默认参数跨调用共享",
+          "condition": "先 remember(1)，再 remember(2)，第二次得到 [1,2]，而约定每次默认新建历史。",
+          "category": "state",
+          "static_rules": []
+        },
+        {
+          "id": "PYTHON-10",
+          "file": "python/defects.py",
+          "line": 50,
+          "title": "混合列表累加字符串",
+          "condition": "运行至字符串 '30' 时 int + str 触发 TypeError。",
+          "category": "type",
+          "static_rules": []
+        }
+      ]
+    },
+    {
+      "file": "python/logic.py",
+      "language": "python",
+      "group": "logic",
+      "issues": [
+        {
+          "id": "PYTHON-11",
+          "file": "python/logic.py",
+          "line": 2,
+          "title": "空列表求均值除零",
+          "condition": "mean([]) 触发 ZeroDivisionError，约定应显式拒绝空输入。",
+          "category": "arithmetic",
+          "static_rules": []
+        },
+        {
+          "id": "PYTHON-12",
+          "file": "python/logic.py",
+          "line": 8,
+          "title": "相邻元素访问越界",
+          "condition": "任何非空列表的最后一次循环访问越界；空列表不会进入循环。",
+          "category": "bounds",
+          "static_rules": []
+        },
+        {
+          "id": "PYTHON-13",
+          "file": "python/logic.py",
+          "line": 14,
+          "title": "免邮边界错误",
+          "condition": "约定满 100 免邮；shipping_fee(100) 错误返回 10。",
+          "category": "contract",
+          "static_rules": []
+        },
+        {
+          "id": "PYTHON-14",
+          "file": "python/logic.py",
+          "line": 18,
+          "title": "全负数集合最大值错误",
+          "condition": "非空列表 [-5,-2] 返回 0，而不是 -2。",
+          "category": "logic",
+          "static_rules": []
+        },
+        {
+          "id": "PYTHON-15",
+          "file": "python/logic.py",
+          "line": 26,
+          "title": "矩阵各行共享同一列表",
+          "condition": "fresh_matrix(2,2) 后修改一行的元素，会同时修改另一行。",
+          "category": "state",
+          "static_rules": []
+        }
+      ]
+    },
+    {
+      "file": "python/syntax_error.py",
+      "language": "python",
+      "group": "syntax_error",
+      "issues": [
+        {
+          "id": "PYTHON-16",
+          "file": "python/syntax_error.py",
+          "line": 1,
+          "title": "函数定义缺少冒号",
+          "condition": "解析阶段；后面的拼接与未定义变量供恢复审查观察，但未作为独立计分项。",
+          "category": "syntax",
+          "static_rules": [
+            "invalid-syntax"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "typescript/clean.ts",
+      "language": "typescript",
+      "group": "clean",
+      "issues": []
+    },
+    {
+      "file": "typescript/defects.ts",
+      "language": "typescript",
+      "group": "defects",
+      "issues": [
+        {
+          "id": "TYPESCRIPT-01",
+          "file": "typescript/defects.ts",
+          "line": 2,
+          "title": "不可信表达式执行",
+          "condition": "text 来自不可信输入时可执行代码。",
+          "category": "security",
+          "static_rules": [
+            "no-eval"
+          ]
+        },
+        {
+          "id": "TYPESCRIPT-02",
+          "file": "typescript/defects.ts",
+          "line": 6,
+          "title": "不可信内容构造动态函数",
+          "condition": "expression 不可信且生成函数被调用时可能注入代码。",
+          "category": "security",
+          "static_rules": [
+            "no-new-func"
+          ]
+        },
+        {
+          "id": "TYPESCRIPT-03",
+          "file": "typescript/defects.ts",
+          "line": 10,
+          "title": "string 赋给 number",
+          "condition": "TypeScript 类型检查应拒绝；当前工具没有 tsc，因此可能漏报。",
+          "category": "type",
+          "static_rules": []
+        },
+        {
+          "id": "TYPESCRIPT-04",
+          "file": "typescript/defects.ts",
+          "line": 15,
+          "title": "返回类型不匹配",
+          "condition": "声明返回 number，实际返回 string。",
+          "category": "type",
+          "static_rules": []
+        },
+        {
+          "id": "TYPESCRIPT-05",
+          "file": "typescript/defects.ts",
+          "line": 19,
+          "title": "访问类型中不存在的属性",
+          "condition": "参数只声明 name，email 不存在。",
+          "category": "type",
+          "static_rules": []
+        },
+        {
+          "id": "TYPESCRIPT-06",
+          "file": "typescript/defects.ts",
+          "line": 23,
+          "title": "可空对象未检查",
+          "condition": "strictNullChecks 开启时类型检查应拒绝；传入 null 后会抛异常。",
+          "category": "type",
+          "static_rules": []
+        },
+        {
+          "id": "TYPESCRIPT-07",
+          "file": "typescript/defects.ts",
+          "line": 28,
+          "title": "将 number 当作函数调用",
+          "condition": "value 明确为数值 42，不可调用。",
+          "category": "type",
+          "static_rules": []
+        },
+        {
+          "id": "TYPESCRIPT-08",
+          "file": "typescript/defects.ts",
+          "line": 32,
+          "title": "调用 number 不存在的方法",
+          "condition": "toUpperCase 是字符串方法。",
+          "category": "type",
+          "static_rules": []
+        },
+        {
+          "id": "TYPESCRIPT-09",
+          "file": "typescript/defects.ts",
+          "line": 37,
+          "title": "重新赋值 const",
+          "condition": "常量不能被重新赋值。",
+          "category": "type",
+          "static_rules": [
+            "no-const-assign"
+          ]
+        },
+        {
+          "id": "TYPESCRIPT-10",
+          "file": "typescript/defects.ts",
+          "line": 45,
+          "title": "finally 返回值吞掉异常",
+          "condition": "try 抛出的错误被 finally 的 return 覆盖。",
+          "category": "control_flow",
+          "static_rules": [
+            "no-unsafe-finally"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "typescript/logic.ts",
+      "language": "typescript",
+      "group": "logic",
+      "issues": [
+        {
+          "id": "TYPESCRIPT-11",
+          "file": "typescript/logic.ts",
+          "line": 2,
+          "title": "数值排序使用默认字典序",
+          "condition": "[2,10,1] 预期 [1,2,10]，实际 [1,10,2]。",
+          "category": "logic",
+          "static_rules": []
+        },
+        {
+          "id": "TYPESCRIPT-12",
+          "file": "typescript/logic.ts",
+          "line": 6,
+          "title": "空数组返回 undefined",
+          "condition": "firstValue([]) 返回 undefined，与 number 返回约定冲突；noUncheckedIndexedAccess 开启时应暴露类型问题。",
+          "category": "bounds",
+          "static_rules": []
+        },
+        {
+          "id": "TYPESCRIPT-13",
+          "file": "typescript/logic.ts",
+          "line": 11,
+          "title": "免邮边界错误",
+          "condition": "约定满 100 免邮；100 被收取运费。",
+          "category": "contract",
+          "static_rules": []
+        },
+        {
+          "id": "TYPESCRIPT-14",
+          "file": "typescript/logic.ts",
+          "line": 15,
+          "title": "map 回调缺少 return",
+          "condition": "[1,2] 得到 [undefined,undefined]，而约定翻倍为 [2,4]。",
+          "category": "logic",
+          "static_rules": []
+        },
+        {
+          "id": "TYPESCRIPT-15",
+          "file": "typescript/logic.ts",
+          "line": 19,
+          "title": "空数组均值为 NaN",
+          "condition": "mean([]) 返回 NaN，约定应拒绝空输入。",
+          "category": "arithmetic",
+          "static_rules": []
+        }
+      ]
+    },
+    {
+      "file": "typescript/syntax_error.ts",
+      "language": "typescript",
+      "group": "syntax_error",
+      "issues": [
+        {
+          "id": "TYPESCRIPT-16",
+          "file": "typescript/syntax_error.ts",
+          "line": 1,
+          "title": "参数列表结束处缺少右括号",
+          "condition": "解析阶段；后面的未定义名称可能被遮蔽。",
+          "category": "syntax",
+          "static_rules": [
+            "parse-error"
+          ]
+        }
+      ]
+    }
+  ]
+}

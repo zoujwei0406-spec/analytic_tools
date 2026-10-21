@@ -1,0 +1,35 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+reports/
+.coverage-work/
+.env
+models/
+runtime/
+node_modules/
+.npm-cache/
+.ruff_cache/
+
+# Distribution archives (may contain model weights)
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# Generated test reports; keep test/cases and test/regressions
+test/results*/
+
+# Bytecode and operating-system metadata
+*.py[cod]
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# Local environment variants; keep shareable examples
+.env.*
+!.env.example
