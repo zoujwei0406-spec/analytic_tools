@@ -23,9 +23,10 @@ def write_report(report: dict, output: Path):
             body += f'<p>引用：{esc(", ".join(conclusion["evidence_ids"]))} · 缺失证据：{esc("；".join(conclusion["missing_evidence"]))}</p>'
             for finding in conclusion.get("findings", []):
                 binding_note = " · 引用由程序按文件和行号关联" if finding.get("evidence_origin") == "source_location" else ""
+                origin_note = '程序校正规范结论，静态见证未经目标代码执行验证' if finding.get('evidence_origin') == 'program_verified' else '模型推断，未经执行验证'
                 body += (f'<div class="finding"><h3>{esc(finding["file"])}:{finding["line"]} · {esc(finding["title"])}</h3>'
                          f'<p>{esc(finding["explanation"])}</p><p><strong>触发条件：</strong>{esc(finding["condition"])}</p>'
-                         f'<p>建议：{esc(finding["suggestion"])}</p><p class="muted">模型推断，未经执行验证 · 引用：'
+                         f'<p>建议：{esc(finding["suggestion"])}</p><p class="muted">{origin_note} · 引用：'
                          f'{esc(", ".join(finding["evidence_ids"]))}{binding_note}</p></div>')
             for finding in conclusion.get("withdrawn_findings", []):
                 body += (f'<details><summary>复核撤回 · {esc(finding["file"])}:{finding["line"]} · {esc(finding["title"])}</summary>'
@@ -47,6 +48,12 @@ def write_report(report: dict, output: Path):
             body += (f'<h3>逐项审查记录</h3><p>静态诊断 {len(audit["diagnostic_reviews"])} / {audit["diagnostic_total"]} 条；'
                      f'函数、模块及操作单元 {len(audit["function_reviews"])} / {audit["function_total"]} 个（循环下标 {audit.get("loop_index_total", 0)} 个）；'
                      f'补查：{"已请求" if audit["followup_performed"] else "未请求"}；待确认意见 {uncertain} 条。处理意见不证明判断正确。</p>')
+            for field, label in (('program_reconciliations', '程序证据校正记录（保留模型原意见）'),
+                                 ('blocked_withdrawals', '被拦截的矛盾撤回操作')):
+                if audit.get(field):
+                    body += f'<details><summary>{label}</summary><pre>{esc(json.dumps(audit[field], ensure_ascii=False, indent=2))}</pre></details>'
+            if audit.get("program_conflicts"):
+                body += f'<p class="warning">存在程序与模型结论冲突，需要复核：{esc(json.dumps(audit["program_conflicts"], ensure_ascii=False))}</p>'
             if uncertain:
                 body += '<p class="warning">部分处理意见仍为待确认。记录齐全不代表这些问题已得到确定判断，请查看具体意见和原始诊断。</p>'
             audit_rows = []
@@ -86,6 +93,26 @@ def write_report(report: dict, output: Path):
     last_stat = (f'<div class="stat">模型问题（未经验证）<strong>{stats.get("model_findings", 0)}</strong></div>'
                  if report.get("review_scope") == "files" and report["model"] else
                  f'<div class="stat">证据字符数<strong>{stats["context_chars"]}</strong></div>')
+    program_section = ""
+    if report.get("program_analysis"):
+        analysis = report["program_analysis"]
+        labels = {"conditional_safe": "有前提的边界安全", "conditional_violation": "有前提的越界风险",
+                  "unknown": "待确认", "verified_safe": "限定范围安全", "verified_violation": "程序支持的越界"}
+        program_rows = []
+        for claim in analysis["claims"]:
+            detail = {key: claim[key] for key in ("assumptions", "derivation", "witness", "missing", "facts", "depends_on") if key in claim}
+            program_rows.append(f'<tr><td>{esc(claim["file"])}:{claim["line"]}:{claim["column"]}<br><code>{esc(claim["expression"])}</code></td>'
+                f'<td>{esc(labels.get(claim["verification_result"], claim["verification_result"]))}</td>'
+                f'<td>{esc(claim["reason"])} · {esc(claim["stop_reason"])}'
+                f'<details><summary>前提、推导与事实</summary><pre>{esc(json.dumps(detail, ensure_ascii=False, indent=2))}</pre></details></td></tr>')
+        program_section = (f'<article><h2>知识库判定与证据补查</h2><p>策略：{esc(analysis["policy"])}；'
+            f'访问 {len(analysis["claims"])} 处，动作 {analysis["summary"]["actions"]} 次，'
+            f'相对成本 {analysis["summary"]["estimated_cost"]}。程序结果独立于模型意见；条件结论依赖列出的前提，未经真实执行复现。</p>'
+            f'<p>检查范围：{esc(json.dumps(analysis.get("coverage", {}), ensure_ascii=False))}</p>'
+            '<div class="table-wrap"><table><tr><th>访问位置（UTF-8 字节列）</th><th>程序结果</th><th>依据及停止原因</th></tr>'
+            + ''.join(program_rows) + '</table></div>'
+            f'<details><summary>补查动作与成本</summary><pre>{esc(json.dumps(analysis["trace"], ensure_ascii=False, indent=2))}</pre></details>'
+            f'<p>解析未完成文件：{esc(json.dumps(analysis["parse_errors"], ensure_ascii=False))}</p></article>')
     page = f'''<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Evidence Review · 程序分析报告</title><style>
@@ -94,6 +121,7 @@ def write_report(report: dict, output: Path):
 {banner}<div class="stats"><div class="stat">导入文件<strong>{stats["files"]}</strong></div><div class="stat">原始诊断<strong>{stats["diagnostics"]}</strong></div><div class="stat">候选 / 已选<strong>{stats["candidates"]} / {stats["selected"]}</strong></div>{last_stat}</div>
 <p class="muted">{audit_note}<br>SBFL：{esc(report["sbfl"]["status"])} · 来源：{esc(origin)} · 通过 {report["sbfl"]["passed"]} / 失败 {report["sbfl"]["failed"]} / 采集错误 {report["sbfl"]["errors"]}<br>优先级和可疑度均不是缺陷概率；模型结论仅为复核意见。</p>
 <article><h2>扫描器运行状态</h2><div class="table-wrap"><table><thead><tr><th>工具</th><th>语言</th><th>状态</th><th>诊断数</th><th>版本</th></tr></thead><tbody>{scanner_rows}</tbody></table></div></article>
+{program_section}
 {"".join(cards) or '<article>没有产生候选问题。这不代表程序没有缺陷。</article>'}
 <article><h2>保留的全部静态诊断</h2><div class="table-wrap"><table><thead><tr><th>ID</th><th>工具</th><th>位置</th><th>级别 / 规则</th><th>说明</th></tr></thead><tbody>{rows or '<tr><td colspan="5">没有静态诊断；请结合扫描状态判断。</td></tr>'}</tbody></table></div></article>
 <article><h2>分析边界与运行提示</h2><ul>{notes}</ul></article><footer>完整结构化结果与工具调用记录见同目录 report.json。证据编号在每个候选问题内部有效。</footer></main></body></html>'''

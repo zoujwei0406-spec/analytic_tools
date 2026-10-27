@@ -89,3 +89,73 @@ def test_transport_failure_remains_visible(project):
     result = review(project, candidate(project), BrokenClient())
     assert result["status"] == "error"
     assert result["review"] is None
+
+
+@pytest.mark.parametrize("mode", ["function", "fixed", "adaptive"])
+def test_regression_long_candidate_seeds_alarm_before_function_prefix(tmp_path, mode):
+    from evidence_review.project import Project
+
+    path = tmp_path / "long.py"
+    path.write_text("def example():\n" + "    pass\n" * 99 + "    return missing\n")
+    project = Project(path)
+    diagnostic = {"file": "long.py", "line": 101, "severity": "error", "message": "missing"}
+    target = rank_candidates(project, [diagnostic], {"lines": []})[0]
+    # A tight budget still has space for the alarm window, but not the full prefix.
+    result = review(project, target, mode=mode, budget=1400)
+    assert any(e["kind"] == "source" and e["start"] <= 101 <= e["end"] for e in result["evidence"])
+
+
+@pytest.mark.parametrize("verdict", ["likely_issue", "likely_false_positive"])
+def test_regression_candidate_rejects_citation_that_misses_alarm(project, verdict):
+    target = candidate(project)
+    context = ContextTools(project, 10000, candidate=target)
+    prefix = context.call("read_lines", {"file": "a.c", "start": 1, "end": 2})
+    args = {**conclusion([prefix["evidence_id"]]), "verdict": verdict}
+    with pytest.raises(ValueError, match="候选位置.*a.c:3"):
+        context.validate_review(args)
+    alarm = context.call("read_lines", {"file": "a.c", "start": 3, "end": 3})
+    # Merely delivering the alarm is insufficient if the submission does not cite it.
+    with pytest.raises(ValueError, match="候选位置"):
+        context.validate_review(args)
+    args["evidence_ids"] = [alarm["evidence_id"]]
+    assert context.validate_review(args)["verdict"] == verdict
+    args.update(verdict="inconclusive", evidence_ids=[], missing_evidence=["需要更多源码"])
+    assert context.validate_review(args)["verdict"] == "inconclusive"
+
+
+def test_regression_candidate_requires_all_aggregated_diagnostic_and_sbfl_locations(tmp_path):
+    from evidence_review.project import Project
+
+    path = tmp_path / "long.py"
+    path.write_text("def example():\n" + "    pass\n" * 98 + "    return 0\n")
+    project = Project(path)
+    diagnostics = [{"file": "long.py", "line": n, "severity": "warning", "message": "test"}
+                   for n in (2, 90)]
+    target = rank_candidates(project, diagnostics, {"lines": [{"file": "long.py", "line": 100, "score": 1.0}]})[0]
+    context = ContextTools(project, 10000, candidate=target)
+    prefix = context.call("get_function", {"function_id": target["function_id"]})
+    args = conclusion([prefix["evidence_id"]])
+    with pytest.raises(ValueError, match="long.py:90.*long.py:100"):
+        context.validate_review(args)
+    end = context.call("read_lines", {"file": "long.py", "start": 81, "end": 100})
+    args["evidence_ids"].append(end["evidence_id"])
+    assert context.validate_review(args)["verdict"] == "likely_issue"
+
+
+def test_regression_review_rejects_other_file_citation_then_accepts_target(project):
+    class Client:
+        calls = 0
+
+        def chat(self, messages, tools):
+            self.calls += 1
+            if self.calls == 1:
+                return response("read_lines", {"file": "b.c", "start": 1, "end": 3})
+            if self.calls == 2:
+                return response("submit_review", conclusion(["E3"]))
+            assert "候选位置" in json.loads(messages[-1]["content"])["error"]
+            return response("submit_review", conclusion(["E2"]))
+
+    result = review(project, candidate(project), Client())
+    assert result["status"] == "completed"
+    assert "error" in result["trace"][1]["response"]
+    assert result["review"]["evidence_ids"] == ["E2"]

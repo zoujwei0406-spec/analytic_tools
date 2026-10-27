@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "contract": "普通内置 list 与标准 len/range，无并发修改；评分 IndexError，空输入无操作是允许行为。安全样例的空路径/返回 None 不需要额外业务处理。",
+  "groups": [
+    {
+      "id": "offset",
+      "title": "正向偏移",
+      "source": "cases/evidence_bounds/matrix/offset.py",
+      "sha256": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+      "labels": {
+        "case_a": {
+          "function": "case_a",
+          "line": 2,
+          "bug": true,
+          "reason": "n>=2 时最后一次 i=n-2，i+2=n 越界；最小示例 [0,1]。"
+        },
+        "case_b": {
+          "function": "case_b",
+          "line": 6,
+          "bug": false,
+          "reason": "n<=2 时不访问；n>=3 时最大 i+2=n-1，合法。"
+        }
+      }
+    },
+    {
+      "id": "negative",
+      "title": "负索引边界",
+      "source": "cases/evidence_bounds/matrix/negative.py",
+      "sha256": "e7e3fb710e78735cf846c35c3399ae3659c31de13b8d52a69602271c48453a55",
+      "labels": {
+        "case_a": {
+          "function": "case_a",
+          "line": 2,
+          "bug": true,
+          "reason": "n=1 时 i=0，下标 -2 小于合法下界 -1；n>=2 则均合法。"
+        },
+        "case_b": {
+          "function": "case_b",
+          "line": 6,
+          "bug": false,
+          "reason": "n=0 时不执行；n>=1 时 -1 是合法末元素索引。"
+        }
+      }
+    },
+    {
+      "id": "guard",
+      "title": "分支保护",
+      "source": "cases/evidence_bounds/matrix/guard.py",
+      "sha256": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+      "labels": {
+        "case_a": {
+          "function": "case_a",
+          "line": 4,
+          "bug": true,
+          "reason": "上界保护不保证负向下界；n=1、i=0 时 -2<1 成立但下标越界。"
+        },
+        "case_b": {
+          "function": "case_b",
+          "line": 10,
+          "bug": false,
+          "reason": "分支保证 i+1<n，且 i+1>=1；空列表不执行。"
+        }
+      }
+    },
+    {
+      "id": "helper",
+      "title": "辅助函数副作用",
+      "source": "cases/evidence_bounds/matrix/helper.py",
+      "sha256": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+      "labels": {
+        "case_a": {
+          "function": "case_a",
+          "line": 8,
+          "bug": true,
+          "reason": "observe 不修改列表；n>=1 最后一次 i+1=n 越界。"
+        },
+        "case_b": {
+          "function": "case_b",
+          "line": 14,
+          "bug": false,
+          "reason": "observe 无副作用；n<=1 不执行，n>=2 最大 i+1=n-1。"
+        }
+      }
+    },
+    {
+      "id": "local",
+      "title": "空循环与固定长度",
+      "source": "cases/evidence_bounds/matrix/local.py",
+      "sha256": "3398a352a55b386050d2de71e4b4a410b3efe5ee221c7af5616d28507cc70ea1",
+      "labels": {
+        "case_a": {
+          "function": "case_a",
+          "line": 4,
+          "bug": true,
+          "reason": "列表固定长度 1，循环执行一次，下标 -2 越界。"
+        },
+        "case_b": {
+          "function": "case_b",
+          "line": 10,
+          "bug": false,
+          "reason": "列表长度为 0，循环体不可达，不会访问 values[i+1]。"
+        }
+      }
+    }
+  ]
+}

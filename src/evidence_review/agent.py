@@ -9,6 +9,7 @@ import time
 from .project import Project
 from .progress import model_wait
 from .audit import AuditTracker
+from .evidence import model_evidence
 
 
 def tool_schema(name, description, properties, required):
@@ -22,6 +23,8 @@ FINDING_PROPERTIES = {
     "file": STR, "line": {"type": "integer", "minimum": 1}, "title": STR,
     "explanation": STR, "condition": STR, "suggestion": STR,
     "evidence_ids": {"type": "array", "items": STR},
+    "issue_kind": {"type": "string", "enum": ["index_bounds", "other"]},
+    "access_id": {"type": ["string", "null"]},
 }
 TOOLS = [
     tool_schema("get_function", "获取函数的带行号源码。长函数分段返回，后续用 read_lines 读取。",
@@ -47,9 +50,10 @@ SBFL 是可疑度，不是缺陷概率。扫描无报警或测试通过均不证
 调用索引是语法候选，不是精确调用图；函数指针、宏、导入别名、动态分派和编译配置可能造成遗漏。不要假定跨语言同名函数互相调用。
 证据不足时查询相关函数或源码。无法确认时使用 inconclusive 并指出缺失证据。
 最终必须调用 submit_review，不能宣称动态复现或形式化证明。
-候选复核模式需引用实际读到的源码 evidence_id；candidate 是诊断线索，source 才是源码证据。
+候选复核模式的有倾向性结论必须引用覆盖全部 candidate_locations 的源码 evidence_id；没有覆盖时继续读取或提交 inconclusive。candidate 是诊断线索，source 才是源码证据。
 整文件审查模式的问题必须填写实际文件名和行号，不填写 evidence_ids，程序会关联已经提供的源码。
 整文件审查时，静态诊断只是线索，需要独立检查读到的源码，逐项报告不同问题，不能确认第一个报警就结束。
+有 program_analysis 时，它是带前提的程序分析，不能宣称动态复现。安全说明不得列入 findings；模型与程序意见冲突时说明具体前提并复核。
 有 audit_plan 时，必须逐条填写 diagnostic_reviews 和 function_reviews，包含模块级语句；每项给出简短处理意见。
 ID 原样复制 audit_plan。diagnostic_reviews.verdict 使用 likely_issue/likely_false_positive/inconclusive；
 function_reviews.verdict 使用 issue_found/no_issue_found/inconclusive，reason 只需一句简短说明。
@@ -70,8 +74,12 @@ Python 内置列表单元素下标 k 的有效范围是 -len(a) <= k < len(a)，
 
 
 class Ollama:
-    def __init__(self, model: str, base_url="http://localhost:11434", timeout=180):
+    def __init__(self, model: str, base_url="http://localhost:11434", timeout=180, context_length=None):
         self.model, self.url, self.timeout = model, base_url.rstrip("/") + "/api/chat", timeout
+        if context_length is not None and context_length <= 0:
+            raise ValueError("模型上下文长度必须大于 0")
+        self.context_length = context_length
+        self.request_metrics = []
         self.usage = {"prompt_tokens": 0, "completion_tokens": 0, "requests": 0, "structured_requests": 0}
 
     def chat(self, messages, tools):
@@ -79,6 +87,8 @@ class Ollama:
         audited = any("function_reviews" in tool["function"]["parameters"]["properties"] for tool in tools)
         payload = {"model": self.model, "messages": messages, "tools": tools, "stream": False,
                    "options": {"temperature": 0, "num_predict": 6144 if audited else 4096 if multiple else 2048}}
+        if self.context_length is not None:
+            payload["options"]["num_ctx"] = self.context_length
         structured = audited and len(tools) == 1 and tools[0]["function"]["name"] == "submit_review"
         if structured:
             payload.pop("tools")
@@ -104,6 +114,7 @@ class Ollama:
                     payload["options"]["num_predict"] = 8192
         request = urllib.request.Request(self.url, data=json.dumps(payload).encode(),
                                          headers={"Content-Type": "application/json"})
+        request_started = time.monotonic()
         try:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
                 data = json.load(response)
@@ -113,6 +124,11 @@ class Ollama:
             raise ValueError(f"模型请求失败，请检查 Ollama 服务、模型及工具调用支持: {exc}") from exc
         if not isinstance(data.get("message"), dict):
             raise ValueError("模型没有返回有效的 message")
+        self.request_metrics.append({'wall_seconds': time.monotonic() - request_started,
+            'request_bytes': len(request.data), 'thinking_requested': payload.get('think'),
+            **{key + '_seconds': data[key] / 1e9 for key in
+               ('load_duration', 'prompt_eval_duration', 'eval_duration', 'total_duration')
+               if isinstance(data.get(key), (int, float))}})
         self.usage["requests"] += 1
         self.usage["prompt_tokens"] += data.get("prompt_eval_count", 0)
         self.usage["completion_tokens"] += data.get("eval_count", 0)
@@ -131,8 +147,13 @@ class Ollama:
 
 
 class ContextTools:
-    def __init__(self, project: Project, budget: int):
+    def __init__(self, project: Project, budget: int, candidate=None):
         self.project, self.budget = project, budget
+        self.target_locations = []
+        if candidate and candidate.get("scope") != "file":
+            # A candidate can aggregate multiple static diagnostics and SBFL lines.
+            locations = [candidate, *candidate["diagnostics"], *candidate["sbfl_lines"]]
+            self.target_locations = list(dict.fromkeys((item["file"], item["line"]) for item in locations))
         self.evidence: list[dict] = []
         self.used = 0
 
@@ -234,13 +255,17 @@ class ContextTools:
             if not isinstance(findings, list):
                 raise ValueError("findings 必须为问题数组")
             for finding in findings:
-                required_finding = set(FINDING_PROPERTIES) - {"evidence_ids"}
+                required_finding = set(FINDING_PROPERTIES) - {"evidence_ids", "issue_kind", "access_id"}
                 if (not isinstance(finding, dict) or not required_finding <= set(finding)
                         or set(finding) - set(FINDING_PROPERTIES)):
                     raise ValueError("每个问题需要 file、line、title、explanation、condition、suggestion；evidence_ids 可省略，由程序关联已提供的源码")
                 if any(not isinstance(finding[k], str) or not finding[k].strip()
                        for k in ("file", "title", "explanation", "condition", "suggestion")):
                     raise ValueError("问题描述、位置、触发条件和修复建议必须为非空字符串")
+                if 'issue_kind' in finding and finding['issue_kind'] not in {'index_bounds', 'other'}:
+                    raise ValueError('issue_kind 必须为 index_bounds 或 other')
+                if 'access_id' in finding and finding['access_id'] is not None and not isinstance(finding['access_id'], str):
+                    raise ValueError('access_id 必须为字符串或 null')
                 if type(finding["line"]) is not int:
                     raise ValueError("问题行号必须为整数")
                 available = [e["evidence_id"] for e in self.source_evidence(finding["file"], finding["line"])]
@@ -265,6 +290,13 @@ class ContextTools:
                 ids.extend(e["evidence_id"] for e in self.source_evidence() if e["evidence_id"] not in ids)
         if arguments["verdict"] != "inconclusive" and not any(known[eid]["kind"] == "source" for eid in ids):
             raise ValueError(f"有倾向性的结论至少需要引用一份源码证据；candidate 不能代替 source。可用源码：{self.source_inventory()}")
+        if not file_audit and arguments["verdict"] != "inconclusive":
+            uncovered = [f"{file}:{line}" for file, line in self.target_locations
+                         if not any(known[eid]["kind"] == "source" and known[eid]["file"] == file
+                                    and known[eid]["start"] <= line <= known[eid]["end"] for eid in ids)]
+            if uncovered:
+                raise ValueError("候选位置缺少覆盖该行的源码引用：" + "、".join(uncovered)
+                                 + "；请读取并引用这些位置，或提交 inconclusive。")
         return arguments
 
 
@@ -292,6 +324,14 @@ def review_tools(context, mode, file_audit, audit=None):
         parameters = submit["parameters"]
         properties = json.loads(json.dumps(FINDING_PROPERTIES))
         properties.pop("evidence_ids")
+        typed_evidence = audit is not None and audit.program_analysis is not None
+        if not typed_evidence:
+            properties.pop('issue_kind')
+            properties.pop('access_id')
+        else:
+            properties['access_id']['enum'] = [None, *dict.fromkeys(claim['access_id'] for claim in audit.program_analysis.get('claims', []))]
+            properties['issue_kind']['description'] = '列表整数下标边界为 index_bounds（含安全说明），其他真实缺陷为 other。安全说明不得报告为问题。'
+            properties['access_id']['description'] = 'index_bounds 原样绑定程序对应 access_id；其他问题填 null。'
         if len(files) <= 100:
             properties["file"]["enum"] = files
         if len(inventory) == 1 and inventory[0]["total_lines"]:
@@ -299,7 +339,7 @@ def review_tools(context, mode, file_audit, audit=None):
         parameters["properties"].pop("evidence_ids")
         parameters["properties"]["findings"] = {"type": "array", "items": {
             "type": "object", "properties": properties,
-            "required": [key for key in FINDING_PROPERTIES if key != "evidence_ids"], "additionalProperties": False}}
+            "required": list(properties), "additionalProperties": False}}
         parameters["required"] = [key for key in parameters["required"] if key not in {"suggestion", "evidence_ids"}] + ["findings"]
         if audit:
             parameters["properties"].update(audit.schema())
@@ -310,8 +350,8 @@ def review_tools(context, mode, file_audit, audit=None):
     return allowed
 
 
-def review(project: Project, candidate: dict, client=None, mode="adaptive", budget=14000, max_rounds=6, max_calls=10, progress=None, trace_callback=None):
-    result = _review(project, candidate, client, mode, budget, max_rounds, max_calls, progress, trace_callback)
+def review(project: Project, candidate: dict, client=None, mode="adaptive", budget=14000, max_rounds=6, max_calls=10, progress=None, trace_callback=None, program_analysis=None):
+    result = _review(project, candidate, client, mode, budget, max_rounds, max_calls, progress, trace_callback, program_analysis)
     if candidate.get("scope") == "file":
         file = candidate["file"]
         total = len(project.sources[file].splitlines())
@@ -322,8 +362,8 @@ def review(project: Project, candidate: dict, client=None, mode="adaptive", budg
     return result
 
 
-def _review(project: Project, candidate: dict, client=None, mode="adaptive", budget=14000, max_rounds=6, max_calls=10, progress=None, trace_callback=None):
-    context = ContextTools(project, budget)
+def _review(project: Project, candidate: dict, client=None, mode="adaptive", budget=14000, max_rounds=6, max_calls=10, progress=None, trace_callback=None, program_analysis=None):
+    context = ContextTools(project, budget, candidate=candidate)
     file_audit = candidate.get("scope") == "file"
     context.emit("candidate", {"candidate_id": candidate["id"], "language": project.languages[candidate["file"]], "diagnostics": candidate["diagnostics"],
                                "sbfl_lines": candidate["sbfl_lines"][:20]})
@@ -332,31 +372,48 @@ def _review(project: Project, candidate: dict, client=None, mode="adaptive", bud
         total = len(project.sources[candidate["file"]].splitlines())
         if total:
             context.call("read_lines", {"file": candidate["file"], "start": 1, "end": min(total, 80)})
-    elif fid:
-        context.call("get_function", {"function_id": fid})
     else:
-        end = min(candidate["line"] + 8, len(project.sources[candidate["file"]].splitlines()))
-        context.call("read_lines", {"file": candidate["file"], "start": max(1, candidate["line"] - 8), "end": end})
+        function = project.functions[fid] if fid else None
+        prefix_covers_targets = function and all(
+            file == function.file and function.start <= line <= min(function.end, function.start + 79)
+            for file, line in context.target_locations)
+        if not prefix_covers_targets:
+            # Spend a tight budget on the actual alarm locations before the prefix
+            # or any callers. Every mode must have access to its review targets.
+            for file, line in context.target_locations:
+                if not context.source_evidence(file, line):
+                    end = min(line + 8, len(project.sources[file].splitlines()))
+                    context.call("read_lines", {"file": file, "start": max(1, line - 8), "end": end})
+        if fid:
+            context.call("get_function", {"function_id": fid})
     if mode == "fixed" and fid:
         for function in sorted({f.id: f for f in project.callers(fid) + project.callees(fid)}.values(), key=lambda f: f.id):
             context.call("get_function", {"function_id": function.id})
     result = {"candidate_id": candidate["id"], "status": "not_run", "mode": mode,
               "review": None, "trace": [], "evidence": context.evidence}
+    if program_analysis is not None:
+        result["program_analysis"] = program_analysis
     if client is None:
         result["context_chars"] = context.used
         return result
-    audit = AuditTracker(project, candidate) if file_audit else None
+    audit = AuditTracker(project, candidate, program_analysis=program_analysis) if file_audit else None
     if audit:
         result["audit"] = audit.report()
+    compact_analysis = model_evidence(program_analysis)
     messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps({
         "task": ("对这个文件进行多问题审查，不限于扫描器报警。读取尚未提供的行（预算允许时），"
                  "检查语法、名称、类型使用、边界、运算及调用关系，findings 分别列出有证据的问题。"
                  "语法错误后的问题需注明修复前置错误后的触发条件。无法覆盖的部分写入 missing_evidence。"
                  if file_audit else "复核这个候选位置，按需补充上下文并调用 submit_review。"),
         "candidate_id": candidate["id"], "function_id": fid,
+        "candidate_locations": [{"file": file, "line": line} for file, line in context.target_locations],
         "source_files": context.source_inventory(),
         "submission_rules": "findings 每项写实际 file、line；不要填写 evidence_ids，由程序关联已提供源码。所有文件完整提供时直接提交，无需重新读取。" if file_audit else "引用实际提供的源码证据。",
         "context_mode": mode, "initial_evidence": context.evidence,
+        **({"program_analysis": compact_analysis,
+            "program_analysis_rules": "程序结果与模型意见分开。conditional 为有前提的结论，不是动态复现。"
+                                      "可说明异议及缺少事实，但不能自行升级程序状态或把一个下标的安全扩展到整个函数。"}
+           if program_analysis is not None else {}),
         **({"audit_plan": audit.plan()} if audit else {}),
     }, ensure_ascii=False)}]
     calls = 0
@@ -437,6 +494,10 @@ def _review(project: Project, candidate: dict, client=None, mode="adaptive", bud
                                 result["status"] = "completed"
                                 response = {"accepted": True, "complete": True}
                             result["audit"] = audit.report()
+                            if audit.program_reconciliations:
+                                response['program_reconciliations'] = audit.program_reconciliations
+                            if audit.blocked_withdrawals:
+                                response['blocked_withdrawals'] = audit.blocked_withdrawals
                             if audit.ignored_records:
                                 response["ignored_records"] = audit.ignored_records
                         else:

@@ -50,7 +50,16 @@ UNIT_VERDICTS = ["issue_found", "no_issue_found", "inconclusive"]
 
 
 class AuditTracker:
-    def __init__(self, project, candidate):
+    def __init__(self, project, candidate, program_analysis=None):
+        self.program_analysis = program_analysis
+        hashes = project.hashes()
+        self.resolved_claims = {claim['access_id']: claim for claim in (program_analysis or {}).get('claims', [])
+            if claim.get('access_id') and claim.get('source_hash') == hashes.get(claim.get('file'))
+            and claim.get('terminal') is True and claim.get('stop_reason') == 'resolved'
+            and claim.get('verdict') in {'SAFE', 'VIOLATION'}}
+        self.evidence_complete = bool(self.resolved_claims) and len(self.resolved_claims) == len((program_analysis or {}).get('claims', []))
+        self.program_reconciliations = []
+        self.blocked_withdrawals = []
         self.file = candidate["file"]
         self.diagnostics = {d["id"]: d for d in candidate["diagnostics"]}
         self.units = {}
@@ -93,11 +102,26 @@ class AuditTracker:
         self.ignored_records = []
         self.followup_performed = False
         self.recheck_pending = set()
+        self.program_units = {}
+        for key, unit in self.units.items():
+            matches = [claim for claim in self.resolved_claims.values()
+                if unit.get('kind') == 'loop_index' and claim['file'] == self.file
+                and claim['line'] == unit['ranges'][0][0]
+                and claim['expression'].strip() == unit['access'].strip()]
+            if len(matches) == 1:
+                claim = matches[0]
+                self.program_units[key] = claim['access_id']
+                self.function_reviews[key] = {'function_id': key,
+                    'verdict': 'issue_found' if claim['verdict'] == 'VIOLATION' else 'no_issue_found',
+                    'reason': '程序条件判定：' + claim['verdict'] + '；仅覆盖此处列表边界，前提见程序证据。',
+                    'record_origin': 'deterministic_analysis', 'access_id': claim['access_id']}
 
     def plan(self):
         return {"diagnostics": [{"diagnostic_id": key, "line": d["line"], "rule": d["rule"]}
                                 for key, d in self.diagnostics.items()],
-                "functions": list(self.units.values()),
+                "functions": [unit for key, unit in self.units.items() if key not in self.program_units],
+                "program_resolved_units": [{'function_id': key, 'access_id': access_id}
+                                           for key, access_id in self.program_units.items()],
                 "checks": ["名称与类型、运算符的操作数是否兼容", "边界与空输入", "状态共享与返回值",
                            "安全检查是否可绕过、输入是否可信", "注释中的业务约定、条件边界"]}
 
@@ -116,10 +140,12 @@ class AuditTracker:
                     "properties": {key: identity, "verdict": {"type": "string", "enum": verdicts},
                                    "reason": {"type": "string"}},
                     "required": [key, "verdict", "reason"]}}
-        ids = [f["finding_id"] for f in (self.conclusion or {}).get("findings", [])]
+        ids = [f["finding_id"] for f in (self.visible_review() or {}).get("findings", [])
+               if f.get('evidence_origin') != 'program_verified']
+        model_units = {key: unit for key, unit in self.units.items() if key not in self.program_units}
         return {"diagnostic_reviews": entries("diagnostic_id", self.diagnostics, VERDICTS, pending["diagnostics"]),
-                "function_reviews": entries("function_id", self.units, UNIT_VERDICTS, pending["functions"]),
-                "withdraw_findings": {"type": "array", "items": {"type": "object", "additionalProperties": False,
+                "function_reviews": entries("function_id", model_units, UNIT_VERDICTS, pending["functions"]),
+                "withdraw_findings": {"type": "array", **({"maxItems": 0} if not ids else {}), "items": {"type": "object", "additionalProperties": False,
                     "properties": {"finding_id": {"type": "string", **({"enum": ids} if ids else {})},
                                    "reason": {"type": "string"}}, "required": ["finding_id", "reason"]}}}
 
@@ -170,47 +196,67 @@ class AuditTracker:
                     or not isinstance(row["finding_id"], str) or row["finding_id"] not in known
                     or not isinstance(row["reason"], str) or not row["reason"].strip()):
                 raise ValueError(f"撤回需要已有 finding_id 和非空 reason；有效 ID：{sorted(known)}")
+            finding = next(f for f in merged['findings'] if f['finding_id'] == row['finding_id'])
+            if finding.get('evidence_origin') == 'program_verified' or any(
+                    phrase in row['reason'] for phrase in ('无需撤回', '不应撤回', '仍有效', '继续保留')):
+                self.blocked_withdrawals.append({**deepcopy(row),
+                    'reason_blocked': '撤回操作与程序验证或“保留”理由矛盾，保留已有问题；不能撤回程序风险。'})
+                continue
             withdrawals[row["finding_id"]] = row["reason"]
         diagnostic_reviews = {**self.diagnostic_reviews, **{row["diagnostic_id"]: row for field, row in updates if field == "diagnostic_reviews"}}
-        for field, row in updates:
-            if field != "function_reviews":
+        submitted_functions = {row["function_id"] for field, row in updates if field == "function_reviews"}
+        function_reviews = deepcopy(self.function_reviews)
+        function_reviews.update({row["function_id"]: row for field, row in updates if field == "function_reviews"})
+        # Reconcile retained records too: incremental submissions can revise a
+        # diagnostic or a finding without resubmitting every dependent function.
+        for key, row in list(function_reviews.items()):
+            if key in self.program_units:
+                function_reviews[key] = deepcopy(self.function_reviews[key])
                 continue
+            ranges = self.units[key]["ranges"]
             has_finding = any(
-                f["finding_id"] not in withdrawals and f["file"] == self.file and any(start <= f["line"] <= end
-                                               for start, end in self.units[row["function_id"]]["ranges"])
+                f["finding_id"] not in withdrawals and f["file"] == self.file
+                and any(start <= f["line"] <= end for start, end in ranges)
                 for f in merged["findings"]
             )
-            supported = [key for key, diagnostic in self.diagnostics.items()
-                         if diagnostic_reviews.get(key, {}).get("verdict") == "likely_issue"
-                         and any(a <= diagnostic["line"] <= b for a, b in self.units[row["function_id"]]["ranges"])]
+            program_support = [claim['access_id'] for claim in self.resolved_claims.values()
+                               if claim['file'] == self.file and claim['verdict'] == 'VIOLATION'
+                               and any(a <= claim['line'] <= b for a, b in ranges)]
+            row.pop('basis_program', None)
+            if program_support:
+                row['basis_program'] = program_support
+            supported = [identity for identity, diagnostic in self.diagnostics.items()
+                         if diagnostic_reviews.get(identity, {}).get("verdict") == "likely_issue"
+                         and any(a <= diagnostic["line"] <= b for a, b in ranges)]
+            # Never retain references to diagnostics whose opinion has changed.
+            row.pop("basis_diagnostics", None)
             if row["verdict"] == "issue_found" and not has_finding:
-                if supported:
+                if program_support:
+                    pass  # Program-supported risk does not require a duplicate model finding.
+                elif supported:
                     row["basis_diagnostics"] = supported
+                elif key not in submitted_functions:
+                    del function_reviews[key]  # Missing record re-enters pending().
+                    continue
                 else:
                     row.update(verdict="inconclusive", record_origin="program_consistency_check",
                                reason="程序一致性检查：模型标记发现问题，但没有函数内的问题位置或认可的静态诊断；保留不确定性。原意见：" + row["reason"])
-            if row["verdict"] == "no_issue_found" and has_finding:
+            if row["verdict"] == "no_issue_found" and (has_finding or supported or program_support):
+                if key not in submitted_functions:
+                    del function_reviews[key]
+                    continue
                 row.update(verdict="inconclusive", record_origin="program_consistency_check",
-                           reason="程序一致性检查：模型的无问题记录与其问题清单矛盾；保留已有发现并标为待确认。原意见：" + row["reason"])
+                           reason="程序一致性检查：模型的无问题记录与其问题清单或认可的静态诊断矛盾；保留已有发现并标为待确认。原意见：" + row["reason"])
         self.conclusion = merged
         self.withdrawals = withdrawals
         self.ignored_records.extend(ignored)
-        for field, row in updates:
-            getattr(self, field)[row["diagnostic_id" if field == "diagnostic_reviews" else "function_id"]] = deepcopy(row)
-            if field == "function_reviews":
-                self.recheck_pending.discard(row["function_id"])
-        # Withdrawing the only issue in a unit invalidates an older "issue_found"
-        # record unless the model supplied a new, consistent disposition.
-        for key, row in list(self.function_reviews.items()):
-            if row["verdict"] == "issue_found" and not row.get("basis_diagnostics") and not any(
-                f["finding_id"] not in self.withdrawals and f["file"] == self.file
-                and any(a <= f["line"] <= b for a, b in self.units[key]["ranges"])
-                for f in merged["findings"]
-            ):
-                del self.function_reviews[key]
+        self.diagnostic_reviews = diagnostic_reviews
+        self.function_reviews = function_reviews
+        self.recheck_pending.difference_update(submitted_functions)
 
     def merge_findings(self, conclusion):
         """Merge already source-validated findings independently of checklist validity."""
+        conclusion = self.reconcile_findings(conclusion)
         merged = deepcopy(self.conclusion or conclusion)
         existing = {(f["file"], f["line"], f["title"]): f for f in merged["findings"]}
         for finding in conclusion["findings"]:
@@ -234,6 +280,49 @@ class AuditTracker:
         merged["summary"] = f"逐项审查累计列出 {len(merged['findings'])} 个问题；详见问题与审查记录。"
         return merged
 
+    def reconcile_findings(self, conclusion):
+        """Resolve only a bound property at one exact, current verified access."""
+        result = deepcopy(conclusion)
+        retained = []
+        for finding in result['findings']:
+            if finding.get('evidence_origin') == 'program_verified':
+                retained.append(finding)
+                continue
+            kind = finding.get('issue_kind')
+            # Old saved clients lack typed references. Such observations remain
+            # visible and receive conflict feedback rather than automatic deletion.
+            claim = self.resolved_claims.get(finding.get('access_id')) if kind == 'index_bounds' else None
+            if claim is None or claim['file'] != finding['file'] or claim['line'] != finding['line']:
+                retained.append(finding)
+                continue
+            decision = {'original': deepcopy(finding), 'access_id': claim['access_id'],
+                'verdict': claim['verdict'], 'assumptions': claim.get('assumptions', []),
+                'resolution': 'safe_under_assumptions' if claim['verdict'] == 'SAFE' else 'condition_from_program_witness'}
+            if decision not in self.program_reconciliations:
+                self.program_reconciliations.append(decision)
+            if claim['verdict'] == 'SAFE':
+                continue
+            witness = claim.get('witness')
+            if not witness:
+                retained.append(finding)
+                continue
+            length, index = witness['length'], witness['index']
+            condition = f"在程序列明的前提下，列表长度={length}，下标={index}"
+            if 'counter' in witness:
+                condition += f"，循环变量={witness['counter']}"
+            evidence_type = '有界 AST 路径见证' if witness.get('kind') == 'bounded_ast_counterexample' else '符号见证'
+            if 'entry_inputs' in witness:
+                condition += f"；入口参数={witness['entry_inputs']}；长度为执行到该访问时的长度"
+            retained.append({**finding, 'title': '列表下标存在条件越界',
+                'explanation': f"程序规则为 {claim['expression']} 给出{evidence_type}：下标 {index} 不在 [{-length}, {length}) 内；这不是动态执行复现。",
+                'condition': condition + '。',
+                'suggestion': '核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。',
+                'evidence_origin': 'program_verified', 'program_access_id': claim['access_id']})
+        result['findings'] = retained
+        if not retained:
+            result['verdict'] = 'inconclusive'
+        return result
+
     def visible_review(self):
         if self.conclusion is None:
             return None
@@ -254,16 +343,41 @@ class AuditTracker:
             self.recheck_pending.update((self.followup() or {}).get("recheck_functions", []))
         self.followup_performed = True
 
+    def program_conflicts(self):
+        conflicts = []
+        for finding in (self.visible_review() or {}).get("findings", []):
+            description = (finding.get("title", "") + " " + finding.get("explanation", "")).lower()
+            if not any(word in description for word in ("越界", "indexerror", "out of bounds", "安全索引", "边界检查充分")):
+                continue
+            claims = [c for c in (self.program_analysis or {}).get("claims", [])
+                      if c["file"] == finding["file"] and c["line"] == finding["line"]]
+            if len(claims) == 1 and claims[0]["verdict"] == "SAFE":
+                conflicts.append({"finding_id": finding["finding_id"], "access_id": claims[0]["access_id"],
+                                  "reason": "模型报告越界，但程序在列出的前提下判定该访问安全；请核对前提或撤回误报。",
+                                  "assumptions": claims[0].get("assumptions", []),
+                                  "derivation": claims[0].get("derivation", {})})
+        return conflicts
+
     def followup(self):
         pending = self.pending()
-        # One targeted recheck of units with no finding, even if the model said it checked them.
-        recheck = [] if self.followup_performed else [key for key, row in self.function_reviews.items()
-                                                      if row["verdict"] != "issue_found"
-                                                      or self.units[key].get("kind") == "loop_index"]
-        verify = [] if self.followup_performed else (self.visible_review() or {}).get("findings", [])
+        if self.evidence_complete:
+            # Evidence-guided review repeats unresolved work, not every completed
+            # function. A verified subscript never certifies the whole function.
+            recheck = [] if self.followup_performed else [key for key, row in self.function_reviews.items()
+                if key not in self.program_units and row['verdict'] == 'inconclusive']
+            verify = [] if self.followup_performed else [finding for finding in (self.visible_review() or {}).get('findings', [])
+                if finding.get('evidence_origin') != 'program_verified']
+        else:
+            recheck = [] if self.followup_performed else [key for key, row in self.function_reviews.items()
+                if key not in self.program_units and (row['verdict'] != 'issue_found' or self.units[key].get('kind') == 'loop_index')]
+            verify = [] if self.followup_performed else [finding for finding in (self.visible_review() or {}).get('findings', [])
+                if finding.get('evidence_origin') != 'program_verified']
         if not any(pending.values()) and not recheck and not verify:
             return None
-        return {"task": "补查尚未逐项处理的诊断和函数；对无问题结论再核对一次。已有 findings 保留，只提交新增问题。"
+        return {"program_conflicts": self.program_conflicts(),
+                "conflict_instructions": "program_conflicts 列出了模型与程序的条件结论冲突。逐一核对；如果没有具体不同前提，"
+                                         "将误报 finding_id 填入 withdraw_findings 撤回。安全说明不应作为新问题放入 findings。",
+                "task": "补查尚未逐项处理的诊断和函数；对无问题结论再核对一次。已有 findings 保留，只提交新增问题。"
                         "同时复核已有问题，位置校验不证明判断正确。将误判填入 withdraw_findings（finding_id、reason）撤回。"
                         "不能凭空要求函数接受任意错误类型，也不能把正常的显式容器修改或空结果当成漏洞。"
                         "逐个核对操作数类型、空输入、状态和安全约定。循环下标任务须独立计算首次/末次索引与偏移，"
@@ -280,13 +394,18 @@ class AuditTracker:
 
     def report(self):
         pending = self.pending()
-        return {"diagnostic_reviews": list(self.diagnostic_reviews.values()),
+        return {**({"program_analysis": self.program_analysis, "program_conflicts": self.program_conflicts()}
+                    if self.program_analysis is not None else {}),
+                "diagnostic_reviews": list(self.diagnostic_reviews.values()),
                 "function_reviews": list(self.function_reviews.values()),
                 "diagnostic_total": len(self.diagnostics), "function_total": len(self.units),
                 "loop_index_total": sum(unit.get("kind") == "loop_index" for unit in self.units.values()),
                 "units": list(self.units.values()),
                 "pending": pending, "complete": not any(pending.values()) and self.followup() is None,
                 "followup_performed": self.followup_performed,
+                "program_reconciliations": self.program_reconciliations,
+                "blocked_withdrawals": self.blocked_withdrawals,
+                "program_resolved_units": self.program_units,
                 "withdrawn_findings": [{"finding_id": key, "reason": value} for key, value in self.withdrawals.items()],
                 "ignored_records": self.ignored_records,
                 "limitation": "记录仅证明已逐项提交处理意见，不证明判断正确或没有遗漏。"}

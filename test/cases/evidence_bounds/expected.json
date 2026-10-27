@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "contract": "Expected SAFE/VIOLATION are conditional on ordinary list/builtin semantics and the reported path assumptions; UNDECIDED tests capability boundaries, not defect absence.",
+  "functions": {
+    "unsafe_for": [
+      "VIOLATION"
+    ],
+    "safe_trim": [
+      "SAFE"
+    ],
+    "guarded_safe": [
+      "SAFE"
+    ],
+    "negative_safe": [
+      "SAFE"
+    ],
+    "negative_bad": [
+      "VIOLATION"
+    ],
+    "comp_unsafe": [
+      "VIOLATION"
+    ],
+    "comp_safe": [
+      "SAFE"
+    ],
+    "empty_local": [
+      "SAFE"
+    ],
+    "mutated_unknown": [
+      "VIOLATION"
+    ],
+    "unknown_type": [
+      "UNDECIDED"
+    ],
+    "helper_unsafe": [
+      "VIOLATION"
+    ],
+    "unknown_helper": [
+      "UNDECIDED"
+    ],
+    "shadowed_len": [
+      "UNDECIDED"
+    ],
+    "reassigned_index": [
+      "VIOLATION"
+    ],
+    "early_break": [
+      "UNDECIDED"
+    ],
+    "else_guard": [
+      "VIOLATION"
+    ],
+    "dict_unknown": [
+      "UNDECIDED"
+    ],
+    "upper_only_negative": [
+      "VIOLATION"
+    ],
+    "unrelated_guard": [
+      "VIOLATION"
+    ],
+    "late_guard": [
+      "VIOLATION"
+    ],
+    "same_line": [
+      "SAFE",
+      "VIOLATION"
+    ],
+    "sliced_unknown": [
+      "UNDECIDED"
+    ],
+    "local_short": [
+      "VIOLATION"
+    ],
+    "helper_safe": [
+      "SAFE"
+    ]
+  }
+}

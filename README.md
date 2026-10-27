@@ -17,7 +17,154 @@
 ## 设计文档与流程图
 
 - [全流程设计文档](docs/design.md)：模块、数据、静态扫描、SBFL、模型工具、逐项补查、状态与已知限制。
+- [证据缺口驱动补查与程序验证方案](docs/evidence-driven-analysis.md)：首期已实现 Python 下标知识库、定向补查和成本启发式；说明设计、目的、效果与运行命令。
 - [离线流程图总览](docs/flowcharts.html)：整体流程、模型审查闭环、真实覆盖采集三张图，可用浏览器打开，无需联网。
+
+## 知识库与证据补查（新增，可选）
+
+默认仍使用原有 `checklist` 流程。增加 `--analysis-strategy evidence` 可开启 Python 下标检查：自动生成检查点、提取必要事实、对缺口补查，并按规则给出带前提的边界结论。无需调用模型即可运行；同时支持 `--model`，程序与模型意见分别保留，检测到的越界意见冲突会反馈复核并在报告中展示。
+
+```bash
+.venv/bin/evidence-review analyze test/cases/evidence_bounds/model_smoke.py \
+  --analysis-strategy evidence --evidence-policy cost --review-scope files \
+  --output reports/evidence-bounds
+
+# 主实验：同模型、同用例，比较改进前后（真实模型调用，默认三次配对）。
+.venv/bin/python test/run_before_after.py --model qwen3:8b \
+  --ollama-url http://127.0.0.1:11435 --model-context 40960 --repeats 3 \
+  --output test/results-before-after
+
+# 补充实验：仅比较程序补查策略，不是完整系统的前后对照。
+.venv/bin/python test/run_evidence_ablation.py \
+  --budgets 80 140 200 --output test/results-evidence-ablation
+```
+
+Windows 对应使用 `.\.venv\Scripts\evidence-review.exe` 与 `.\.venv\Scripts\python.exe`；将命令写在一行，或使用 PowerShell 的反引号换行。运行目录均为项目根目录。启用本地模型时，在分析命令后增加 `--model qwen3:8b`，并按服务地址设置 `--ollama-url`（工具默认端口 11434；项目内原服务常用 11435）。
+
+策略含义：`rules` 只做局部规则；`fixed` 固定顺序补查；`gaps` 按缺口顺序；`cost` 按可解释的收益成本启发式选择。尚未训练动作价值模型或实现联合动作搜索。新增能力使用现有依赖，无需额外安装求解器。
+
+预算参数为 `--max-evidence-actions`（默认 100）、`--evidence-budget`（相对成本，默认 200）、`--evidence-timeout`（秒，默认 30）。它们独立于模型预算；`top-k` 仍限制选中的文件或候选，报告记录未选择的访问。大批用例可提高动作预算。
+
+报告中的 `conditional_safe/conditional_violation` 依赖明确列出的类型、环境及路径前提，不是无条件证明或动态复现。类型不明、未知副作用、不支持控制流和语法错误保留不确定。消融脚本使用相同 25 处带标签访问，比较四种策略与不同预算；不调用模型，也不宣称模型 Token 已减少。结果详见输出目录的 `summary.md` 与 `summary.json`。
+
+### 扩展可靠性用例
+
+新增用例位于 `test/cases/evidence_bounds/reliability/`：4 个文件、37 个带下标访问的目标函数、40 处访问，覆盖真实越界、链式和合取保护、提前 `return/continue`、别名与辅助函数修改、未知调用、变量重绑定、不可达代码，以及同一行的名称/属性/除零问题。标签保存在独立的 `manifest.json`，不作为源码输入。
+
+```bash
+# 程序规则可靠性验证，无需模型；输出目录需为空。
+.venv/bin/python test/run_evidence_reliability.py --output test/results-evidence-reliability-new
+
+# 完整工程回归，含受控模板与原生 Python 列表的语义对照。
+.venv/bin/python -m pytest -q
+
+# 扫描四类新用例；40处访问需要高于默认值的证据预算。
+.venv/bin/python -m evidence_review analyze test/cases/evidence_bounds/reliability \
+  --analysis-strategy evidence --review-scope files --top-k 4 \
+  --max-evidence-actions 4000 --evidence-budget 8000 \
+  --output reports/evidence-reliability
+```
+
+规则增加上下界合取/链式比较和简单提前退出支持；仿射规则无法处理时，新增独立计费的 `counterexample` 动作，用白名单 AST 语义搜索可达越界路径，支持普通列表的 pop/append、别名、同文件辅助函数、嵌套/步长循环、整数乘法和条件。它不执行目标 Python，也不调用任意对象方法。搜索入口列表长度 0–8、整数 -2–8，最多 256 组输入、每组 3000 步、总计 100000 步、调用深度 4；**找到反例才判风险，搜索失败保持未知，不证明安全**。见证分别记录入口参数和访问时的长度，避免把 pop 后空列表误写成入口为空。未知回调、自定义容器、语法错误等继续交给模型。规则期望符合率包含“应当未知”，不能当作缺陷检出率；报告单列真实缺陷漏检。`test/results-evidence-reliability/summary.md` 保留本次修复前后的离线结果；它与五组真实模型对照分别统计。完整策略在这批 40 处访问中为 15 处风险、13 处条件安全、12 处未知，15 处真实危险全部检出，无安全访问误报或危险误判安全。`rules` 禁用辅助函数补查，故单独保留 1 处漏检。pytest 共 290 项通过，另含 1512 个保护模板及 98 个有界路径模板的原生语义对照；这些数量不能当作独立真实项目样本。正式模型对照须先通过这批可靠性前置检查，源码冻结后再运行。
+
+前后对照使用当前代码的 `checklist`（未启用新增证据模块）与 `evidence`（三方案首期组合），共同修复保持一致，不是回退到历史提交。两组均按文件审查，使用相同模型、输入源码、上下文上限和模型轮次上限；顺序交替，每次先预热模型。记录总耗时、模型耗时、实际请求轮次、工具调用和 Token；标签独立保存于测试脚本，不会发送给分析器。新增证据模块的计算和模型上下文开销计入新方案耗时。对照脚本默认显式设置两组 `--model-context 40960`（Ollama 的 token 上限），并记录实际加载的上下文和逐轮 token 用量；它与 `--context-chars 30000`（返回的源码证据字符预算）不是同一参数。直接使用分析命令时可同样传入 `--model-context`，未指定则沿用服务默认值。增大上下文会增加内存需求，需在机器可承受范围内设置，并给后续模型输出和历史消息留空间；单纯使用相同服务默认值不保证两组完整输入都能容纳。
+
+`summary.md` 展示前后对比，`runs.json` 保存命令、源码/代码哈希和模型摘要，各组目录保留原始报告和轨迹。缺陷指标必须先逐条阅读报告，填写 `adjudication.json` 中每次运行的 `final` 语义裁决，再运行 `.venv/bin/python test/run_before_after.py --summarize-only --output test/results-before-after`。状态为 `tp` 时填写真实缺陷 `labels` 和 `reason`；`fp` 填写去重键 `issue_key`、可对应的安全标签及理由；本次 IndexError 范围外用 `out_of_scope` 并说明理由。不能仅凭行号匹配自动判定正确。汇总统计去重后的 TP/FP/FN、精确率、召回率、安全对照误报率，并列出新增检出与反向漏报；失败或未完成的运行不视为效率提升。已有结果目录禁止覆盖，再跑时换一个输出目录。六处教学访问只能提供初步证据，不能代表真实项目总体性能。
+
+准确性与效率分开评价：准确性使用完整检查后的最终问题，不按时间给结论加分。效率先核对 `adjudication.json` 的 `rounds`（键是报告各 review.trace 顺序展开后的事件序号，从 0 开始，值包含该次正式提交正确提出的 `labels` 与 `reason`），再比较检出同一组真实问题所需的模型轮数。未提出正确问题的提交也填写空 `labels` 和理由。报告分别列出模型首次正确检出、包含程序结果的首次检出、最终复核轮次。程序阶段 0 表示尚未请求模型，仍有程序动作和耗时。预设完整目标 A/C/E 未被两组都达到时，不计算完整目标加速；共同检出交集的轮次比较仅作为探索性结果。不同最终检出集合的总耗时只作资源记录，不能据此声称效率提高。
+
+此前单对六处访问的有效对照见 `test/results-before-after-context40k/summary.md`（一对六处访问）：最终正式正确检出由 1/3 增至 3/3，模型单独为 1/3 至 2/3；安全对照均无最终越界误报。共同问题的模型首次检出均为第 1 轮，完整复核由 2 轮增至 3 轮，尚无轮次减少证据。默认 16384-token 批次的新输入超限，已标记无效，不合并计分。完整语义说明见设计文档；运行报告可重建，不要求提交到 Git。
+
+### 已知误报的专项前后对照
+
+现有 `comparison.py` 中的 `case_e` 可直接复用：空列表时循环执行零次，是允许的正常路径；非空列表最后一次访问会越界，作为真实缺陷对照。原流程曾将正常空路径报为“空输入未处理”，新流程没有这条报警，同时保留非空越界。该已知误报专项为 **1 → 0，真实缺陷两组均检出**，不能外推为总体误报率下降。 **这只是输出差异，尚未证明新方案识别并纠正了该误报，也未证明整个新方案导致这一差异。** 新运行没有生成这条空输入报警，因而没有针对它的冲突反馈和撤回记录。
+
+```bash
+# 复用已有真实报告，不重新调用模型，也不修改原始报告。
+.venv/bin/python test/run_before_after.py --false-positive-regression \
+  --output test/results-before-after-context40k
+```
+
+输出 `false-positive-review.md` / `.json`，逐条判定依据保存在该目录 `adjudication.json` 各运行的 `false_positive_regression` 字段。新模式与原 `final`（IndexError 评分）分开，不能把先前范围外意见的重新分类冒充重新运行模型。它核对报告哈希、源码哈希、完成状态、已确认有效的上下文和模型摘要；缺失裁决显示待核，输入无效或报告变化则拒绝比较。换机器时先用前述命令生成真实前后报告，核对输入容量及逐条语义裁决后再使用本模式；不把旧报告当成新机器的运行结果。正常路径依据是 AST 与原生列表/range 语义，没有执行缺陷文件。
+
+
+### 固定同一误报，验证是否由新方案纠正
+
+另一个纠错对照把已有真实模型提交固定为共同起点：第 7 行安全访问误报 F2，与第 3 行真实越界 F1 同时交给两组。仅实验组增加程序证据与冲突反馈；两组沿用同一模型、源码、初始提交、复核指令和预算。后续复核调用真实模型，不将固定提交冒充本次模型生成。
+
+```bash
+.venv/bin/python test/run_before_after.py --correction-experiment \
+  --model qwen3:8b --ollama-url http://127.0.0.1:11435 \
+  --model-context 40960 --repeats 2 --max-rounds 2 \
+  --correction-reference reports/evidence-model-smoke/report.json \
+  --output test/results-fp-correction
+```
+
+需要保留含首轮原始提交的参考报告；普通源码包不包含被忽略的运行报告，换机器须一并复制该参考报告。已有结果目录拒绝覆盖。仅重新汇总时使用 `--summarize-correction --output test/results-fp-correction`。
+
+本次两对 AB/BA 结果一致：**两组都撤回 F2，所以没有证明新方案额外消除了这条误报。** 新流程有 SAFE 证据→冲突反馈→明确引用程序校验的撤回记录；旧流程自行撤回 F2，同时错误撤回 F1；新流程保留 F1。观察到的优势是保留真实问题，不能换成“误报消除是新增方案造成”的结论。见 `test/results-fp-correction/correction-experiment.md`，完整请求与回复在同名 JSON。首轮误报原本来自 evidence 集成运行，所以此项是固定起点的机制对照，不是旧方案自然生成误报的端到端复现，也不证明三个组件各自的贡献。
+
+### 多组完整前后对照与效果图
+
+`test/cases/evidence_bounds/matrix/` 固定了正向偏移、负索引、分支保护、辅助函数、空循环/固定长度五组用例，每组一个真实缺陷和一个安全对照。独立标签与源码摘要保存在 `manifest.json`，不会发送给模型。每组两次重复、AB/BA 交换顺序，共 20 次真实完整分析；不执行用例源码。此处比较同一代码版本的 `checklist` / `evidence` 开关，保留两组共同缺陷修复。
+
+```bash
+.venv/bin/python test/run_comparison_matrix.py \
+  --model qwen3:8b --ollama-url http://127.0.0.1:11435 \
+  --model-context 40960 --repeats 2 --max-rounds 4 \
+  --output test/results-comparison-matrix
+```
+
+脚本保存每次原始报告、轨迹和日志，并生成待填写的 `adjudication.json`。需逐条核对结论及触发条件，填写 `tp` / `fp` / `out_of_scope` 与理由，不能仅按报警行号自动判为正确。`tp` 关联真实缺陷标签；`fp` 使用稳定的 `issue_key` 去重，安全对照上的误报可关联安全标签；错误触发条件出现在真实缺陷行时仍记错误主张。原始报告摘要必须匹配，未完成裁决或缺失运行时不会生成完整效果图。
+
+图表依赖只在绘图时需要，不影响分析工具运行：
+
+```bash
+.venv/bin/python -m pip install matplotlib==3.11.2
+.venv/bin/python test/plot_comparison_matrix.py --output test/results-comparison-matrix
+```
+
+对已有旧流程最终误报，可再冻结其真实首轮提交，做同一起点的纠错对照（首轮回放不计为新模型调用）。此模式读取已有逐条裁决，只接受有效的旧流程误报报告；当前支持首轮 F1 为真实问题、F2 为安全对照误报的用例：
+
+```bash
+.venv/bin/python test/run_comparison_matrix.py \
+  --replay-reference test/results-comparison-matrix/guard/01-checklist/report.json \
+  --repeats 1 --max-rounds 2 --output test/results-comparison-matrix
+```
+
+完整请求和撤回轨迹另存 `mechanism-replay.json`，不会混入 20 次完整分析的统计；重新运行绘图脚本会把定点验证结果补入同一报告。
+
+输出 `summary.md`（逐组代码与结果）、`summary.json`、`comparison.png`、`case-matrix.png`。中文字体默认寻找 macOS Arial Unicode、Windows 微软雅黑或 Linux Noto Sans CJK，也可用 `--font` 指定。重复运行选择新输出目录，避免覆盖证据。按真实缺陷去重统计模型＋程序结果，另列模型单独检出与所有错误主张；程序正确结果不会抵消模型误报。最终输出差异与程序反证→撤回的机制记录分开，重复运行不能冒充独立项目样本。
+
+上一批未做本轮退步修复的 5 组 × 2 次重复结果见 `test/results-comparison-matrix/summary.md`：最终系统（程序＋模型去重）正确检出 **6/10 → 10/10**，漏检 **4 → 0**，错误问题项 **2 → 4**，无漏检且无误报的完整运行 **4/10 → 6/10**。模型最终正确检出 **6/10 → 4/10** 单独用于解释来源。`comparison.png` 以最终系统结果为主，`summary.md` 增加各组最终正确检出、漏检、错误项及整次运行正确性对照；这是标签核对后的实验综合计分，不代表已有完善的自动裁决。分支组旧误报被移除且通过额外同起点对照支持归因，但辅助函数组新增安全说明误报，正向偏移组新增错误触发条件，不能声称整体误报下降。图表、全部代码示例和真实轨迹均保留；本次补充 8 项实验校验，完整回归 196 项通过。
+
+### 退步修复及耗时、漏检、误报复测
+
+组合方案现在按源码哈希、访问 ID 和问题性质校正已支持的列表边界结论：SAFE 边界说明不再作为问题，VIOLATION 的触发条件由程序符号见证规范化；原始模型意见保留在 `audit.program_reconciliations`。同一行的其他问题和未知边界意见继续保留审查。程序校正条目的 `evidence_origin=program_verified`，属于程序参与的结果，不计为模型独立正确检出。矛盾撤回在 `audit.blocked_withdrawals` 留痕，不能撤回程序验证支持的风险。
+
+模型只接收精简结论与必要前提，完整事实账本仍在报告中。没有可用程序结论或仍有未知访问时保留原有复核，不据此提前结束。程序已完成的循环边界任务由程序记录，函数其他性质仍交给模型；缺项、未决意见和未验证问题才触发补查。`stage_timings` 和 `model_request_metrics` 分别记录扫描/证据/审查耗时，以及模型请求大小、加载、输入处理和生成耗时。
+
+```bash
+.venv/bin/python test/run_comparison_matrix.py \
+  --model qwen3:8b --ollama-url http://127.0.0.1:11435 \
+  --model-context 40960 --repeats 2 --max-rounds 4 \
+  --output test/results-optimized-comparison
+# 按原始结论及触发条件完成逐条裁决后：
+.venv/bin/python test/plot_comparison_matrix.py \
+  --output test/results-optimized-comparison \
+  --reference test/results-comparison-matrix --require-no-regression
+```
+
+此前优化批次实测报告见 `test/results-optimized-comparison/summary.md`：5 组、双重复、20 次真实分析全部完成且上下文有效；最终正确检出 **6/10 → 10/10**，漏检 **4 → 0**，误报问题项 **2 → 0**，无漏检且无误报的完整运行 **4/10 → 10/10**。平均全流程耗时 **125.95 → 41.73 秒/次**；检出相同真实问题的 6 对子集为 **176.15 → 42.07 秒/次**。模型请求总数 **22 → 16**，无新增错误主张，验收门槛通过。完整测试 **207 项通过**。以上限于本 Python 列表边界回归集，重复不是独立项目样本。
+
+实验期间分析器代码冻结。末尾补充“无证据或未知证据保留原复核”的保守回退，用已有真实提交逐轮验证本批结果及反馈完全一致；这是协议回归，不增加真实模型样本。可重新执行：
+
+```bash
+.venv/bin/python test/run_comparison_matrix.py \
+  --validate-recorded --output test/results-optimized-comparison
+```
+
+复测使用同批用例、模型和预算，在当前版本内比较 checklist/evidence；两组共享基础撤回校验。旧运行目录作为历史参考保留，不能把跨批次的耗时差直接归因为优化。输出仍为 `summary.md`、`summary.json` 和两张图，不另生成重复报告。主图展示全流程平均耗时、最终系统漏检和错误问题项；另列两组最终检出相同真实问题时的全流程耗时。完整运行包含扫描、补查、全部模型轮次和报告生成，排除两组相同的预热；不同检出集合不能直接声称同质量提速。
 
 ## 压缩包内容与使用方式
 
@@ -287,7 +434,7 @@ Python 显式 `for` / `while` 循环中的每处下标访问另建 `kind=loop_in
 
 当整文件审查只剩 `submit_review` 工具时，Ollama 使用 `format` JSON Schema 约束输出，再由程序转换为提交操作，减少字段、枚举和格式错误；仍需检索源码时使用原生工具调用。Qwen3 的普通约束提交阶段使用 `think=false`；包含循环下标任务时使用 `think=true`，并将单轮生成上限调为 8,192 tokens，以支持边界推理。实际请求配置记录在调用日志的 `transport.thinking_requested` 中。启用推理可能增加等待时间，且不保证消除误报或漏报；应结合正常对照评估。
 
-函数的“发现问题”记录可引用函数内模型认可的静态诊断，无需将同一诊断再复制成新的模型发现。模型的函数记录与问题清单矛盾时，程序保留原始提交，将该条处理意见标为 `inconclusive` 并注明程序一致性检查原因；不会反复重试到模型给出肯定回答。报告单独显示待确认数量。`completed` 表示提交和处理记录完整，不表示所有结论已经确认。
+函数的“发现问题”记录可引用函数内模型认可的静态诊断，无需将同一诊断再复制成新的模型发现。每次增量提交后，程序重新核对全部已有函数记录与当前诊断、问题清单及撤回状态。旧记录失去依据或出现矛盾时，进入待补查队列；仍有其他有效诊断或未撤回的问题时保留结论，并刷新依据。当前提交自身矛盾时，程序保留原始提交，将该条处理意见标为 `inconclusive` 并注明程序一致性检查原因；不会强迫模型给出肯定回答。预算耗尽但待补查项仍存在时，状态为 `budget_exhausted`。报告单独显示待确认数量。`completed` 表示提交和处理记录完整，不表示所有结论已经确认。
 
 若模型下载被中断，启动服务后运行 `./scripts/local-model.sh pull` 续传。模型首次加载需要时间，后续分析可复用已加载模型。模型权重、运行器及下载缓存均已加入 `.gitignore`。
 
@@ -319,7 +466,7 @@ Python 显式 `for` / `while` 循环中的每处下标访问另建 `kind=loop_in
 
 扫描器预先执行，其输出作为初始证据；Agent 通过只读查询补充上下文。程序调度函数，模型只提供工具名称与参数。没有任意 shell 工具，也不会自动修改源码或执行生成的补丁。
 
-最终结论只能是 `likely_issue`（疑似问题）、`likely_false_positive`（疑似误报）、`inconclusive`（无法判断）。候选复核模式由模型填写证据编号；整文件审查模式由程序根据模型提交的 `file`、`line` 关联已提供且覆盖该行的源码，并从各问题汇总总引用，模型无需重复填写 `evidence_ids`。报告会标注程序关联的引用，原始工具参数仍保留在调用记录中。兼容旧模型返回的引用，但虚构编号、错误位置或引用未读取的源码仍被拒绝。这个检查仅保证引用存在和位置对应，不证明推理正确。证据 ID 在单个候选内部有效。
+最终结论只能是 `likely_issue`（疑似问题）、`likely_false_positive`（疑似误报）、`inconclusive`（无法判断）。候选复核模式由模型填写证据编号；`likely_issue` / `likely_false_positive` 必须引用覆盖该候选主位置、全部聚合静态诊断位置及 SBFL 位置的源码。不能只引用函数开头或其他文件。长函数的目标位置超出前 80 行时，优先提供目标附近片段，再尝试提供函数开头；预算不足时仍需补读和引用，或提交 `inconclusive`。整文件审查模式由程序根据模型提交的 `file`、`line` 关联已提供且覆盖该行的源码，并从各问题汇总总引用，模型无需重复填写 `evidence_ids`。报告会标注程序关联的引用，原始工具参数仍保留在调用记录中。兼容旧模型返回的引用，但虚构编号、错误位置或引用未读取的源码仍被拒绝。这个检查仅保证引用存在和位置对应，不证明推理正确。证据 ID 在单个候选内部有效。
 
 读取范围从第 1 行开始。`read_lines` 的 `end` 超出文件末尾时返回实际可读取的部分，`range_adjusted` 标记截断；起点超出文件、反向范围、非法参数或未导入路径仍报错，并给出可用范围。重复读取同一片段会复用已有证据，避免重复消耗上下文字符预算。
 
@@ -442,3 +589,10 @@ tests/             算法、边界和真实扫描集成测试
 - **`doctor` 提示 LLVM 不可用**：普通静态分析可继续；需要真实 SBFL 时再安装版本匹配的 LLVM 工具链。
 
 AST 调用关系只是语法候选，尚未处理完整类型解析、函数指针、宏展开、导入别名及动态分派。C/C++ 作为同一语言组，JS/TS 作为同一语言组，Python 单独分组；查询不会把不同组中的同名函数直接连起来，但同组内的方法名仍可能存在歧义。嵌套函数内部的调用不会记到外层函数上。静态报警复核和 SBFL 排序的总体范式已有相关工作，这个原型的贡献定位是流程实现与可比较策略，不宣称首创。
+
+
+### 2026-10-25 修复后复测
+
+完整测试290项通过，扩展可靠性集的15处真实危险全部检出，程序安全误报3→0、危险误判安全1→0。原五组20次真实模型复测全部完成：最终正确检出 6/10 → 10/10，漏检 4 → 0，误报 2 → 0，完整平均耗时 169.61 → 62.27 秒。共同修复两组共享，方案专属改动通过开关隔离；不是历史提交还原。
+
+详见 `test/results-reliability-comparison/summary.md` 和 `docs/evidence-driven-analysis.md` 第九、十节；扩展集与真实模型对照口径不同，不混合计分。结果只限本Python边界回归集。

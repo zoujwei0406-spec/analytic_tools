@@ -377,3 +377,94 @@ def test_missing_type_checker_marks_scan_partial(tmp_path, monkeypatch):
     result = scan(Project(path))
     assert result["status"] == "partial"
     assert next(t for t in result["tools"] if t["tool"] == "pyright")["status"] == "unavailable"
+
+
+@pytest.mark.parametrize("new_verdict", ["likely_false_positive", "inconclusive"])
+@pytest.mark.parametrize("max_rounds", [2, 3])
+def test_regression_diagnostic_revision_reopens_stale_function(tmp_path, new_verdict, max_rounds):
+    project, candidate = setup_audit(tmp_path)
+
+    class Client:
+        calls = 0
+        first = None
+
+        def chat(self, messages, tools):
+            self.calls += 1
+            plan = json.loads(messages[1]["content"])["audit_plan"]
+            self.first, second = [unit["function_id"] for unit in plan["functions"]]
+            args = submission()
+            if self.calls == 1:
+                args["diagnostic_reviews"] = [{"diagnostic_id": "D1", "verdict": "likely_issue", "reason": "认可诊断"}]
+                args["function_reviews"] = [
+                    {"function_id": self.first, "verdict": "issue_found", "reason": "依据 D1"},
+                    {"function_id": second, "verdict": "no_issue_found", "reason": "暂未发现"}]
+            elif self.calls == 2:
+                args["diagnostic_reviews"] = [{"diagnostic_id": "D1", "verdict": new_verdict, "reason": "修订意见"}]
+                args["function_reviews"] = [{"function_id": second, "verdict": "no_issue_found", "reason": "完成复查"}]
+            else:
+                assert self.first in json.loads(messages[-1]["content"])["pending"]["functions"]
+                args["diagnostic_reviews"] = []
+                args["function_reviews"] = [{"function_id": self.first, "verdict": "inconclusive", "reason": "旧依据不再成立"}]
+            return respond(args)
+
+    client = Client()
+    result = review(project, candidate, client, max_rounds=max_rounds)
+    assert client.calls == max_rounds
+    assert result["trace"][1]["response"]["complete"] is False
+    if max_rounds == 2:
+        assert result["status"] == "budget_exhausted"
+        assert client.first in result["audit"]["pending"]["functions"]
+        assert not result["audit"]["complete"]
+        return
+    assert result["status"] == "completed"
+    row = next(row for row in result["audit"]["function_reviews"] if row["function_id"] == client.first)
+    assert row["verdict"] == "inconclusive" and "basis_diagnostics" not in row
+
+
+def test_regression_stale_function_at_round_limit_remains_pending(tmp_path):
+    project, candidate = setup_audit(tmp_path)
+    tracker = AuditTracker(project, candidate)
+    context = ContextTools(project, 10000)
+    context.call("read_lines", {"file": "sample.py", "start": 1, "end": 4})
+    first, second = tracker.units
+    tracker.accept({**submission(), "evidence_ids": ["E1"]}, {
+        "diagnostic_reviews": [{"diagnostic_id": "D1", "verdict": "likely_issue", "reason": "认可"}],
+        "function_reviews": [{"function_id": first, "verdict": "issue_found", "reason": "依据诊断"},
+                             {"function_id": second, "verdict": "no_issue_found", "reason": "暂未发现"}]}, context)
+    tracker.begin_followup()
+    tracker.accept({**submission(), "evidence_ids": ["E1"]}, {
+        "diagnostic_reviews": [{"diagnostic_id": "D1", "verdict": "likely_false_positive", "reason": "修订"}],
+        "function_reviews": [{"function_id": second, "verdict": "no_issue_found", "reason": "复查"}]}, context)
+    assert first in tracker.report()["pending"]["functions"]
+    assert tracker.report()["complete"] is False
+
+
+@pytest.mark.parametrize("independent_finding", [False, True])
+def test_regression_diagnostic_revision_preserves_remaining_support(tmp_path, independent_finding):
+    project, candidate = setup_audit(tmp_path)
+    candidate["diagnostics"].append({"id": "D2", "file": "sample.py", "line": 2, "rule": "test"})
+    tracker = AuditTracker(project, candidate)
+    context = ContextTools(project, 10000)
+    context.call("read_lines", {"file": "sample.py", "start": 1, "end": 4})
+    first = next(iter(tracker.units))
+    tracker.accept({**submission(2 if independent_finding else None), "evidence_ids": ["E1"]}, {
+        "diagnostic_reviews": [{"diagnostic_id": d, "verdict": "likely_issue", "reason": "认可"} for d in ("D1", "D2")],
+        "function_reviews": [{"function_id": first, "verdict": "issue_found", "reason": "发现问题"}]}, context)
+    tracker.accept({**submission(), "evidence_ids": ["E1"]}, {
+        "diagnostic_reviews": [{"diagnostic_id": "D1", "verdict": "likely_false_positive", "reason": "修订"}]}, context)
+    row = tracker.function_reviews[first]
+    assert row["verdict"] == "issue_found"
+    assert row.get("basis_diagnostics", []) == ([] if independent_finding else ["D2"])
+
+
+def test_regression_new_finding_reopens_old_no_issue_record(tmp_path):
+    project, candidate = setup_audit(tmp_path)
+    tracker = AuditTracker(project, candidate)
+    context = ContextTools(project, 10000)
+    context.call("read_lines", {"file": "sample.py", "start": 1, "end": 4})
+    first = next(iter(tracker.units))
+    tracker.accept({**submission(), "evidence_ids": ["E1"]}, {
+        "function_reviews": [{"function_id": first, "verdict": "no_issue_found", "reason": "暂未发现"}]}, context)
+    tracker.accept({**submission(2), "evidence_ids": ["E1"]}, {}, context)
+    assert first in tracker.pending()["functions"]
+    assert tracker.visible_review()["findings"]

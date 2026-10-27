@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .agent import Ollama, review
+from .evidence import analyze_evidence, access_candidates, candidate_analysis
+from .knowledge.python_subscript import PythonBounds
 from .coverage import collect, resolve_tool
 from .project import Project
 from .languages import LABELS
@@ -38,21 +40,46 @@ def positive(value):
 
 def analyze(args):
     started = time.monotonic()
+    timings = {}
     project = Project(Path(args.project), args.inputs)
     print(f"[1/4] 索引完成：{len(project.sources)} 个文件，{len(project.functions)} 个函数", flush=True)
     language_counts = dict(sorted(Counter(project.languages.values()).items()))
     print("      语言：" + "、".join(f"{LABELS[lang]} {count}" for lang, count in language_counts.items()), flush=True)
+    timings["index_seconds"] = time.monotonic() - started
+    phase_started = time.monotonic()
     scanner = scan(project, args.compile_commands)
+    timings["scanner_seconds"] = time.monotonic() - phase_started
+    phase_started = time.monotonic()
     print(f"[2/4] 静态扫描：{scanner['status']}，{len(scanner['diagnostics'])} 条诊断", flush=True)
     for tool in scanner["tools"]:
         print(f"      {tool['tool']}：{tool['status']}，{len(tool['diagnostics'])} 条诊断", flush=True)
     spectra = load_spectra(Path(args.spectra), project) if args.spectra else None
     sbfl = score_spectra(spectra)
     candidates = rank_candidates(project, scanner["diagnostics"], sbfl)
+    evidence_enabled = args.analysis_strategy == "evidence"
+    accesses = PythonBounds(project).accesses if evidence_enabled else []
+    if evidence_enabled:
+        candidates = access_candidates(project, candidates, accesses)
     if args.review_scope == "files":
         candidates = file_candidates(project, candidates)
     print(f"[3/4] SBFL：{sbfl['status']}，候选 {len(candidates)}，选择前 {min(args.top_k, len(candidates))} 个", flush=True)
-    client = Ollama(args.model, args.ollama_url, args.model_timeout) if args.model else None
+    timings["candidate_seconds"] = time.monotonic() - phase_started
+    phase_started = time.monotonic()
+    program_analysis = None
+    if evidence_enabled:
+        selected = candidates[:args.top_k]
+        selected_ids = {a["access_id"] for a in accesses if any(
+            candidate_analysis({"policy": args.evidence_policy, "claims": [a], "limitations": []}, c, project)["claims"]
+            for c in selected)}
+        program_analysis = analyze_evidence(project, files=list(dict.fromkeys(c["file"] for c in selected)),
+            policy=args.evidence_policy, max_actions=args.max_evidence_actions,
+            max_cost=args.evidence_budget, timeout=args.evidence_timeout, access_ids=selected_ids)
+        program_analysis["coverage"] = {"enumerated_accesses": len(accesses), "selected_accesses": len(selected_ids),
+                                        "unselected_accesses": len(accesses) - len(selected_ids)}
+        print(f"      证据分析：{len(selected_ids)}/{len(accesses)} 处访问，结果 {program_analysis['summary']['results']}", flush=True)
+    timings["evidence_seconds"] = time.monotonic() - phase_started
+    client_options = {"context_length": args.model_context} if args.model_context else {}
+    client = Ollama(args.model, args.ollama_url, args.model_timeout, **client_options) if args.model else None
     trace_path = Path(args.output).resolve() / "model-trace.jsonl"
     if client:
         trace_path.parent.mkdir(parents=True, exist_ok=True)
@@ -62,6 +89,7 @@ def analyze(args):
         with trace_path.open("a", encoding="utf-8") as stream:
             stream.write(json.dumps(event, ensure_ascii=False) + "\n")
 
+    phase_started = time.monotonic()
     reviews = []
     for candidate in candidates[:args.top_k]:
         action = f"模型复核（{args.model}）" if client else "提取上下文（未启用模型）"
@@ -69,10 +97,12 @@ def analyze(args):
         reviews.append(review(project, candidate, client, args.context_mode, args.context_chars,
                               args.max_rounds, args.max_calls,
                               progress=lambda message: print(f"        {message}", flush=True),
-                              trace_callback=trace_callback if client else None))
+                              trace_callback=trace_callback if client else None,
+                              program_analysis=candidate_analysis(program_analysis, candidate, project)))
+    timings["review_seconds"] = time.monotonic() - phase_started
     project.check_unchanged()
     report = {
-        "schema_version": 2, "project": str(project.root), "created_at": datetime.now(timezone.utc).isoformat(),
+        "schema_version": 3 if evidence_enabled else 2, "project": str(project.root), "created_at": datetime.now(timezone.utc).isoformat(),
         "model": args.model, "context_mode": args.context_mode, "review_scope": args.review_scope,
         "source_hashes": project.hashes(),
         "languages": project.languages,
@@ -85,17 +115,28 @@ def analyze(args):
                     "elapsed_seconds": round(time.monotonic() - started, 3)},
         "scanner": scanner, "sbfl": sbfl, "candidates": candidates, "reviews": reviews,
         "model_usage": client.usage if client else None,
-        "index_warnings": project.warnings, "limitations": LIMITATIONS,
+        "stage_timings": timings,
+        "model_request_metrics": getattr(client, "request_metrics", []) if client else [],
+        "model_context": args.model_context,
+        "index_warnings": project.warnings, "limitations": list(LIMITATIONS),
     }
+    if program_analysis is not None:
+        report["program_analysis"] = program_analysis
+        report["analysis_strategy"] = args.analysis_strategy
+        report["limitations"].extend(program_analysis["limitations"])
     output = write_report(report, Path(args.output).resolve())
     print(f"[4/4] 报告：{output}")
     if not client:
         print("未启用大模型：已完成真实静态扫描、候选排序与源码提取；没有生成模型结论。")
+        if program_analysis is not None:
+            print("已运行知识库规则与证据补查；程序条件判定请查看报告，不代表真实执行复现。")
     elif args.review_scope == "files":
         print(f"整文件审查：模型列出 {report['summary']['model_findings']} 个问题（未经执行验证）；原始静态诊断 {len(scanner['diagnostics'])} 条。")
     if scanner["status"] != "completed":
         print("扫描未完整完成：请查看报告中的扫描器状态。语法错误可能阻止后续规则检查。")
-    errors = scanner["status"] != "completed" or any(r["status"] in {"error", "budget_exhausted"} for r in reviews)
+    evidence_incomplete = program_analysis is not None and any(c["stop_reason"] in {"budget_exhausted", "timeout", "tool_error"}
+                                                            for c in program_analysis["claims"])
+    errors = evidence_incomplete or scanner["status"] != "completed" or any(r["status"] in {"error", "budget_exhausted"} for r in reviews)
     return 2 if errors else 0
 
 
@@ -119,6 +160,7 @@ def main(argv=None):
     analysis.add_argument("--model", help="启用 Ollama 模型；源码证据将发送到指定服务")
     analysis.add_argument("--ollama-url", default="http://localhost:11434")
     analysis.add_argument("--model-timeout", type=positive, default=180, help="每轮模型请求等待超时秒数，不是整个分析的总时限")
+    analysis.add_argument("--model-context", type=positive, help="显式指定 Ollama num_ctx（tokens）；未设置时使用服务默认值，区别于源码字符预算")
     analysis.add_argument("--top-k", type=positive, default=5)
     analysis.add_argument("--review-scope", choices=["candidates", "files"], default="candidates",
                           help="candidates 复核报警位置；files 按文件审查多个问题，包含无报警文件；top-k 限制所选数量")
@@ -126,6 +168,13 @@ def main(argv=None):
     analysis.add_argument("--context-chars", type=positive, default=14000, help="每个候选的证据字符预算")
     analysis.add_argument("--max-rounds", type=positive, default=6)
     analysis.add_argument("--max-calls", type=positive, default=10)
+    analysis.add_argument("--analysis-strategy", choices=["checklist", "evidence"], default="checklist",
+                          help="evidence 增加 Python 下标知识库、缺口补查和有限边界判定；默认保留原流程")
+    analysis.add_argument("--evidence-policy", choices=["rules", "fixed", "gaps", "cost"], default="cost",
+                          help="纯局部规则 / 固定顺序 / 缺口顺序 / 成本敏感启发式")
+    analysis.add_argument("--max-evidence-actions", type=positive, default=100)
+    analysis.add_argument("--evidence-budget", type=positive, default=200, help="程序证据工具的相对成本总预算，不是 token")
+    analysis.add_argument("--evidence-timeout", type=positive, default=30, help="证据分析时间上限秒数，当前工具为短时局部分析")
     analysis.add_argument("--output", default="reports/latest")
     coverage = commands.add_parser("collect", help="编译并在本机执行你信任的 C 测试，采集逐测试覆盖")
     coverage.add_argument("project")

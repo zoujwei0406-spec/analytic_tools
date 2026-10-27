@@ -1,0 +1,500 @@
+{
+  "schema_version": 1,
+  "kind": "authored_reliability_regressions",
+  "contract": "普通内置 list 和标准 len/range；代码仅作分析输入。expected 是规则能力期望，bounds_truth 是独立语义标签；UNDECIDED 不等于安全或没有缺陷。非模型实验，不是开源真实缺陷。",
+  "groups": [
+    {
+      "id": "defects",
+      "source": "cases/evidence_bounds/reliability/defects.py",
+      "sha256": "2f3adcbe83c2c5d504e6f4e86fce26d8d194c91c0db689dfb4073e57734992bc",
+      "functions": {
+        "forward_three": {
+          "reason": "n=2 时 i=0、k=3 越界。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 2,
+              "column": 13,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        },
+        "negative_three": {
+          "reason": "n=1 时 -3 超出负向下界。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 7,
+              "column": 16,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        },
+        "shrinking_loop": {
+          "reason": "pop 修改列表；n=1 即越界，通过受控 AST 反例路径验证。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 13,
+              "column": 16,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        },
+        "helper_shrinks": {
+          "reason": "辅助函数缩短列表；n=1 即越界，不能认证无副作用。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 23,
+              "column": 16,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe",
+              "expected_by_policy": {
+                "rules": "UNDECIDED"
+              }
+            }
+          ]
+        },
+        "nested_offset": {
+          "reason": "n=1 时内部 j+1 越界；通过有界嵌套路径验证。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 29,
+              "column": 20,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        },
+        "paired_access": {
+          "reason": "同一行两处访问应独立绑定；后一处在末轮越界。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 34,
+              "column": 16,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            },
+            {
+              "line": 34,
+              "column": 27,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        },
+        "incomplete_lower_guard": {
+          "reason": "上界保护不保证下界；n=1、i=0、k=-3 越界。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 40,
+              "column": 20,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "safe_controls",
+      "source": "cases/evidence_bounds/reliability/safe_controls.py",
+      "sha256": "29fe1c57ee1aab02071c8deff56a3e487b67adbf4bad9f018ec4fc6cd7fce9f3",
+      "functions": {
+        "chained_protection": {
+          "reason": "链式比较约束上下界。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 4,
+              "column": 20,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "conjunction_protection": {
+          "reason": "合取条件保证 -n<=k<n。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 10,
+              "column": 20,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "skip_last": {
+          "reason": "continue 排除危险末轮。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 17,
+              "column": 16,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "stop_at_last": {
+          "reason": "return 排除危险末轮。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 24,
+              "column": 16,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "negated_exit": {
+          "reason": "否定的越界条件导致提前退出。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 31,
+              "column": 16,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "nested_protection": {
+          "reason": "两层分支共同约束上下界。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 38,
+              "column": 24,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "filtered_negative": {
+          "reason": "列表推导式过滤约束有效负索引。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 42,
+              "column": 13,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "empty_iteration": {
+          "reason": "循环零次，访问不可达。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 48,
+              "column": 16,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "last_element": {
+          "reason": "仅非空时访问 -1。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 53,
+              "column": 16,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "standalone_return": {
+          "reason": "独立参数下标已保护，但当前域规则要求 range 循环。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 59,
+              "column": 12,
+              "expected": "UNDECIDED",
+              "bounds_truth": "safe"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "capability_boundaries",
+      "source": "cases/evidence_bounds/reliability/capability_boundaries.py",
+      "sha256": "6e0182d27830de861c8c41b0f88a733e170788f196b7a38adf7364c64badc7c2",
+      "functions": {
+        "alias_change": {
+          "reason": "别名修改，n=1 即越界。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 5,
+              "column": 16,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        },
+        "callback_change": {
+          "reason": "回调可缩短也可保留列表，缺少绑定和副作用。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 11,
+              "column": 16,
+              "expected": "UNDECIDED",
+              "bounds_truth": "conditional"
+            }
+          ]
+        },
+        "nonlinear_index": {
+          "reason": "n=3、i=2 时下标4越界，通过有界整数反例验证。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 16,
+              "column": 16,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        },
+        "custom_container": {
+          "reason": "自定义 __getitem__ 不保证普通列表语义。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 21,
+              "column": 16,
+              "expected": "UNDECIDED",
+              "bounds_truth": "conditional"
+            }
+          ]
+        },
+        "stepped_range": {
+          "reason": "n=1 时访问1；通过受控 range 语义验证。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 26,
+              "column": 16,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        },
+        "conditional_access": {
+          "reason": "条件表达式保护下标，当前尚不分析 IfExp。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 30,
+              "column": 13,
+              "expected": "UNDECIDED",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "unreachable_expression": {
+          "reason": "False 分支不执行该访问，不能伪造越界见证。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 34,
+              "column": 13,
+              "expected": "UNDECIDED",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "same_line_return": {
+          "reason": "同一行 return 后访问不可达。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 39,
+              "column": 24,
+              "expected": "UNDECIDED",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "loop_rebinds_container": {
+          "reason": "for 将容器重绑定成 int，会 TypeError，不能认证列表边界。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 44,
+              "column": 16,
+              "expected": "UNDECIDED",
+              "bounds_truth": "out_of_scope"
+            }
+          ]
+        },
+        "comprehension_rebinds_container": {
+          "reason": "推导式目标遮蔽列表名，会 TypeError。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 48,
+              "column": 13,
+              "expected": "UNDECIDED",
+              "bounds_truth": "out_of_scope"
+            }
+          ]
+        },
+        "imported_container": {
+          "reason": "导入覆盖容器名，len(module) TypeError。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 54,
+              "column": 16,
+              "expected": "UNDECIDED",
+              "bounds_truth": "out_of_scope"
+            }
+          ]
+        },
+        "shadowed_range": {
+          "reason": "range 参数未知，不能套用内置语义。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 58,
+              "column": 13,
+              "expected": "UNDECIDED",
+              "bounds_truth": "conditional"
+            }
+          ]
+        },
+        "unrelated_condition": {
+          "reason": "i>=0 无法保护 i+1 的上界，通过真实分支路径验证。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 64,
+              "column": 20,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        },
+        "compound_exit": {
+          "reason": "退出前已有访问；不能把含副作用的分支当作纯提前退出。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 70,
+              "column": 20,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            },
+            {
+              "line": 72,
+              "column": 16,
+              "expected": "UNDECIDED",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "stale_outer_guard": {
+          "reason": "保护在进入循环前使用旧 i，循环重新绑定 i 后保护失效；n=2、入参i=0时末轮越界。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 78,
+              "column": 20,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        },
+        "stale_exit_before_loop": {
+          "reason": "保护在进入循环前使用旧 i，循环重新绑定 i 后保护失效；n=2、入参i=0时末轮越界。",
+          "other_issue": null,
+          "accesses": [
+            {
+              "line": 85,
+              "column": 16,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "other_properties",
+      "source": "cases/evidence_bounds/reliability/other_properties.py",
+      "sha256": "15571de2159eea2e22081ec4e63befe044135257da1fb5467fe09149ef11c3cc",
+      "functions": {
+        "undefined_after_read": {
+          "reason": "边界安全不代表 missing_name 已定义。",
+          "other_issue": "NameError",
+          "accesses": [
+            {
+              "line": 3,
+              "column": 16,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "attribute_after_read": {
+          "reason": "list[int] 元素没有 missing_attribute，边界安全不能删属性问题。",
+          "other_issue": "AttributeError",
+          "accesses": [
+            {
+              "line": 8,
+              "column": 16,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "divide_after_read": {
+          "reason": "存在除零，保留未知及其他问题，不能全函数认证。",
+          "other_issue": "ZeroDivisionError",
+          "accesses": [
+            {
+              "line": 13,
+              "column": 16,
+              "expected": "UNDECIDED",
+              "bounds_truth": "safe"
+            }
+          ]
+        },
+        "distinct_same_line": {
+          "reason": "同一行安全、越界和名称错误必须分开处理。",
+          "other_issue": "NameError",
+          "accesses": [
+            {
+              "line": 18,
+              "column": 16,
+              "expected": "SAFE",
+              "bounds_truth": "safe"
+            },
+            {
+              "line": 18,
+              "column": 27,
+              "expected": "VIOLATION",
+              "bounds_truth": "unsafe"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
