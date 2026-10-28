@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Evidence Review · 程序分析报告</title><style>
+:root{color-scheme:light;--ink:#17283d;--muted:#63738a;--line:#dbe3eb;--accent:#13736e}*{box-sizing:border-box}body{margin:0;background:#f4f7fa;color:var(--ink);font:15px/1.7 system-ui,-apple-system,sans-serif}main{max-width:1120px;margin:auto;padding:42px 24px 80px}header{border-bottom:1px solid var(--line);padding-bottom:24px}h1{font-size:32px;letter-spacing:-1px;margin:8px 0}h2{font-size:20px;margin:6px 0}.eyebrow{color:var(--accent);font-size:12px;font-weight:700;letter-spacing:1px}.muted,.tags{color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}.stat,article{background:white;border:1px solid var(--line);border-radius:12px;padding:22px}.stat strong{display:block;font-size:30px}article{margin:16px 0}.warning{background:#fff2d5;color:#795013;border:1px solid #efd59c;border-radius:8px;padding:14px;margin:18px 0}details{border-top:1px solid var(--line);padding:10px 0}summary{cursor:pointer;color:var(--accent)}pre{background:#132237;color:#d9e7f4;padding:18px;border-radius:8px;overflow:auto;max-height:520px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid var(--line);padding:10px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.table-wrap{overflow-x:auto}footer{margin-top:28px;color:var(--muted);font-size:13px}@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}main{padding:24px 16px}h1{font-size:27px}}
+</style></head><body><main><header><div class="eyebrow">EVIDENCE REVIEW / 分析记录</div><h1>从候选问题到可追溯证据</h1><div class="muted">/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix · 2026-10-25T04:26:35.502033+00:00<br>扫描：completed · 模型：qwen3:8b · 上下文策略：adaptive</div></header>
+<div class="stats"><div class="stat">导入文件<strong>1</strong></div><div class="stat">原始诊断<strong>0</strong></div><div class="stat">候选 / 已选<strong>1 / 1</strong></div><div class="stat">模型问题（未经验证）<strong>1</strong></div></div>
+<p class="muted">审查范围：整文件多问题审查 · 模型列出问题：1（独立于原始静态诊断，可能重合）<br>SBFL：not_provided · 来源：未提供覆盖数据 · 通过 0 / 失败 0 / 采集错误 0<br>优先级和可疑度均不是缺陷概率；模型结论仅为复核意见。</p>
+<article><h2>扫描器运行状态</h2><div class="table-wrap"><table><thead><tr><th>工具</th><th>语言</th><th>状态</th><th>诊断数</th><th>版本</th></tr></thead><tbody><tr><td>bandit</td><td>python</td><td>completed</td><td>0</td><td>bandit 1.9.4</td></tr><tr><td>ruff</td><td>python</td><td>completed</td><td>0</td><td>ruff 0.17.1</td></tr><tr><td>pyright</td><td>python</td><td>completed</td><td>0</td><td>1.1.414</td></tr></tbody></table></div></article>
+<article><h2>知识库判定与证据补查</h2><p>策略：cost；访问 2 处，动作 12 次，相对成本 16。程序结果独立于模型意见；条件结论依赖列出的前提，未经真实执行复现。</p><p>检查范围：{&quot;enumerated_accesses&quot;: 2, &quot;selected_accesses&quot;: 2, &quot;unselected_accesses&quot;: 0}</p><div class="table-wrap"><table><tr><th>访问位置（UTF-8 字节列）</th><th>程序结果</th><th>依据及停止原因</th></tr><tr><td>guard.py:4:21<br><code>values[i - 2]</code></td><td>有前提的越界风险</td><td>bounds_rule · resolved<details><summary>前提、推导与事实</summary><pre>{
+  &quot;assumptions&quot;: [
+    &quot;标准 Python 内置 len/range 未被运行环境动态替换&quot;,
+    &quot;values 在此路径按普通内置 list 处理；类型注解不是运行时保证&quot;,
+    &quot;执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改&quot;
+  ],
+  &quot;derivation&quot;: {
+    &quot;rule&quot;: &quot;affine_range_v1&quot;,
+    &quot;length&quot;: &quot;n&quot;,
+    &quot;iteration&quot;: &quot;0 &lt;= i &lt; n - 0&quot;,
+    &quot;index&quot;: &quot;i + (-2)&quot;,
+    &quot;valid&quot;: &quot;-n &lt;= index &lt; n&quot;,
+    &quot;upper_guard&quot;: true,
+    &quot;lower_guard&quot;: false
+  },
+  &quot;witness&quot;: {
+    &quot;length&quot;: 1,
+    &quot;counter&quot;: 0,
+    &quot;index&quot;: -2,
+    &quot;kind&quot;: &quot;symbolic_bounds_witness_not_execution&quot;
+  },
+  &quot;missing&quot;: [],
+  &quot;facts&quot;: [
+    {
+      &quot;kind&quot;: &quot;bindings&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+      &quot;assumptions&quot;: [
+        &quot;标准 Python 内置 len/range 未被运行环境动态替换&quot;
+      ],
+      &quot;fact_id&quot;: &quot;e6b2b32ac014ac510e72&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;container&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+      &quot;assumptions&quot;: [
+        &quot;values 在此路径按普通内置 list 处理；类型注解不是运行时保证&quot;
+      ],
+      &quot;fact_id&quot;: &quot;42bdaedf23331d174c21&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;domain&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+      &quot;trim&quot;: 0,
+      &quot;offset&quot;: -2,
+      &quot;constant&quot;: null,
+      &quot;counter&quot;: &quot;i&quot;,
+      &quot;context_line&quot;: 2,
+      &quot;fact_id&quot;: &quot;6d6659f756ed32825ebe&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;effects&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+      &quot;calls&quot;: [],
+      &quot;fact_id&quot;: &quot;e7d2223fefc2e4add1fc&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;guards&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+      &quot;upper_guard&quot;: true,
+      &quot;lower_guard&quot;: false,
+      &quot;unsupported_guard&quot;: false,
+      &quot;conditions&quot;: [
+        &quot;Compare(left=BinOp(left=Name(id=&#x27;i&#x27;, ctx=Load()), op=Sub(), right=Constant(value=2)), ops=[Lt()], comparators=[Call(func=Name(id=&#x27;len&#x27;, ctx=Load()), args=[Name(id=&#x27;values&#x27;, ctx=Load())])])&quot;
+      ],
+      &quot;fact_id&quot;: &quot;0db29581059ec76b51a8&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;reachability&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+      &quot;assumptions&quot;: [
+        &quot;执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改&quot;
+      ],
+      &quot;fact_id&quot;: &quot;bbb45c81378681cb7318&quot;
+    }
+  ],
+  &quot;depends_on&quot;: [
+    &quot;e6b2b32ac014ac510e72&quot;,
+    &quot;42bdaedf23331d174c21&quot;,
+    &quot;6d6659f756ed32825ebe&quot;,
+    &quot;e7d2223fefc2e4add1fc&quot;,
+    &quot;0db29581059ec76b51a8&quot;,
+    &quot;bbb45c81378681cb7318&quot;
+  ]
+}</pre></details></td></tr><tr><td>guard.py:10:21<br><code>values[i + 1]</code></td><td>有前提的边界安全</td><td>bounds_rule · resolved<details><summary>前提、推导与事实</summary><pre>{
+  &quot;assumptions&quot;: [
+    &quot;标准 Python 内置 len/range 未被运行环境动态替换&quot;,
+    &quot;values 在此路径按普通内置 list 处理；类型注解不是运行时保证&quot;,
+    &quot;执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改&quot;
+  ],
+  &quot;derivation&quot;: {
+    &quot;rule&quot;: &quot;affine_range_v1&quot;,
+    &quot;length&quot;: &quot;n&quot;,
+    &quot;iteration&quot;: &quot;0 &lt;= i &lt; n - 0&quot;,
+    &quot;index&quot;: &quot;i + (1)&quot;,
+    &quot;valid&quot;: &quot;-n &lt;= index &lt; n&quot;,
+    &quot;upper_guard&quot;: true,
+    &quot;lower_guard&quot;: false
+  },
+  &quot;missing&quot;: [],
+  &quot;facts&quot;: [
+    {
+      &quot;kind&quot;: &quot;bindings&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+      &quot;assumptions&quot;: [
+        &quot;标准 Python 内置 len/range 未被运行环境动态替换&quot;
+      ],
+      &quot;fact_id&quot;: &quot;a77250241c6ebb40020b&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;container&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+      &quot;assumptions&quot;: [
+        &quot;values 在此路径按普通内置 list 处理；类型注解不是运行时保证&quot;
+      ],
+      &quot;fact_id&quot;: &quot;0e81da142c5545fd70fe&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;domain&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+      &quot;trim&quot;: 0,
+      &quot;offset&quot;: 1,
+      &quot;constant&quot;: null,
+      &quot;counter&quot;: &quot;i&quot;,
+      &quot;context_line&quot;: 8,
+      &quot;fact_id&quot;: &quot;38a1f4cebd5c99c9464a&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;effects&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+      &quot;calls&quot;: [],
+      &quot;fact_id&quot;: &quot;01eb74ad0a816a395f47&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;guards&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+      &quot;upper_guard&quot;: true,
+      &quot;lower_guard&quot;: false,
+      &quot;unsupported_guard&quot;: false,
+      &quot;conditions&quot;: [
+        &quot;Compare(left=BinOp(left=Name(id=&#x27;i&#x27;, ctx=Load()), op=Add(), right=Constant(value=1)), ops=[Lt()], comparators=[Call(func=Name(id=&#x27;len&#x27;, ctx=Load()), args=[Name(id=&#x27;values&#x27;, ctx=Load())])])&quot;
+      ],
+      &quot;fact_id&quot;: &quot;b98e418ccddd78262d57&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;reachability&quot;,
+      &quot;status&quot;: &quot;supported&quot;,
+      &quot;origin&quot;: &quot;deterministic_analysis&quot;,
+      &quot;source_hash&quot;: &quot;9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49&quot;,
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+      &quot;assumptions&quot;: [
+        &quot;执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改&quot;
+      ],
+      &quot;fact_id&quot;: &quot;1dbebe6681bf19a5c31c&quot;
+    }
+  ],
+  &quot;depends_on&quot;: [
+    &quot;a77250241c6ebb40020b&quot;,
+    &quot;0e81da142c5545fd70fe&quot;,
+    &quot;38a1f4cebd5c99c9464a&quot;,
+    &quot;01eb74ad0a816a395f47&quot;,
+    &quot;b98e418ccddd78262d57&quot;,
+    &quot;1dbebe6681bf19a5c31c&quot;
+  ]
+}</pre></details></td></tr></table></div><details><summary>补查动作与成本</summary><pre>[
+  {
+    &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+    &quot;tool&quot;: &quot;bindings&quot;,
+    &quot;missing_before&quot;: [
+      &quot;bindings&quot;,
+      &quot;container&quot;,
+      &quot;domain&quot;,
+      &quot;guards&quot;,
+      &quot;effects&quot;,
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 1,
+    &quot;selection_reason&quot;: &quot;cost: 补充 bindings 证据&quot;,
+    &quot;fact_id&quot;: &quot;e6b2b32ac014ac510e72&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 8.9e-05
+  },
+  {
+    &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+    &quot;tool&quot;: &quot;bindings&quot;,
+    &quot;missing_before&quot;: [
+      &quot;bindings&quot;,
+      &quot;container&quot;,
+      &quot;domain&quot;,
+      &quot;guards&quot;,
+      &quot;effects&quot;,
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 1,
+    &quot;selection_reason&quot;: &quot;cost: 补充 bindings 证据&quot;,
+    &quot;fact_id&quot;: &quot;a77250241c6ebb40020b&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 5.3e-05
+  },
+  {
+    &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+    &quot;tool&quot;: &quot;container&quot;,
+    &quot;missing_before&quot;: [
+      &quot;container&quot;,
+      &quot;domain&quot;,
+      &quot;guards&quot;,
+      &quot;effects&quot;,
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 1,
+    &quot;selection_reason&quot;: &quot;cost: 补充 container 证据&quot;,
+    &quot;fact_id&quot;: &quot;42bdaedf23331d174c21&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 2.1e-05
+  },
+  {
+    &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+    &quot;tool&quot;: &quot;container&quot;,
+    &quot;missing_before&quot;: [
+      &quot;container&quot;,
+      &quot;domain&quot;,
+      &quot;guards&quot;,
+      &quot;effects&quot;,
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 1,
+    &quot;selection_reason&quot;: &quot;cost: 补充 container 证据&quot;,
+    &quot;fact_id&quot;: &quot;0e81da142c5545fd70fe&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 1.1e-05
+  },
+  {
+    &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+    &quot;tool&quot;: &quot;domain&quot;,
+    &quot;missing_before&quot;: [
+      &quot;domain&quot;,
+      &quot;guards&quot;,
+      &quot;effects&quot;,
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 1,
+    &quot;selection_reason&quot;: &quot;cost: 补充 domain 证据&quot;,
+    &quot;fact_id&quot;: &quot;6d6659f756ed32825ebe&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 4.8e-05
+  },
+  {
+    &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+    &quot;tool&quot;: &quot;domain&quot;,
+    &quot;missing_before&quot;: [
+      &quot;domain&quot;,
+      &quot;guards&quot;,
+      &quot;effects&quot;,
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 1,
+    &quot;selection_reason&quot;: &quot;cost: 补充 domain 证据&quot;,
+    &quot;fact_id&quot;: &quot;38a1f4cebd5c99c9464a&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 3.3e-05
+  },
+  {
+    &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+    &quot;tool&quot;: &quot;effects&quot;,
+    &quot;missing_before&quot;: [
+      &quot;guards&quot;,
+      &quot;effects&quot;,
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 2,
+    &quot;selection_reason&quot;: &quot;cost: 补充 effects 证据&quot;,
+    &quot;fact_id&quot;: &quot;e7d2223fefc2e4add1fc&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 8.4e-05
+  },
+  {
+    &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+    &quot;tool&quot;: &quot;effects&quot;,
+    &quot;missing_before&quot;: [
+      &quot;guards&quot;,
+      &quot;effects&quot;,
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 2,
+    &quot;selection_reason&quot;: &quot;cost: 补充 effects 证据&quot;,
+    &quot;fact_id&quot;: &quot;01eb74ad0a816a395f47&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 7.8e-05
+  },
+  {
+    &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+    &quot;tool&quot;: &quot;guards&quot;,
+    &quot;missing_before&quot;: [
+      &quot;guards&quot;,
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 1,
+    &quot;selection_reason&quot;: &quot;cost: 补充 guards 证据&quot;,
+    &quot;fact_id&quot;: &quot;0db29581059ec76b51a8&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 9.2e-05
+  },
+  {
+    &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+    &quot;tool&quot;: &quot;guards&quot;,
+    &quot;missing_before&quot;: [
+      &quot;guards&quot;,
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 1,
+    &quot;selection_reason&quot;: &quot;cost: 补充 guards 证据&quot;,
+    &quot;fact_id&quot;: &quot;b98e418ccddd78262d57&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 5.5e-05
+  },
+  {
+    &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+    &quot;tool&quot;: &quot;reachability&quot;,
+    &quot;missing_before&quot;: [
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 2,
+    &quot;selection_reason&quot;: &quot;cost: 补充 reachability 证据&quot;,
+    &quot;fact_id&quot;: &quot;bbb45c81378681cb7318&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 0.000153
+  },
+  {
+    &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+    &quot;tool&quot;: &quot;reachability&quot;,
+    &quot;missing_before&quot;: [
+      &quot;reachability&quot;
+    ],
+    &quot;estimated_cost&quot;: 2,
+    &quot;selection_reason&quot;: &quot;cost: 补充 reachability 证据&quot;,
+    &quot;fact_id&quot;: &quot;1dbebe6681bf19a5c31c&quot;,
+    &quot;status&quot;: &quot;supported&quot;,
+    &quot;reason&quot;: null,
+    &quot;elapsed_seconds&quot;: 0.000152
+  }
+]</pre></details><p>解析未完成文件：[]</p></article>
+<article><div class="eyebrow">python · guard.py:1</div><h2>&lt;整文件审查&gt;</h2><div class="tags">RRF 优先级 0.00000 · SBFL 可疑度 0.000 · 静态诊断 0</div><p><strong>疑似问题</strong> · 逐项审查列出 1 个问题，复核撤回 0 项；详见处理记录。</p><p>建议：见各问题的修复建议。</p><p>引用：E2 · 缺失证据：</p><div class="finding"><h3>guard.py:4 · 列表下标存在条件越界</h3><p>程序规则为 values[i - 2] 给出符号见证：下标 -2 不在 [-1, 1) 内；这不是动态执行复现。</p><p><strong>触发条件：</strong>在程序列明的前提下，列表长度=1，下标=-2，循环变量=0。</p><p>建议：核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) &lt;= 下标 &lt; len(列表)。</p><p class="muted">程序校正规范结论，静态见证未经目标代码执行验证 · 引用：E2</p></div><p>提供源码：10 / 10 行（提供不等于逐行检查正确）。</p><h3>逐项审查记录</h3><p>静态诊断 0 / 0 条；函数、模块及操作单元 4 / 4 个（循环下标 2 个）；补查：已请求；待确认意见 0 条。处理意见不证明判断正确。</p><details><summary>程序证据校正记录（保留模型原意见）</summary><pre>[
+  {
+    &quot;original&quot;: {
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;line&quot;: 4,
+      &quot;title&quot;: &quot;列表下标越界风险&quot;,
+      &quot;explanation&quot;: &quot;在 case_a 函数中，i - 2 可能小于 0，导致 values[i - 2] 访问越界。&quot;,
+      &quot;condition&quot;: &quot;当 i = 0 时，i - 2 = -2，此时 values[i - 2] 会访问到列表的 -2 索引，这在 Python 中是合法的，但可能超出预期范围。&quot;,
+      &quot;suggestion&quot;: &quot;添加边界检查，确保 i - 2 不小于 0。&quot;,
+      &quot;issue_kind&quot;: &quot;index_bounds&quot;,
+      &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+      &quot;evidence_ids&quot;: [
+        &quot;E2&quot;
+      ],
+      &quot;evidence_origin&quot;: &quot;source_location&quot;
+    },
+    &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+    &quot;verdict&quot;: &quot;VIOLATION&quot;,
+    &quot;assumptions&quot;: [
+      &quot;标准 Python 内置 len/range 未被运行环境动态替换&quot;,
+      &quot;values 在此路径按普通内置 list 处理；类型注解不是运行时保证&quot;,
+      &quot;执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改&quot;
+    ],
+    &quot;resolution&quot;: &quot;condition_from_program_witness&quot;
+  },
+  {
+    &quot;original&quot;: {
+      &quot;file&quot;: &quot;guard.py&quot;,
+      &quot;line&quot;: 10,
+      &quot;title&quot;: &quot;列表下标越界风险&quot;,
+      &quot;explanation&quot;: &quot;在 case_b 函数中，i + 1 可能等于 len(values)，导致 values[i + 1] 访问越界。&quot;,
+      &quot;condition&quot;: &quot;当 i = len(values) - 1 时，i + 1 = len(values)，此时 values[i + 1] 会访问到列表的 len(values) 索引，这在 Python 中是非法的。&quot;,
+      &quot;suggestion&quot;: &quot;添加边界检查，确保 i + 1 小于 len(values)。&quot;,
+      &quot;issue_kind&quot;: &quot;index_bounds&quot;,
+      &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+      &quot;evidence_ids&quot;: [
+        &quot;E2&quot;
+      ],
+      &quot;evidence_origin&quot;: &quot;source_location&quot;
+    },
+    &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+    &quot;verdict&quot;: &quot;SAFE&quot;,
+    &quot;assumptions&quot;: [
+      &quot;标准 Python 内置 len/range 未被运行环境动态替换&quot;,
+      &quot;values 在此路径按普通内置 list 处理；类型注解不是运行时保证&quot;,
+      &quot;执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改&quot;
+    ],
+    &quot;resolution&quot;: &quot;safe_under_assumptions&quot;
+  }
+]</pre></details><details><summary>诊断与审查单元处理意见</summary><table><tr><th>对象</th><th>结论</th><th>理由</th></tr><tr><td>guard.py:4:21:loop-index<br><code>values[i - 2]</code></td><td>发现问题</td><td>程序条件判定：VIOLATION；仅覆盖此处列表边界，前提见程序证据。</td></tr><tr><td>guard.py:10:21:loop-index<br><code>values[i + 1]</code></td><td>未发现问题</td><td>程序条件判定：SAFE；仅覆盖此处列表边界，前提见程序证据。</td></tr><tr><td>guard.py:1:case_a</td><td>发现问题</td><td>发现列表下标越界问题，需添加边界检查。</td></tr><tr><td>guard.py:7:case_b</td><td>未发现问题</td><td>在 case_b 函数中，i + 1 的索引访问在 Python 中是合法的，因为 len(values) 是列表的长度，i + 1 的最大值为 len(values) - 1 + 1 = len(values)，此时访问 values[i + 1] 会越界。但根据程序分析，该访问在特定条件下是安全的。</td></tr></table></details><details><summary>E1 · candidate</summary><pre>{
+  &quot;evidence_id&quot;: &quot;E1&quot;,
+  &quot;kind&quot;: &quot;candidate&quot;,
+  &quot;candidate_id&quot;: &quot;guard.py:file-audit&quot;,
+  &quot;language&quot;: &quot;python&quot;,
+  &quot;diagnostics&quot;: [],
+  &quot;sbfl_lines&quot;: []
+}</pre></details><details><summary>E2 · guard.py:1–10</summary><pre>1: def case_a(values: list[int]):
+2:     for i in range(len(values)):
+3:         if i - 2 &lt; len(values):
+4:             _item = values[i - 2]
+5: 
+6: 
+7: def case_b(values: list[int]):
+8:     for i in range(len(values)):
+9:         if i + 1 &lt; len(values):
+10:             _item = values[i + 1]</pre></details><details><summary>工具调用记录（2 次）</summary><pre>[
+  {
+    &quot;round&quot;: 1,
+    &quot;tool&quot;: &quot;submit_review&quot;,
+    &quot;arguments&quot;: {
+      &quot;verdict&quot;: &quot;likely_issue&quot;,
+      &quot;summary&quot;: &quot;发现列表下标越界问题，需进一步验证边界条件。&quot;,
+      &quot;missing_evidence&quot;: [],
+      &quot;findings&quot;: [
+        {
+          &quot;file&quot;: &quot;guard.py&quot;,
+          &quot;line&quot;: 4,
+          &quot;title&quot;: &quot;列表下标越界风险&quot;,
+          &quot;explanation&quot;: &quot;在 case_a 函数中，i - 2 可能小于 0，导致 values[i - 2] 访问越界。&quot;,
+          &quot;condition&quot;: &quot;当 i = 0 时，i - 2 = -2，此时 values[i - 2] 会访问到列表的 -2 索引，这在 Python 中是合法的，但可能超出预期范围。&quot;,
+          &quot;suggestion&quot;: &quot;添加边界检查，确保 i - 2 不小于 0。&quot;,
+          &quot;issue_kind&quot;: &quot;index_bounds&quot;,
+          &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;
+        },
+        {
+          &quot;file&quot;: &quot;guard.py&quot;,
+          &quot;line&quot;: 10,
+          &quot;title&quot;: &quot;列表下标越界风险&quot;,
+          &quot;explanation&quot;: &quot;在 case_b 函数中，i + 1 可能等于 len(values)，导致 values[i + 1] 访问越界。&quot;,
+          &quot;condition&quot;: &quot;当 i = len(values) - 1 时，i + 1 = len(values)，此时 values[i + 1] 会访问到列表的 len(values) 索引，这在 Python 中是非法的。&quot;,
+          &quot;suggestion&quot;: &quot;添加边界检查，确保 i + 1 小于 len(values)。&quot;,
+          &quot;issue_kind&quot;: &quot;index_bounds&quot;,
+          &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;
+        }
+      ],
+      &quot;diagnostic_reviews&quot;: [],
+      &quot;function_reviews&quot;: [
+        {
+          &quot;function_id&quot;: &quot;guard.py:1:case_a&quot;,
+          &quot;verdict&quot;: &quot;issue_found&quot;,
+          &quot;reason&quot;: &quot;发现列表下标越界问题，需添加边界检查。&quot;
+        },
+        {
+          &quot;function_id&quot;: &quot;guard.py:7:case_b&quot;,
+          &quot;verdict&quot;: &quot;issue_found&quot;,
+          &quot;reason&quot;: &quot;发现列表下标越界问题，需添加边界检查。&quot;
+        }
+      ]
+    },
+    &quot;response&quot;: {
+      &quot;accepted&quot;: true,
+      &quot;complete&quot;: false,
+      &quot;program_conflicts&quot;: [],
+      &quot;conflict_instructions&quot;: &quot;program_conflicts 列出了模型与程序的条件结论冲突。逐一核对；如果没有具体不同前提，将误报 finding_id 填入 withdraw_findings 撤回。安全说明不应作为新问题放入 findings。&quot;,
+      &quot;task&quot;: &quot;补查尚未逐项处理的诊断和函数；对无问题结论再核对一次。已有 findings 保留，只提交新增问题。同时复核已有问题，位置校验不证明判断正确。将误判填入 withdraw_findings（finding_id、reason）撤回。不能凭空要求函数接受任意错误类型，也不能把正常的显式容器修改或空结果当成漏洞。逐个核对操作数类型、空输入、状态和安全约定。循环下标任务须独立计算首次/末次索引与偏移，检查保护条件和容器变化，不能只重复其他报警。对于越界意见，写出实际索引与长度的比较：len(a)-1 是合法最大正索引，len(a) 才越过正向边界；range(len(a)) 中 a[i] 在长度不变时合法。撤回把合法边界或切片误判为越界的发现。也独立检查实际调用的元素类型和更早的阻断错误。用简短 reason 记录结果；不能用未读源码得出无问题结论。&quot;,
+      &quot;pending&quot;: {
+        &quot;diagnostics&quot;: [],
+        &quot;functions&quot;: []
+      },
+      &quot;recheck_functions&quot;: [
+        &quot;guard.py:7:case_b&quot;
+      ],
+      &quot;verify_findings&quot;: [],
+      &quot;requested_function_records&quot;: [
+        {
+          &quot;function_id&quot;: &quot;guard.py:7:case_b&quot;,
+          &quot;name&quot;: &quot;case_b&quot;,
+          &quot;ranges&quot;: [
+            [
+              7,
+              10
+            ]
+          ]
+        }
+      ],
+      &quot;submission_rules&quot;: &quot;返回 findings、diagnostic_reviews、function_reviews 等提交字段；审查记录可只包含本次补充的条目，ID 必须来自 audit_plan。无新增问题时 findings=[]，verdict=inconclusive，不要重复已有问题。&quot;,
+      &quot;program_reconciliations&quot;: [
+        {
+          &quot;original&quot;: {
+            &quot;file&quot;: &quot;guard.py&quot;,
+            &quot;line&quot;: 4,
+            &quot;title&quot;: &quot;列表下标越界风险&quot;,
+            &quot;explanation&quot;: &quot;在 case_a 函数中，i - 2 可能小于 0，导致 values[i - 2] 访问越界。&quot;,
+            &quot;condition&quot;: &quot;当 i = 0 时，i - 2 = -2，此时 values[i - 2] 会访问到列表的 -2 索引，这在 Python 中是合法的，但可能超出预期范围。&quot;,
+            &quot;suggestion&quot;: &quot;添加边界检查，确保 i - 2 不小于 0。&quot;,
+            &quot;issue_kind&quot;: &quot;index_bounds&quot;,
+            &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+            &quot;evidence_ids&quot;: [
+              &quot;E2&quot;
+            ],
+            &quot;evidence_origin&quot;: &quot;source_location&quot;
+          },
+          &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+          &quot;verdict&quot;: &quot;VIOLATION&quot;,
+          &quot;assumptions&quot;: [
+            &quot;标准 Python 内置 len/range 未被运行环境动态替换&quot;,
+            &quot;values 在此路径按普通内置 list 处理；类型注解不是运行时保证&quot;,
+            &quot;执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改&quot;
+          ],
+          &quot;resolution&quot;: &quot;condition_from_program_witness&quot;
+        },
+        {
+          &quot;original&quot;: {
+            &quot;file&quot;: &quot;guard.py&quot;,
+            &quot;line&quot;: 10,
+            &quot;title&quot;: &quot;列表下标越界风险&quot;,
+            &quot;explanation&quot;: &quot;在 case_b 函数中，i + 1 可能等于 len(values)，导致 values[i + 1] 访问越界。&quot;,
+            &quot;condition&quot;: &quot;当 i = len(values) - 1 时，i + 1 = len(values)，此时 values[i + 1] 会访问到列表的 len(values) 索引，这在 Python 中是非法的。&quot;,
+            &quot;suggestion&quot;: &quot;添加边界检查，确保 i + 1 小于 len(values)。&quot;,
+            &quot;issue_kind&quot;: &quot;index_bounds&quot;,
+            &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+            &quot;evidence_ids&quot;: [
+              &quot;E2&quot;
+            ],
+            &quot;evidence_origin&quot;: &quot;source_location&quot;
+          },
+          &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+          &quot;verdict&quot;: &quot;SAFE&quot;,
+          &quot;assumptions&quot;: [
+            &quot;标准 Python 内置 len/range 未被运行环境动态替换&quot;,
+            &quot;values 在此路径按普通内置 list 处理；类型注解不是运行时保证&quot;,
+            &quot;执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改&quot;
+          ],
+          &quot;resolution&quot;: &quot;safe_under_assumptions&quot;
+        }
+      ]
+    },
+    &quot;transport&quot;: {
+      &quot;mode&quot;: &quot;json_schema&quot;,
+      &quot;done_reason&quot;: &quot;stop&quot;,
+      &quot;completion_tokens&quot;: 508,
+      &quot;thinking_requested&quot;: false
+    }
+  },
+  {
+    &quot;round&quot;: 2,
+    &quot;tool&quot;: &quot;submit_review&quot;,
+    &quot;arguments&quot;: {
+      &quot;verdict&quot;: &quot;inconclusive&quot;,
+      &quot;summary&quot;: &quot;已复核所有函数，未发现新的问题，但无法确认现有问题的边界条件是否完全正确。&quot;,
+      &quot;missing_evidence&quot;: [],
+      &quot;findings&quot;: [],
+      &quot;diagnostic_reviews&quot;: [],
+      &quot;function_reviews&quot;: [
+        {
+          &quot;function_id&quot;: &quot;guard.py:7:case_b&quot;,
+          &quot;verdict&quot;: &quot;no_issue_found&quot;,
+          &quot;reason&quot;: &quot;在 case_b 函数中，i + 1 的索引访问在 Python 中是合法的，因为 len(values) 是列表的长度，i + 1 的最大值为 len(values) - 1 + 1 = len(values)，此时访问 values[i + 1] 会越界。但根据程序分析，该访问在特定条件下是安全的。&quot;
+        }
+      ],
+      &quot;withdraw_findings&quot;: []
+    },
+    &quot;response&quot;: {
+      &quot;accepted&quot;: true,
+      &quot;complete&quot;: true,
+      &quot;program_reconciliations&quot;: [
+        {
+          &quot;original&quot;: {
+            &quot;file&quot;: &quot;guard.py&quot;,
+            &quot;line&quot;: 4,
+            &quot;title&quot;: &quot;列表下标越界风险&quot;,
+            &quot;explanation&quot;: &quot;在 case_a 函数中，i - 2 可能小于 0，导致 values[i - 2] 访问越界。&quot;,
+            &quot;condition&quot;: &quot;当 i = 0 时，i - 2 = -2，此时 values[i - 2] 会访问到列表的 -2 索引，这在 Python 中是合法的，但可能超出预期范围。&quot;,
+            &quot;suggestion&quot;: &quot;添加边界检查，确保 i - 2 不小于 0。&quot;,
+            &quot;issue_kind&quot;: &quot;index_bounds&quot;,
+            &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+            &quot;evidence_ids&quot;: [
+              &quot;E2&quot;
+            ],
+            &quot;evidence_origin&quot;: &quot;source_location&quot;
+          },
+          &quot;access_id&quot;: &quot;74daa5d809f9ff9b51c5&quot;,
+          &quot;verdict&quot;: &quot;VIOLATION&quot;,
+          &quot;assumptions&quot;: [
+            &quot;标准 Python 内置 len/range 未被运行环境动态替换&quot;,
+            &quot;values 在此路径按普通内置 list 处理；类型注解不是运行时保证&quot;,
+            &quot;执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改&quot;
+          ],
+          &quot;resolution&quot;: &quot;condition_from_program_witness&quot;
+        },
+        {
+          &quot;original&quot;: {
+            &quot;file&quot;: &quot;guard.py&quot;,
+            &quot;line&quot;: 10,
+            &quot;title&quot;: &quot;列表下标越界风险&quot;,
+            &quot;explanation&quot;: &quot;在 case_b 函数中，i + 1 可能等于 len(values)，导致 values[i + 1] 访问越界。&quot;,
+            &quot;condition&quot;: &quot;当 i = len(values) - 1 时，i + 1 = len(values)，此时 values[i + 1] 会访问到列表的 len(values) 索引，这在 Python 中是非法的。&quot;,
+            &quot;suggestion&quot;: &quot;添加边界检查，确保 i + 1 小于 len(values)。&quot;,
+            &quot;issue_kind&quot;: &quot;index_bounds&quot;,
+            &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+            &quot;evidence_ids&quot;: [
+              &quot;E2&quot;
+            ],
+            &quot;evidence_origin&quot;: &quot;source_location&quot;
+          },
+          &quot;access_id&quot;: &quot;80219b72a5aea5a210cf&quot;,
+          &quot;verdict&quot;: &quot;SAFE&quot;,
+          &quot;assumptions&quot;: [
+            &quot;标准 Python 内置 len/range 未被运行环境动态替换&quot;,
+            &quot;values 在此路径按普通内置 list 处理；类型注解不是运行时保证&quot;,
+            &quot;执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改&quot;
+          ],
+          &quot;resolution&quot;: &quot;safe_under_assumptions&quot;
+        }
+      ]
+    },
+    &quot;transport&quot;: {
+      &quot;mode&quot;: &quot;json_schema&quot;,
+      &quot;done_reason&quot;: &quot;stop&quot;,
+      &quot;completion_tokens&quot;: 189,
+      &quot;thinking_requested&quot;: false
+    }
+  }
+]</pre></details></article>
+<article><h2>保留的全部静态诊断</h2><div class="table-wrap"><table><thead><tr><th>ID</th><th>工具</th><th>位置</th><th>级别 / 规则</th><th>说明</th></tr></thead><tbody><tr><td colspan="5">没有静态诊断；请结合扫描状态判断。</td></tr></tbody></table></div></article>
+<article><h2>分析边界与运行提示</h2><ul><li>支持 C、C++、Python、JavaScript、TypeScript；AST 不执行预处理或完整类型/别名分析。成员调用、动态分派和同名函数均可能存在歧义。</li><li>Python 使用 Bandit、Ruff 和 Pyright basic 类型检查；Pyright 仅分析导入源码快照，不加载目标配置，不推断第三方库实现；未知类型仍可能漏报。JS/TS 使用固定 ESLint 规则，TypeScript 尚未接入 tsc 类型检查。</li><li>内置 collect 目前仅支持简单 C 程序；其他语言可导入符合格式的逐测试覆盖 JSON 进行 SBFL。</li><li>candidates 模式只复核静态诊断和 SBFL 候选；files 模式也审查无报警文件。top-k、源码读取预算和模型能力均可能导致遗漏，源码提供不代表检查正确。</li><li>SBFL 使用 Ochiai，可疑度不等于缺陷概率。RRF 是排序策略，其有效性尚需对照实验。</li><li>模型引用校验仅验证证据确实已返回，不证明推理正确。模型不能将问题标记为已动态复现。</li><li>整文件模式记录每条诊断及每个函数/模块单元的处理意见；Python 显式 for/while 循环中的下标访问另建独立任务并复查，语法错误时尝试使用恢复语法树。处理记录完整不代表判断正确，也不是新的静态越界证明。</li><li>context_chars 统计返回的证据字符数，不是 Token 数，也不包含重复发送历史消息的费用。</li><li>支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。</li><li>参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。</li><li>cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。</li></ul></article><footer>完整结构化结果与工具调用记录见同目录 report.json。证据编号在每个候选问题内部有效。</footer></main></body></html>

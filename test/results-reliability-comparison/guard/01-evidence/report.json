@@ -1,0 +1,1616 @@
+{
+  "schema_version": 3,
+  "project": "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix",
+  "created_at": "2026-10-25T04:25:12.490696+00:00",
+  "model": "qwen3:8b",
+  "context_mode": "adaptive",
+  "review_scope": "files",
+  "source_hashes": {
+    "guard.py": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49"
+  },
+  "languages": {
+    "guard.py": "python"
+  },
+  "summary": {
+    "files": 1,
+    "functions": 2,
+    "languages": {
+      "python": 1
+    },
+    "diagnostics": 0,
+    "candidates": 1,
+    "selected": 1,
+    "model_findings": 1,
+    "context_chars": 665,
+    "source_chars": 262,
+    "elapsed_seconds": 84.391
+  },
+  "scanner": {
+    "status": "completed",
+    "diagnostics": [],
+    "notes": [],
+    "tools": [
+      {
+        "tool": "bandit",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "bandit 1.9.4",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/bandit",
+          "--quiet",
+          "--ignore-nosec",
+          "--format",
+          "json",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/guard.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "ruff",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "ruff 0.17.1",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/ruff",
+          "check",
+          "--isolated",
+          "--no-cache",
+          "--ignore-noqa",
+          "--output-format",
+          "json",
+          "--select",
+          "E9,F63,F7,F82",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/guard.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "pyright",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "1.1.414",
+        "command": [
+          "/usr/local/bin/node",
+          "/Users/zoujingwei/analytic_tools/node_modules/pyright/index.js",
+          "--outputjson",
+          "--project",
+          "/var/folders/55/wd929yb13pggpy7z3cglvtp40000gn/T/evidence-pyright-l942j3n9/pyrightconfig.json"
+        ],
+        "diagnostics": [],
+        "notes": [],
+        "configuration": {
+          "mode": "basic",
+          "source": "imported-snapshots",
+          "target_config_loaded": false,
+          "library_code_inference": false
+        }
+      }
+    ],
+    "version": null,
+    "versions": {
+      "bandit": "bandit 1.9.4",
+      "ruff": "ruff 0.17.1",
+      "pyright": "1.1.414"
+    }
+  },
+  "sbfl": {
+    "status": "not_provided",
+    "lines": [],
+    "passed": 0,
+    "failed": 0,
+    "errors": 0
+  },
+  "candidates": [
+    {
+      "id": "guard.py:file-audit",
+      "function_id": null,
+      "file": "guard.py",
+      "line": 1,
+      "language": "python",
+      "name": "<整文件审查>",
+      "scope": "file",
+      "diagnostics": [],
+      "sbfl_lines": [],
+      "sbfl_score": 0.0,
+      "priority": 0.0
+    }
+  ],
+  "reviews": [
+    {
+      "candidate_id": "guard.py:file-audit",
+      "status": "completed",
+      "mode": "adaptive",
+      "review": {
+        "suggestion": "见各问题的修复建议。",
+        "evidence_ids": [
+          "E2"
+        ],
+        "verdict": "likely_issue",
+        "summary": "逐项审查列出 1 个问题，复核撤回 0 项；详见处理记录。",
+        "missing_evidence": [],
+        "findings": [
+          {
+            "file": "guard.py",
+            "line": 4,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[i - 2] 给出符号见证：下标 -2 不在 [-1, 1) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=1，下标=-2，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "74daa5d809f9ff9b51c5",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "74daa5d809f9ff9b51c5",
+            "finding_id": "F1"
+          }
+        ],
+        "withdrawn_findings": []
+      },
+      "trace": [
+        {
+          "round": 1,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "likely_issue",
+            "summary": "发现列表下标越界问题，需进一步验证边界条件。",
+            "missing_evidence": [],
+            "findings": [
+              {
+                "file": "guard.py",
+                "line": 4,
+                "title": "列表下标越界风险",
+                "explanation": "在 case_a 函数中，i - 2 可能小于 0，导致 values[i - 2] 访问越界。",
+                "condition": "当 i = 0 时，i - 2 = -2，此时 values[i - 2] 会访问到列表的 -2 索引，这在 Python 中是合法的，但可能超出预期范围。",
+                "suggestion": "添加边界检查，确保 i - 2 不小于 0。",
+                "issue_kind": "index_bounds",
+                "access_id": "74daa5d809f9ff9b51c5"
+              },
+              {
+                "file": "guard.py",
+                "line": 10,
+                "title": "列表下标越界风险",
+                "explanation": "在 case_b 函数中，i + 1 可能等于 len(values)，导致 values[i + 1] 访问越界。",
+                "condition": "当 i = len(values) - 1 时，i + 1 = len(values)，此时 values[i + 1] 会访问到列表的 len(values) 索引，这在 Python 中是非法的。",
+                "suggestion": "添加边界检查，确保 i + 1 小于 len(values)。",
+                "issue_kind": "index_bounds",
+                "access_id": "80219b72a5aea5a210cf"
+              }
+            ],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "guard.py:1:case_a",
+                "verdict": "issue_found",
+                "reason": "发现列表下标越界问题，需添加边界检查。"
+              },
+              {
+                "function_id": "guard.py:7:case_b",
+                "verdict": "issue_found",
+                "reason": "发现列表下标越界问题，需添加边界检查。"
+              }
+            ]
+          },
+          "response": {
+            "accepted": true,
+            "complete": false,
+            "program_conflicts": [],
+            "conflict_instructions": "program_conflicts 列出了模型与程序的条件结论冲突。逐一核对；如果没有具体不同前提，将误报 finding_id 填入 withdraw_findings 撤回。安全说明不应作为新问题放入 findings。",
+            "task": "补查尚未逐项处理的诊断和函数；对无问题结论再核对一次。已有 findings 保留，只提交新增问题。同时复核已有问题，位置校验不证明判断正确。将误判填入 withdraw_findings（finding_id、reason）撤回。不能凭空要求函数接受任意错误类型，也不能把正常的显式容器修改或空结果当成漏洞。逐个核对操作数类型、空输入、状态和安全约定。循环下标任务须独立计算首次/末次索引与偏移，检查保护条件和容器变化，不能只重复其他报警。对于越界意见，写出实际索引与长度的比较：len(a)-1 是合法最大正索引，len(a) 才越过正向边界；range(len(a)) 中 a[i] 在长度不变时合法。撤回把合法边界或切片误判为越界的发现。也独立检查实际调用的元素类型和更早的阻断错误。用简短 reason 记录结果；不能用未读源码得出无问题结论。",
+            "pending": {
+              "diagnostics": [],
+              "functions": []
+            },
+            "recheck_functions": [
+              "guard.py:7:case_b"
+            ],
+            "verify_findings": [],
+            "requested_function_records": [
+              {
+                "function_id": "guard.py:7:case_b",
+                "name": "case_b",
+                "ranges": [
+                  [
+                    7,
+                    10
+                  ]
+                ]
+              }
+            ],
+            "submission_rules": "返回 findings、diagnostic_reviews、function_reviews 等提交字段；审查记录可只包含本次补充的条目，ID 必须来自 audit_plan。无新增问题时 findings=[]，verdict=inconclusive，不要重复已有问题。",
+            "program_reconciliations": [
+              {
+                "original": {
+                  "file": "guard.py",
+                  "line": 4,
+                  "title": "列表下标越界风险",
+                  "explanation": "在 case_a 函数中，i - 2 可能小于 0，导致 values[i - 2] 访问越界。",
+                  "condition": "当 i = 0 时，i - 2 = -2，此时 values[i - 2] 会访问到列表的 -2 索引，这在 Python 中是合法的，但可能超出预期范围。",
+                  "suggestion": "添加边界检查，确保 i - 2 不小于 0。",
+                  "issue_kind": "index_bounds",
+                  "access_id": "74daa5d809f9ff9b51c5",
+                  "evidence_ids": [
+                    "E2"
+                  ],
+                  "evidence_origin": "source_location"
+                },
+                "access_id": "74daa5d809f9ff9b51c5",
+                "verdict": "VIOLATION",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换",
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "resolution": "condition_from_program_witness"
+              },
+              {
+                "original": {
+                  "file": "guard.py",
+                  "line": 10,
+                  "title": "列表下标越界风险",
+                  "explanation": "在 case_b 函数中，i + 1 可能等于 len(values)，导致 values[i + 1] 访问越界。",
+                  "condition": "当 i = len(values) - 1 时，i + 1 = len(values)，此时 values[i + 1] 会访问到列表的 len(values) 索引，这在 Python 中是非法的。",
+                  "suggestion": "添加边界检查，确保 i + 1 小于 len(values)。",
+                  "issue_kind": "index_bounds",
+                  "access_id": "80219b72a5aea5a210cf",
+                  "evidence_ids": [
+                    "E2"
+                  ],
+                  "evidence_origin": "source_location"
+                },
+                "access_id": "80219b72a5aea5a210cf",
+                "verdict": "SAFE",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换",
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "resolution": "safe_under_assumptions"
+              }
+            ]
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 508,
+            "thinking_requested": false
+          }
+        },
+        {
+          "round": 2,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "inconclusive",
+            "summary": "已复核所有函数，未发现新的问题，但无法确认现有问题的边界条件是否完全正确。",
+            "missing_evidence": [],
+            "findings": [],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "guard.py:7:case_b",
+                "verdict": "no_issue_found",
+                "reason": "在 case_b 函数中，i + 1 的索引访问在 Python 中是合法的，因为 len(values) 是列表的长度，i + 1 的最大值为 len(values) - 1 + 1 = len(values)，此时访问 values[i + 1] 会越界。但根据程序分析，该访问在特定条件下是安全的。"
+              }
+            ],
+            "withdraw_findings": []
+          },
+          "response": {
+            "accepted": true,
+            "complete": true,
+            "program_reconciliations": [
+              {
+                "original": {
+                  "file": "guard.py",
+                  "line": 4,
+                  "title": "列表下标越界风险",
+                  "explanation": "在 case_a 函数中，i - 2 可能小于 0，导致 values[i - 2] 访问越界。",
+                  "condition": "当 i = 0 时，i - 2 = -2，此时 values[i - 2] 会访问到列表的 -2 索引，这在 Python 中是合法的，但可能超出预期范围。",
+                  "suggestion": "添加边界检查，确保 i - 2 不小于 0。",
+                  "issue_kind": "index_bounds",
+                  "access_id": "74daa5d809f9ff9b51c5",
+                  "evidence_ids": [
+                    "E2"
+                  ],
+                  "evidence_origin": "source_location"
+                },
+                "access_id": "74daa5d809f9ff9b51c5",
+                "verdict": "VIOLATION",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换",
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "resolution": "condition_from_program_witness"
+              },
+              {
+                "original": {
+                  "file": "guard.py",
+                  "line": 10,
+                  "title": "列表下标越界风险",
+                  "explanation": "在 case_b 函数中，i + 1 可能等于 len(values)，导致 values[i + 1] 访问越界。",
+                  "condition": "当 i = len(values) - 1 时，i + 1 = len(values)，此时 values[i + 1] 会访问到列表的 len(values) 索引，这在 Python 中是非法的。",
+                  "suggestion": "添加边界检查，确保 i + 1 小于 len(values)。",
+                  "issue_kind": "index_bounds",
+                  "access_id": "80219b72a5aea5a210cf",
+                  "evidence_ids": [
+                    "E2"
+                  ],
+                  "evidence_origin": "source_location"
+                },
+                "access_id": "80219b72a5aea5a210cf",
+                "verdict": "SAFE",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换",
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "resolution": "safe_under_assumptions"
+              }
+            ]
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 189,
+            "thinking_requested": false
+          }
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "kind": "candidate",
+          "candidate_id": "guard.py:file-audit",
+          "language": "python",
+          "diagnostics": [],
+          "sbfl_lines": []
+        },
+        {
+          "evidence_id": "E2",
+          "kind": "source",
+          "file": "guard.py",
+          "language": "python",
+          "start": 1,
+          "end": 10,
+          "code": "1: def case_a(values: list[int]):\n2:     for i in range(len(values)):\n3:         if i - 2 < len(values):\n4:             _item = values[i - 2]\n5: \n6: \n7: def case_b(values: list[int]):\n8:     for i in range(len(values)):\n9:         if i + 1 < len(values):\n10:             _item = values[i + 1]",
+          "total_lines": 10,
+          "requested_range": {
+            "start": 1,
+            "end": 10
+          },
+          "range_adjusted": false,
+          "next_start": null
+        }
+      ],
+      "program_analysis": {
+        "policy": "cost",
+        "claims": [
+          {
+            "access_id": "74daa5d809f9ff9b51c5",
+            "rule": "python.list.index_bounds",
+            "file": "guard.py",
+            "line": 4,
+            "column": 21,
+            "end_line": 4,
+            "end_column": 34,
+            "start_byte": 116,
+            "end_byte": 129,
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "expression": "values[i - 2]",
+            "verdict": "VIOLATION",
+            "verification_result": "conditional_violation",
+            "terminal": true,
+            "missing": [],
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "derivation": {
+              "rule": "affine_range_v1",
+              "length": "n",
+              "iteration": "0 <= i < n - 0",
+              "index": "i + (-2)",
+              "valid": "-n <= index < n",
+              "upper_guard": true,
+              "lower_guard": false
+            },
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": -2,
+              "kind": "symbolic_bounds_witness_not_execution"
+            },
+            "depends_on": [
+              "e6b2b32ac014ac510e72",
+              "42bdaedf23331d174c21",
+              "6d6659f756ed32825ebe",
+              "e7d2223fefc2e4add1fc",
+              "0db29581059ec76b51a8",
+              "bbb45c81378681cb7318"
+            ],
+            "stop_reason": "resolved",
+            "facts": [
+              {
+                "kind": "bindings",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "74daa5d809f9ff9b51c5",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换"
+                ],
+                "fact_id": "e6b2b32ac014ac510e72"
+              },
+              {
+                "kind": "container",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "74daa5d809f9ff9b51c5",
+                "assumptions": [
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                ],
+                "fact_id": "42bdaedf23331d174c21"
+              },
+              {
+                "kind": "domain",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "74daa5d809f9ff9b51c5",
+                "trim": 0,
+                "offset": -2,
+                "constant": null,
+                "counter": "i",
+                "context_line": 2,
+                "fact_id": "6d6659f756ed32825ebe"
+              },
+              {
+                "kind": "effects",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "74daa5d809f9ff9b51c5",
+                "calls": [],
+                "fact_id": "e7d2223fefc2e4add1fc"
+              },
+              {
+                "kind": "guards",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "74daa5d809f9ff9b51c5",
+                "upper_guard": true,
+                "lower_guard": false,
+                "unsupported_guard": false,
+                "conditions": [
+                  "Compare(left=BinOp(left=Name(id='i', ctx=Load()), op=Sub(), right=Constant(value=2)), ops=[Lt()], comparators=[Call(func=Name(id='len', ctx=Load()), args=[Name(id='values', ctx=Load())])])"
+                ],
+                "fact_id": "0db29581059ec76b51a8"
+              },
+              {
+                "kind": "reachability",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "74daa5d809f9ff9b51c5",
+                "assumptions": [
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "fact_id": "bbb45c81378681cb7318"
+              }
+            ]
+          },
+          {
+            "access_id": "80219b72a5aea5a210cf",
+            "rule": "python.list.index_bounds",
+            "file": "guard.py",
+            "line": 10,
+            "column": 21,
+            "end_line": 10,
+            "end_column": 34,
+            "start_byte": 248,
+            "end_byte": 261,
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "expression": "values[i + 1]",
+            "verdict": "SAFE",
+            "verification_result": "conditional_safe",
+            "terminal": true,
+            "missing": [],
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "derivation": {
+              "rule": "affine_range_v1",
+              "length": "n",
+              "iteration": "0 <= i < n - 0",
+              "index": "i + (1)",
+              "valid": "-n <= index < n",
+              "upper_guard": true,
+              "lower_guard": false
+            },
+            "depends_on": [
+              "a77250241c6ebb40020b",
+              "0e81da142c5545fd70fe",
+              "38a1f4cebd5c99c9464a",
+              "01eb74ad0a816a395f47",
+              "b98e418ccddd78262d57",
+              "1dbebe6681bf19a5c31c"
+            ],
+            "stop_reason": "resolved",
+            "facts": [
+              {
+                "kind": "bindings",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "80219b72a5aea5a210cf",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换"
+                ],
+                "fact_id": "a77250241c6ebb40020b"
+              },
+              {
+                "kind": "container",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "80219b72a5aea5a210cf",
+                "assumptions": [
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                ],
+                "fact_id": "0e81da142c5545fd70fe"
+              },
+              {
+                "kind": "domain",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "80219b72a5aea5a210cf",
+                "trim": 0,
+                "offset": 1,
+                "constant": null,
+                "counter": "i",
+                "context_line": 8,
+                "fact_id": "38a1f4cebd5c99c9464a"
+              },
+              {
+                "kind": "effects",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "80219b72a5aea5a210cf",
+                "calls": [],
+                "fact_id": "01eb74ad0a816a395f47"
+              },
+              {
+                "kind": "guards",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "80219b72a5aea5a210cf",
+                "upper_guard": true,
+                "lower_guard": false,
+                "unsupported_guard": false,
+                "conditions": [
+                  "Compare(left=BinOp(left=Name(id='i', ctx=Load()), op=Add(), right=Constant(value=1)), ops=[Lt()], comparators=[Call(func=Name(id='len', ctx=Load()), args=[Name(id='values', ctx=Load())])])"
+                ],
+                "fact_id": "b98e418ccddd78262d57"
+              },
+              {
+                "kind": "reachability",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                "file": "guard.py",
+                "access_id": "80219b72a5aea5a210cf",
+                "assumptions": [
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "fact_id": "1dbebe6681bf19a5c31c"
+              }
+            ]
+          }
+        ],
+        "limitations": [
+          "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+          "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+          "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+        ]
+      },
+      "audit": {
+        "program_analysis": {
+          "policy": "cost",
+          "claims": [
+            {
+              "access_id": "74daa5d809f9ff9b51c5",
+              "rule": "python.list.index_bounds",
+              "file": "guard.py",
+              "line": 4,
+              "column": 21,
+              "end_line": 4,
+              "end_column": 34,
+              "start_byte": 116,
+              "end_byte": 129,
+              "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+              "expression": "values[i - 2]",
+              "verdict": "VIOLATION",
+              "verification_result": "conditional_violation",
+              "terminal": true,
+              "missing": [],
+              "reason": "bounds_rule",
+              "assumptions": [
+                "标准 Python 内置 len/range 未被运行环境动态替换",
+                "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+              ],
+              "derivation": {
+                "rule": "affine_range_v1",
+                "length": "n",
+                "iteration": "0 <= i < n - 0",
+                "index": "i + (-2)",
+                "valid": "-n <= index < n",
+                "upper_guard": true,
+                "lower_guard": false
+              },
+              "witness": {
+                "length": 1,
+                "counter": 0,
+                "index": -2,
+                "kind": "symbolic_bounds_witness_not_execution"
+              },
+              "depends_on": [
+                "e6b2b32ac014ac510e72",
+                "42bdaedf23331d174c21",
+                "6d6659f756ed32825ebe",
+                "e7d2223fefc2e4add1fc",
+                "0db29581059ec76b51a8",
+                "bbb45c81378681cb7318"
+              ],
+              "stop_reason": "resolved",
+              "facts": [
+                {
+                  "kind": "bindings",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "74daa5d809f9ff9b51c5",
+                  "assumptions": [
+                    "标准 Python 内置 len/range 未被运行环境动态替换"
+                  ],
+                  "fact_id": "e6b2b32ac014ac510e72"
+                },
+                {
+                  "kind": "container",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "74daa5d809f9ff9b51c5",
+                  "assumptions": [
+                    "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                  ],
+                  "fact_id": "42bdaedf23331d174c21"
+                },
+                {
+                  "kind": "domain",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "74daa5d809f9ff9b51c5",
+                  "trim": 0,
+                  "offset": -2,
+                  "constant": null,
+                  "counter": "i",
+                  "context_line": 2,
+                  "fact_id": "6d6659f756ed32825ebe"
+                },
+                {
+                  "kind": "effects",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "74daa5d809f9ff9b51c5",
+                  "calls": [],
+                  "fact_id": "e7d2223fefc2e4add1fc"
+                },
+                {
+                  "kind": "guards",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "74daa5d809f9ff9b51c5",
+                  "upper_guard": true,
+                  "lower_guard": false,
+                  "unsupported_guard": false,
+                  "conditions": [
+                    "Compare(left=BinOp(left=Name(id='i', ctx=Load()), op=Sub(), right=Constant(value=2)), ops=[Lt()], comparators=[Call(func=Name(id='len', ctx=Load()), args=[Name(id='values', ctx=Load())])])"
+                  ],
+                  "fact_id": "0db29581059ec76b51a8"
+                },
+                {
+                  "kind": "reachability",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "74daa5d809f9ff9b51c5",
+                  "assumptions": [
+                    "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                  ],
+                  "fact_id": "bbb45c81378681cb7318"
+                }
+              ]
+            },
+            {
+              "access_id": "80219b72a5aea5a210cf",
+              "rule": "python.list.index_bounds",
+              "file": "guard.py",
+              "line": 10,
+              "column": 21,
+              "end_line": 10,
+              "end_column": 34,
+              "start_byte": 248,
+              "end_byte": 261,
+              "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+              "expression": "values[i + 1]",
+              "verdict": "SAFE",
+              "verification_result": "conditional_safe",
+              "terminal": true,
+              "missing": [],
+              "reason": "bounds_rule",
+              "assumptions": [
+                "标准 Python 内置 len/range 未被运行环境动态替换",
+                "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+              ],
+              "derivation": {
+                "rule": "affine_range_v1",
+                "length": "n",
+                "iteration": "0 <= i < n - 0",
+                "index": "i + (1)",
+                "valid": "-n <= index < n",
+                "upper_guard": true,
+                "lower_guard": false
+              },
+              "depends_on": [
+                "a77250241c6ebb40020b",
+                "0e81da142c5545fd70fe",
+                "38a1f4cebd5c99c9464a",
+                "01eb74ad0a816a395f47",
+                "b98e418ccddd78262d57",
+                "1dbebe6681bf19a5c31c"
+              ],
+              "stop_reason": "resolved",
+              "facts": [
+                {
+                  "kind": "bindings",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "80219b72a5aea5a210cf",
+                  "assumptions": [
+                    "标准 Python 内置 len/range 未被运行环境动态替换"
+                  ],
+                  "fact_id": "a77250241c6ebb40020b"
+                },
+                {
+                  "kind": "container",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "80219b72a5aea5a210cf",
+                  "assumptions": [
+                    "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                  ],
+                  "fact_id": "0e81da142c5545fd70fe"
+                },
+                {
+                  "kind": "domain",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "80219b72a5aea5a210cf",
+                  "trim": 0,
+                  "offset": 1,
+                  "constant": null,
+                  "counter": "i",
+                  "context_line": 8,
+                  "fact_id": "38a1f4cebd5c99c9464a"
+                },
+                {
+                  "kind": "effects",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "80219b72a5aea5a210cf",
+                  "calls": [],
+                  "fact_id": "01eb74ad0a816a395f47"
+                },
+                {
+                  "kind": "guards",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "80219b72a5aea5a210cf",
+                  "upper_guard": true,
+                  "lower_guard": false,
+                  "unsupported_guard": false,
+                  "conditions": [
+                    "Compare(left=BinOp(left=Name(id='i', ctx=Load()), op=Add(), right=Constant(value=1)), ops=[Lt()], comparators=[Call(func=Name(id='len', ctx=Load()), args=[Name(id='values', ctx=Load())])])"
+                  ],
+                  "fact_id": "b98e418ccddd78262d57"
+                },
+                {
+                  "kind": "reachability",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+                  "file": "guard.py",
+                  "access_id": "80219b72a5aea5a210cf",
+                  "assumptions": [
+                    "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                  ],
+                  "fact_id": "1dbebe6681bf19a5c31c"
+                }
+              ]
+            }
+          ],
+          "limitations": [
+            "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+            "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+            "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+          ]
+        },
+        "program_conflicts": [],
+        "diagnostic_reviews": [],
+        "function_reviews": [
+          {
+            "function_id": "guard.py:4:21:loop-index",
+            "verdict": "issue_found",
+            "reason": "程序条件判定：VIOLATION；仅覆盖此处列表边界，前提见程序证据。",
+            "record_origin": "deterministic_analysis",
+            "access_id": "74daa5d809f9ff9b51c5"
+          },
+          {
+            "function_id": "guard.py:10:21:loop-index",
+            "verdict": "no_issue_found",
+            "reason": "程序条件判定：SAFE；仅覆盖此处列表边界，前提见程序证据。",
+            "record_origin": "deterministic_analysis",
+            "access_id": "80219b72a5aea5a210cf"
+          },
+          {
+            "function_id": "guard.py:1:case_a",
+            "verdict": "issue_found",
+            "reason": "发现列表下标越界问题，需添加边界检查。",
+            "basis_program": [
+              "74daa5d809f9ff9b51c5"
+            ]
+          },
+          {
+            "function_id": "guard.py:7:case_b",
+            "verdict": "no_issue_found",
+            "reason": "在 case_b 函数中，i + 1 的索引访问在 Python 中是合法的，因为 len(values) 是列表的长度，i + 1 的最大值为 len(values) - 1 + 1 = len(values)，此时访问 values[i + 1] 会越界。但根据程序分析，该访问在特定条件下是安全的。"
+          }
+        ],
+        "diagnostic_total": 0,
+        "function_total": 4,
+        "loop_index_total": 2,
+        "units": [
+          {
+            "function_id": "guard.py:1:case_a",
+            "name": "case_a",
+            "ranges": [
+              [
+                1,
+                4
+              ]
+            ]
+          },
+          {
+            "function_id": "guard.py:7:case_b",
+            "name": "case_b",
+            "ranges": [
+              [
+                7,
+                10
+              ]
+            ]
+          },
+          {
+            "function_id": "guard.py:4:21:loop-index",
+            "name": "循环下标访问",
+            "kind": "loop_index",
+            "ranges": [
+              [
+                4,
+                4
+              ]
+            ],
+            "context_ranges": [
+              [
+                2,
+                4
+              ]
+            ],
+            "access": "values[i - 2]",
+            "loop_controls": [
+              {
+                "line": 2,
+                "kind": "for_statement",
+                "target": "i",
+                "expression": "range(len(values))"
+              }
+            ],
+            "syntax_recovered": false,
+            "check": "独立核对本处访问：容器类型、循环首次/末次索引及偏移、空输入、保护条件、提前退出与容器变化。reason 简述实际边界或保护依据；不能以同函数的其他问题替代本处结论。区分 Python 负索引、切片和字典键语义。类型或可达性未知时注明条件或 inconclusive，语法错误后的风险须说明修复前置错误后才可能触发。"
+          },
+          {
+            "function_id": "guard.py:10:21:loop-index",
+            "name": "循环下标访问",
+            "kind": "loop_index",
+            "ranges": [
+              [
+                10,
+                10
+              ]
+            ],
+            "context_ranges": [
+              [
+                8,
+                10
+              ]
+            ],
+            "access": "values[i + 1]",
+            "loop_controls": [
+              {
+                "line": 8,
+                "kind": "for_statement",
+                "target": "i",
+                "expression": "range(len(values))"
+              }
+            ],
+            "syntax_recovered": false,
+            "check": "独立核对本处访问：容器类型、循环首次/末次索引及偏移、空输入、保护条件、提前退出与容器变化。reason 简述实际边界或保护依据；不能以同函数的其他问题替代本处结论。区分 Python 负索引、切片和字典键语义。类型或可达性未知时注明条件或 inconclusive，语法错误后的风险须说明修复前置错误后才可能触发。"
+          }
+        ],
+        "pending": {
+          "diagnostics": [],
+          "functions": []
+        },
+        "complete": true,
+        "followup_performed": true,
+        "program_reconciliations": [
+          {
+            "original": {
+              "file": "guard.py",
+              "line": 4,
+              "title": "列表下标越界风险",
+              "explanation": "在 case_a 函数中，i - 2 可能小于 0，导致 values[i - 2] 访问越界。",
+              "condition": "当 i = 0 时，i - 2 = -2，此时 values[i - 2] 会访问到列表的 -2 索引，这在 Python 中是合法的，但可能超出预期范围。",
+              "suggestion": "添加边界检查，确保 i - 2 不小于 0。",
+              "issue_kind": "index_bounds",
+              "access_id": "74daa5d809f9ff9b51c5",
+              "evidence_ids": [
+                "E2"
+              ],
+              "evidence_origin": "source_location"
+            },
+            "access_id": "74daa5d809f9ff9b51c5",
+            "verdict": "VIOLATION",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "resolution": "condition_from_program_witness"
+          },
+          {
+            "original": {
+              "file": "guard.py",
+              "line": 10,
+              "title": "列表下标越界风险",
+              "explanation": "在 case_b 函数中，i + 1 可能等于 len(values)，导致 values[i + 1] 访问越界。",
+              "condition": "当 i = len(values) - 1 时，i + 1 = len(values)，此时 values[i + 1] 会访问到列表的 len(values) 索引，这在 Python 中是非法的。",
+              "suggestion": "添加边界检查，确保 i + 1 小于 len(values)。",
+              "issue_kind": "index_bounds",
+              "access_id": "80219b72a5aea5a210cf",
+              "evidence_ids": [
+                "E2"
+              ],
+              "evidence_origin": "source_location"
+            },
+            "access_id": "80219b72a5aea5a210cf",
+            "verdict": "SAFE",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "resolution": "safe_under_assumptions"
+          }
+        ],
+        "blocked_withdrawals": [],
+        "program_resolved_units": {
+          "guard.py:4:21:loop-index": "74daa5d809f9ff9b51c5",
+          "guard.py:10:21:loop-index": "80219b72a5aea5a210cf"
+        },
+        "withdrawn_findings": [],
+        "ignored_records": [],
+        "limitation": "记录仅证明已逐项提交处理意见，不证明判断正确或没有遗漏。"
+      },
+      "context_chars": 665,
+      "source_coverage": {
+        "file": "guard.py",
+        "total_lines": 10,
+        "provided_lines": 10,
+        "complete": true
+      }
+    }
+  ],
+  "model_usage": {
+    "prompt_tokens": 8859,
+    "completion_tokens": 697,
+    "requests": 2,
+    "structured_requests": 2
+  },
+  "stage_timings": {
+    "index_seconds": 0.006784665980376303,
+    "scanner_seconds": 0.8377413750858977,
+    "candidate_seconds": 0.0010015410371124744,
+    "evidence_seconds": 0.0018954580882564187,
+    "review_seconds": 83.54031329206191
+  },
+  "model_request_metrics": [
+    {
+      "wall_seconds": 50.550858583068475,
+      "request_bytes": 20147,
+      "thinking_requested": false,
+      "load_duration_seconds": 0.000893458,
+      "prompt_eval_duration_seconds": 7.041289,
+      "eval_duration_seconds": 43.3825,
+      "total_duration_seconds": 50.549101917
+    },
+    {
+      "wall_seconds": 32.97988137498032,
+      "request_bytes": 34237,
+      "thinking_requested": false,
+      "load_duration_seconds": 0.001168833,
+      "prompt_eval_duration_seconds": 14.667477,
+      "eval_duration_seconds": 18.275814,
+      "total_duration_seconds": 32.969965875
+    }
+  ],
+  "model_context": 40960,
+  "index_warnings": [],
+  "limitations": [
+    "支持 C、C++、Python、JavaScript、TypeScript；AST 不执行预处理或完整类型/别名分析。成员调用、动态分派和同名函数均可能存在歧义。",
+    "Python 使用 Bandit、Ruff 和 Pyright basic 类型检查；Pyright 仅分析导入源码快照，不加载目标配置，不推断第三方库实现；未知类型仍可能漏报。JS/TS 使用固定 ESLint 规则，TypeScript 尚未接入 tsc 类型检查。",
+    "内置 collect 目前仅支持简单 C 程序；其他语言可导入符合格式的逐测试覆盖 JSON 进行 SBFL。",
+    "candidates 模式只复核静态诊断和 SBFL 候选；files 模式也审查无报警文件。top-k、源码读取预算和模型能力均可能导致遗漏，源码提供不代表检查正确。",
+    "SBFL 使用 Ochiai，可疑度不等于缺陷概率。RRF 是排序策略，其有效性尚需对照实验。",
+    "模型引用校验仅验证证据确实已返回，不证明推理正确。模型不能将问题标记为已动态复现。",
+    "整文件模式记录每条诊断及每个函数/模块单元的处理意见；Python 显式 for/while 循环中的下标访问另建独立任务并复查，语法错误时尝试使用恢复语法树。处理记录完整不代表判断正确，也不是新的静态越界证明。",
+    "context_chars 统计返回的证据字符数，不是 Token 数，也不包含重复发送历史消息的费用。",
+    "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+    "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+    "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+  ],
+  "program_analysis": {
+    "schema_version": 1,
+    "rule": {
+      "id": "python.list.index_bounds",
+      "version": 2,
+      "language": "python",
+      "property": "IndexError at an integer list subscript",
+      "obligations": [
+        "bindings",
+        "container",
+        "domain",
+        "guards",
+        "effects",
+        "reachability"
+      ],
+      "supported": "unit-step range(len(list)-c), affine index, direct guards, one comprehension generator; bounded AST counterexamples for list mutations, helpers, nested/stepped loops and integer arithmetic"
+    },
+    "policy": "cost",
+    "verification_enabled": true,
+    "claims": [
+      {
+        "access_id": "74daa5d809f9ff9b51c5",
+        "rule": "python.list.index_bounds",
+        "file": "guard.py",
+        "line": 4,
+        "column": 21,
+        "end_line": 4,
+        "end_column": 34,
+        "start_byte": 116,
+        "end_byte": 129,
+        "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+        "expression": "values[i - 2]",
+        "verdict": "VIOLATION",
+        "verification_result": "conditional_violation",
+        "terminal": true,
+        "missing": [],
+        "reason": "bounds_rule",
+        "assumptions": [
+          "标准 Python 内置 len/range 未被运行环境动态替换",
+          "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+          "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+        ],
+        "derivation": {
+          "rule": "affine_range_v1",
+          "length": "n",
+          "iteration": "0 <= i < n - 0",
+          "index": "i + (-2)",
+          "valid": "-n <= index < n",
+          "upper_guard": true,
+          "lower_guard": false
+        },
+        "witness": {
+          "length": 1,
+          "counter": 0,
+          "index": -2,
+          "kind": "symbolic_bounds_witness_not_execution"
+        },
+        "depends_on": [
+          "e6b2b32ac014ac510e72",
+          "42bdaedf23331d174c21",
+          "6d6659f756ed32825ebe",
+          "e7d2223fefc2e4add1fc",
+          "0db29581059ec76b51a8",
+          "bbb45c81378681cb7318"
+        ],
+        "stop_reason": "resolved",
+        "facts": [
+          {
+            "kind": "bindings",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "74daa5d809f9ff9b51c5",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换"
+            ],
+            "fact_id": "e6b2b32ac014ac510e72"
+          },
+          {
+            "kind": "container",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "74daa5d809f9ff9b51c5",
+            "assumptions": [
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+            ],
+            "fact_id": "42bdaedf23331d174c21"
+          },
+          {
+            "kind": "domain",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "74daa5d809f9ff9b51c5",
+            "trim": 0,
+            "offset": -2,
+            "constant": null,
+            "counter": "i",
+            "context_line": 2,
+            "fact_id": "6d6659f756ed32825ebe"
+          },
+          {
+            "kind": "effects",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "74daa5d809f9ff9b51c5",
+            "calls": [],
+            "fact_id": "e7d2223fefc2e4add1fc"
+          },
+          {
+            "kind": "guards",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "74daa5d809f9ff9b51c5",
+            "upper_guard": true,
+            "lower_guard": false,
+            "unsupported_guard": false,
+            "conditions": [
+              "Compare(left=BinOp(left=Name(id='i', ctx=Load()), op=Sub(), right=Constant(value=2)), ops=[Lt()], comparators=[Call(func=Name(id='len', ctx=Load()), args=[Name(id='values', ctx=Load())])])"
+            ],
+            "fact_id": "0db29581059ec76b51a8"
+          },
+          {
+            "kind": "reachability",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "74daa5d809f9ff9b51c5",
+            "assumptions": [
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "fact_id": "bbb45c81378681cb7318"
+          }
+        ]
+      },
+      {
+        "access_id": "80219b72a5aea5a210cf",
+        "rule": "python.list.index_bounds",
+        "file": "guard.py",
+        "line": 10,
+        "column": 21,
+        "end_line": 10,
+        "end_column": 34,
+        "start_byte": 248,
+        "end_byte": 261,
+        "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+        "expression": "values[i + 1]",
+        "verdict": "SAFE",
+        "verification_result": "conditional_safe",
+        "terminal": true,
+        "missing": [],
+        "reason": "bounds_rule",
+        "assumptions": [
+          "标准 Python 内置 len/range 未被运行环境动态替换",
+          "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+          "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+        ],
+        "derivation": {
+          "rule": "affine_range_v1",
+          "length": "n",
+          "iteration": "0 <= i < n - 0",
+          "index": "i + (1)",
+          "valid": "-n <= index < n",
+          "upper_guard": true,
+          "lower_guard": false
+        },
+        "depends_on": [
+          "a77250241c6ebb40020b",
+          "0e81da142c5545fd70fe",
+          "38a1f4cebd5c99c9464a",
+          "01eb74ad0a816a395f47",
+          "b98e418ccddd78262d57",
+          "1dbebe6681bf19a5c31c"
+        ],
+        "stop_reason": "resolved",
+        "facts": [
+          {
+            "kind": "bindings",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "80219b72a5aea5a210cf",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换"
+            ],
+            "fact_id": "a77250241c6ebb40020b"
+          },
+          {
+            "kind": "container",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "80219b72a5aea5a210cf",
+            "assumptions": [
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+            ],
+            "fact_id": "0e81da142c5545fd70fe"
+          },
+          {
+            "kind": "domain",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "80219b72a5aea5a210cf",
+            "trim": 0,
+            "offset": 1,
+            "constant": null,
+            "counter": "i",
+            "context_line": 8,
+            "fact_id": "38a1f4cebd5c99c9464a"
+          },
+          {
+            "kind": "effects",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "80219b72a5aea5a210cf",
+            "calls": [],
+            "fact_id": "01eb74ad0a816a395f47"
+          },
+          {
+            "kind": "guards",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "80219b72a5aea5a210cf",
+            "upper_guard": true,
+            "lower_guard": false,
+            "unsupported_guard": false,
+            "conditions": [
+              "Compare(left=BinOp(left=Name(id='i', ctx=Load()), op=Add(), right=Constant(value=1)), ops=[Lt()], comparators=[Call(func=Name(id='len', ctx=Load()), args=[Name(id='values', ctx=Load())])])"
+            ],
+            "fact_id": "b98e418ccddd78262d57"
+          },
+          {
+            "kind": "reachability",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+            "file": "guard.py",
+            "access_id": "80219b72a5aea5a210cf",
+            "assumptions": [
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "fact_id": "1dbebe6681bf19a5c31c"
+          }
+        ]
+      }
+    ],
+    "trace": [
+      {
+        "access_id": "74daa5d809f9ff9b51c5",
+        "tool": "bindings",
+        "missing_before": [
+          "bindings",
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 bindings 证据",
+        "fact_id": "e6b2b32ac014ac510e72",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 9e-05
+      },
+      {
+        "access_id": "80219b72a5aea5a210cf",
+        "tool": "bindings",
+        "missing_before": [
+          "bindings",
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 bindings 证据",
+        "fact_id": "a77250241c6ebb40020b",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 4.7e-05
+      },
+      {
+        "access_id": "74daa5d809f9ff9b51c5",
+        "tool": "container",
+        "missing_before": [
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 container 证据",
+        "fact_id": "42bdaedf23331d174c21",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 1.9e-05
+      },
+      {
+        "access_id": "80219b72a5aea5a210cf",
+        "tool": "container",
+        "missing_before": [
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 container 证据",
+        "fact_id": "0e81da142c5545fd70fe",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 1e-05
+      },
+      {
+        "access_id": "74daa5d809f9ff9b51c5",
+        "tool": "domain",
+        "missing_before": [
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 domain 证据",
+        "fact_id": "6d6659f756ed32825ebe",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 4.5e-05
+      },
+      {
+        "access_id": "80219b72a5aea5a210cf",
+        "tool": "domain",
+        "missing_before": [
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 domain 证据",
+        "fact_id": "38a1f4cebd5c99c9464a",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 3e-05
+      },
+      {
+        "access_id": "74daa5d809f9ff9b51c5",
+        "tool": "effects",
+        "missing_before": [
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 effects 证据",
+        "fact_id": "e7d2223fefc2e4add1fc",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 8e-05
+      },
+      {
+        "access_id": "80219b72a5aea5a210cf",
+        "tool": "effects",
+        "missing_before": [
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 effects 证据",
+        "fact_id": "01eb74ad0a816a395f47",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 7.2e-05
+      },
+      {
+        "access_id": "74daa5d809f9ff9b51c5",
+        "tool": "guards",
+        "missing_before": [
+          "guards",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 guards 证据",
+        "fact_id": "0db29581059ec76b51a8",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 0.000358
+      },
+      {
+        "access_id": "80219b72a5aea5a210cf",
+        "tool": "guards",
+        "missing_before": [
+          "guards",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 guards 证据",
+        "fact_id": "b98e418ccddd78262d57",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 5.3e-05
+      },
+      {
+        "access_id": "74daa5d809f9ff9b51c5",
+        "tool": "reachability",
+        "missing_before": [
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 reachability 证据",
+        "fact_id": "bbb45c81378681cb7318",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 0.000145
+      },
+      {
+        "access_id": "80219b72a5aea5a210cf",
+        "tool": "reachability",
+        "missing_before": [
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 reachability 证据",
+        "fact_id": "1dbebe6681bf19a5c31c",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 0.000137
+      }
+    ],
+    "parse_errors": [],
+    "source_hashes": {
+      "guard.py": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49"
+    },
+    "selected_files": [
+      "guard.py"
+    ],
+    "summary": {
+      "accesses": 2,
+      "results": {
+        "conditional_violation": 1,
+        "conditional_safe": 1
+      },
+      "actions": 12,
+      "estimated_cost": 16,
+      "elapsed_seconds": 0.001852,
+      "model_requests": 0,
+      "model_tokens": null,
+      "budget_exhausted": 0
+    },
+    "limitations": [
+      "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+      "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+      "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+    ],
+    "coverage": {
+      "enumerated_accesses": 2,
+      "selected_accesses": 2,
+      "unselected_accesses": 0
+    }
+  },
+  "analysis_strategy": "evidence"
+}

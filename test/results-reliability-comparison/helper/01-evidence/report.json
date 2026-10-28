@@ -1,0 +1,1638 @@
+{
+  "schema_version": 3,
+  "project": "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix",
+  "created_at": "2026-10-25T04:36:31.348179+00:00",
+  "model": "qwen3:8b",
+  "context_mode": "adaptive",
+  "review_scope": "files",
+  "source_hashes": {
+    "helper.py": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11"
+  },
+  "languages": {
+    "helper.py": "python"
+  },
+  "summary": {
+    "files": 1,
+    "functions": 3,
+    "languages": {
+      "python": 1
+    },
+    "diagnostics": 0,
+    "candidates": 1,
+    "selected": 1,
+    "model_findings": 1,
+    "context_chars": 699,
+    "source_chars": 274,
+    "elapsed_seconds": 46.031
+  },
+  "scanner": {
+    "status": "completed",
+    "diagnostics": [],
+    "notes": [],
+    "tools": [
+      {
+        "tool": "bandit",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "bandit 1.9.4",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/bandit",
+          "--quiet",
+          "--ignore-nosec",
+          "--format",
+          "json",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/helper.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "ruff",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "ruff 0.17.1",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/ruff",
+          "check",
+          "--isolated",
+          "--no-cache",
+          "--ignore-noqa",
+          "--output-format",
+          "json",
+          "--select",
+          "E9,F63,F7,F82",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/helper.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "pyright",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "1.1.414",
+        "command": [
+          "/usr/local/bin/node",
+          "/Users/zoujingwei/analytic_tools/node_modules/pyright/index.js",
+          "--outputjson",
+          "--project",
+          "/var/folders/55/wd929yb13pggpy7z3cglvtp40000gn/T/evidence-pyright-oplqspit/pyrightconfig.json"
+        ],
+        "diagnostics": [],
+        "notes": [],
+        "configuration": {
+          "mode": "basic",
+          "source": "imported-snapshots",
+          "target_config_loaded": false,
+          "library_code_inference": false
+        }
+      }
+    ],
+    "version": null,
+    "versions": {
+      "bandit": "bandit 1.9.4",
+      "ruff": "ruff 0.17.1",
+      "pyright": "1.1.414"
+    }
+  },
+  "sbfl": {
+    "status": "not_provided",
+    "lines": [],
+    "passed": 0,
+    "failed": 0,
+    "errors": 0
+  },
+  "candidates": [
+    {
+      "id": "helper.py:file-audit",
+      "function_id": null,
+      "file": "helper.py",
+      "line": 1,
+      "language": "python",
+      "name": "<整文件审查>",
+      "scope": "file",
+      "diagnostics": [],
+      "sbfl_lines": [],
+      "sbfl_score": 0.0,
+      "priority": 0.0
+    }
+  ],
+  "reviews": [
+    {
+      "candidate_id": "helper.py:file-audit",
+      "status": "completed",
+      "mode": "adaptive",
+      "review": {
+        "suggestion": "见各问题的修复建议。",
+        "evidence_ids": [
+          "E2"
+        ],
+        "verdict": "likely_issue",
+        "summary": "逐项审查列出 1 个问题，复核撤回 0 项；详见处理记录。",
+        "missing_evidence": [],
+        "findings": [
+          {
+            "file": "helper.py",
+            "line": 8,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[i + 1] 给出符号见证：下标 1 不在 [-1, 1) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=1，下标=1，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "372aa7685e18a44126bd",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "372aa7685e18a44126bd",
+            "finding_id": "F1"
+          }
+        ],
+        "withdrawn_findings": []
+      },
+      "trace": [
+        {
+          "round": 1,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "likely_issue",
+            "summary": "发现列表下标越界问题，需修复。",
+            "missing_evidence": [],
+            "findings": [
+              {
+                "file": "helper.py",
+                "line": 8,
+                "title": "列表下标越界",
+                "explanation": "在循环中访问 values[i + 1] 时，i 的最大值为 len(values) - 1，此时 i + 1 可能等于 len(values)，导致越界。",
+                "condition": "当 values 的长度为 1 时，i + 1 会等于 len(values)，导致越界。",
+                "suggestion": "检查 i 的范围，确保 i + 1 不超过 len(values) - 1。",
+                "issue_kind": "index_bounds",
+                "access_id": "372aa7685e18a44126bd"
+              },
+              {
+                "file": "helper.py",
+                "line": 14,
+                "title": "列表下标越界",
+                "explanation": "在循环中访问 values[i + 1] 时，i 的最大值为 len(values) - 2，此时 i + 1 不会超过 len(values) - 1，因此不会越界。",
+                "condition": "当 values 的长度为 1 时，循环不会执行，因此不会越界。",
+                "suggestion": "确保循环条件正确，避免越界。",
+                "issue_kind": "index_bounds",
+                "access_id": "528a63f314f705817999"
+              }
+            ],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "helper.py:1:observe",
+                "verdict": "no_issue_found",
+                "reason": "函数 observe 无副作用，未发现缺陷。"
+              },
+              {
+                "function_id": "helper.py:5:case_a",
+                "verdict": "issue_found",
+                "reason": "存在列表下标越界问题。"
+              },
+              {
+                "function_id": "helper.py:11:case_b",
+                "verdict": "no_issue_found",
+                "reason": "循环条件确保不会越界。"
+              }
+            ]
+          },
+          "response": {
+            "accepted": true,
+            "complete": true,
+            "program_reconciliations": [
+              {
+                "original": {
+                  "file": "helper.py",
+                  "line": 8,
+                  "title": "列表下标越界",
+                  "explanation": "在循环中访问 values[i + 1] 时，i 的最大值为 len(values) - 1，此时 i + 1 可能等于 len(values)，导致越界。",
+                  "condition": "当 values 的长度为 1 时，i + 1 会等于 len(values)，导致越界。",
+                  "suggestion": "检查 i 的范围，确保 i + 1 不超过 len(values) - 1。",
+                  "issue_kind": "index_bounds",
+                  "access_id": "372aa7685e18a44126bd",
+                  "evidence_ids": [
+                    "E2"
+                  ],
+                  "evidence_origin": "source_location"
+                },
+                "access_id": "372aa7685e18a44126bd",
+                "verdict": "VIOLATION",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换",
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+                  "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+                ],
+                "resolution": "condition_from_program_witness"
+              },
+              {
+                "original": {
+                  "file": "helper.py",
+                  "line": 14,
+                  "title": "列表下标越界",
+                  "explanation": "在循环中访问 values[i + 1] 时，i 的最大值为 len(values) - 2，此时 i + 1 不会超过 len(values) - 1，因此不会越界。",
+                  "condition": "当 values 的长度为 1 时，循环不会执行，因此不会越界。",
+                  "suggestion": "确保循环条件正确，避免越界。",
+                  "issue_kind": "index_bounds",
+                  "access_id": "528a63f314f705817999",
+                  "evidence_ids": [
+                    "E2"
+                  ],
+                  "evidence_origin": "source_location"
+                },
+                "access_id": "528a63f314f705817999",
+                "verdict": "SAFE",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换",
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+                  "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+                ],
+                "resolution": "safe_under_assumptions"
+              }
+            ]
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 506,
+            "thinking_requested": false
+          }
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "kind": "candidate",
+          "candidate_id": "helper.py:file-audit",
+          "language": "python",
+          "diagnostics": [],
+          "sbfl_lines": []
+        },
+        {
+          "evidence_id": "E2",
+          "kind": "source",
+          "file": "helper.py",
+          "language": "python",
+          "start": 1,
+          "end": 14,
+          "code": "1: def observe(values):\n2:     pass\n3: \n4: \n5: def case_a(values: list[int]):\n6:     for i in range(len(values)):\n7:         observe(values)\n8:         _item = values[i + 1]\n9: \n10: \n11: def case_b(values: list[int]):\n12:     for i in range(len(values) - 1):\n13:         observe(values)\n14:         _item = values[i + 1]",
+          "total_lines": 14,
+          "requested_range": {
+            "start": 1,
+            "end": 14
+          },
+          "range_adjusted": false,
+          "next_start": null
+        }
+      ],
+      "program_analysis": {
+        "policy": "cost",
+        "claims": [
+          {
+            "access_id": "372aa7685e18a44126bd",
+            "rule": "python.list.index_bounds",
+            "file": "helper.py",
+            "line": 8,
+            "column": 17,
+            "end_line": 8,
+            "end_column": 30,
+            "start_byte": 136,
+            "end_byte": 149,
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "expression": "values[i + 1]",
+            "verdict": "VIOLATION",
+            "verification_result": "conditional_violation",
+            "terminal": true,
+            "missing": [],
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+              "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+            ],
+            "derivation": {
+              "rule": "affine_range_v1",
+              "length": "n",
+              "iteration": "0 <= i < n - 0",
+              "index": "i + (1)",
+              "valid": "-n <= index < n",
+              "upper_guard": false,
+              "lower_guard": false
+            },
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": 1,
+              "kind": "symbolic_bounds_witness_not_execution"
+            },
+            "depends_on": [
+              "7a53ce4c6c56e15f75cb",
+              "1c028d2e2acab830e3d6",
+              "c168a6e3f17baa5349a3",
+              "5f5e38c0669283952071",
+              "a0820312d2bef274a4fa",
+              "bab6aa5a484ee4b0e01c",
+              "173eb60eb5547b4b4491"
+            ],
+            "stop_reason": "resolved",
+            "facts": [
+              {
+                "kind": "bindings",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "372aa7685e18a44126bd",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换"
+                ],
+                "fact_id": "7a53ce4c6c56e15f75cb"
+              },
+              {
+                "kind": "container",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "372aa7685e18a44126bd",
+                "assumptions": [
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                ],
+                "fact_id": "1c028d2e2acab830e3d6"
+              },
+              {
+                "kind": "domain",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "372aa7685e18a44126bd",
+                "trim": 0,
+                "offset": 1,
+                "constant": null,
+                "counter": "i",
+                "context_line": 6,
+                "fact_id": "c168a6e3f17baa5349a3"
+              },
+              {
+                "kind": "effects",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "372aa7685e18a44126bd",
+                "calls": [
+                  "observe"
+                ],
+                "fact_id": "5f5e38c0669283952071"
+              },
+              {
+                "kind": "guards",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "372aa7685e18a44126bd",
+                "upper_guard": false,
+                "lower_guard": false,
+                "unsupported_guard": false,
+                "conditions": [],
+                "fact_id": "a0820312d2bef274a4fa"
+              },
+              {
+                "kind": "reachability",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "372aa7685e18a44126bd",
+                "assumptions": [
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "fact_id": "bab6aa5a484ee4b0e01c"
+              },
+              {
+                "kind": "call:observe",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "372aa7685e18a44126bd",
+                "assumptions": [
+                  "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+                ],
+                "fact_id": "173eb60eb5547b4b4491"
+              }
+            ]
+          },
+          {
+            "access_id": "528a63f314f705817999",
+            "rule": "python.list.index_bounds",
+            "file": "helper.py",
+            "line": 14,
+            "column": 17,
+            "end_line": 14,
+            "end_column": 30,
+            "start_byte": 260,
+            "end_byte": 273,
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "expression": "values[i + 1]",
+            "verdict": "SAFE",
+            "verification_result": "conditional_safe",
+            "terminal": true,
+            "missing": [],
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+              "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+            ],
+            "derivation": {
+              "rule": "affine_range_v1",
+              "length": "n",
+              "iteration": "0 <= i < n - 1",
+              "index": "i + (1)",
+              "valid": "-n <= index < n",
+              "upper_guard": false,
+              "lower_guard": false
+            },
+            "depends_on": [
+              "b509f1047ca87b9ee268",
+              "2a8994ae37eebfd29581",
+              "8a3a95429d942a3be90b",
+              "de18cadc0a356a956661",
+              "8be6cf1c6cecc2f33952",
+              "6a8148348e0fd8565b77",
+              "7e9d806b01323a5d3d60"
+            ],
+            "stop_reason": "resolved",
+            "facts": [
+              {
+                "kind": "bindings",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "528a63f314f705817999",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换"
+                ],
+                "fact_id": "b509f1047ca87b9ee268"
+              },
+              {
+                "kind": "container",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "528a63f314f705817999",
+                "assumptions": [
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                ],
+                "fact_id": "2a8994ae37eebfd29581"
+              },
+              {
+                "kind": "domain",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "528a63f314f705817999",
+                "trim": 1,
+                "offset": 1,
+                "constant": null,
+                "counter": "i",
+                "context_line": 12,
+                "fact_id": "8a3a95429d942a3be90b"
+              },
+              {
+                "kind": "effects",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "528a63f314f705817999",
+                "calls": [
+                  "observe"
+                ],
+                "fact_id": "de18cadc0a356a956661"
+              },
+              {
+                "kind": "guards",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "528a63f314f705817999",
+                "upper_guard": false,
+                "lower_guard": false,
+                "unsupported_guard": false,
+                "conditions": [],
+                "fact_id": "8be6cf1c6cecc2f33952"
+              },
+              {
+                "kind": "reachability",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "528a63f314f705817999",
+                "assumptions": [
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "fact_id": "6a8148348e0fd8565b77"
+              },
+              {
+                "kind": "call:observe",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                "file": "helper.py",
+                "access_id": "528a63f314f705817999",
+                "assumptions": [
+                  "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+                ],
+                "fact_id": "7e9d806b01323a5d3d60"
+              }
+            ]
+          }
+        ],
+        "limitations": [
+          "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+          "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+          "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+        ]
+      },
+      "audit": {
+        "program_analysis": {
+          "policy": "cost",
+          "claims": [
+            {
+              "access_id": "372aa7685e18a44126bd",
+              "rule": "python.list.index_bounds",
+              "file": "helper.py",
+              "line": 8,
+              "column": 17,
+              "end_line": 8,
+              "end_column": 30,
+              "start_byte": 136,
+              "end_byte": 149,
+              "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+              "expression": "values[i + 1]",
+              "verdict": "VIOLATION",
+              "verification_result": "conditional_violation",
+              "terminal": true,
+              "missing": [],
+              "reason": "bounds_rule",
+              "assumptions": [
+                "标准 Python 内置 len/range 未被运行环境动态替换",
+                "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+                "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+              ],
+              "derivation": {
+                "rule": "affine_range_v1",
+                "length": "n",
+                "iteration": "0 <= i < n - 0",
+                "index": "i + (1)",
+                "valid": "-n <= index < n",
+                "upper_guard": false,
+                "lower_guard": false
+              },
+              "witness": {
+                "length": 1,
+                "counter": 0,
+                "index": 1,
+                "kind": "symbolic_bounds_witness_not_execution"
+              },
+              "depends_on": [
+                "7a53ce4c6c56e15f75cb",
+                "1c028d2e2acab830e3d6",
+                "c168a6e3f17baa5349a3",
+                "5f5e38c0669283952071",
+                "a0820312d2bef274a4fa",
+                "bab6aa5a484ee4b0e01c",
+                "173eb60eb5547b4b4491"
+              ],
+              "stop_reason": "resolved",
+              "facts": [
+                {
+                  "kind": "bindings",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "372aa7685e18a44126bd",
+                  "assumptions": [
+                    "标准 Python 内置 len/range 未被运行环境动态替换"
+                  ],
+                  "fact_id": "7a53ce4c6c56e15f75cb"
+                },
+                {
+                  "kind": "container",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "372aa7685e18a44126bd",
+                  "assumptions": [
+                    "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                  ],
+                  "fact_id": "1c028d2e2acab830e3d6"
+                },
+                {
+                  "kind": "domain",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "372aa7685e18a44126bd",
+                  "trim": 0,
+                  "offset": 1,
+                  "constant": null,
+                  "counter": "i",
+                  "context_line": 6,
+                  "fact_id": "c168a6e3f17baa5349a3"
+                },
+                {
+                  "kind": "effects",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "372aa7685e18a44126bd",
+                  "calls": [
+                    "observe"
+                  ],
+                  "fact_id": "5f5e38c0669283952071"
+                },
+                {
+                  "kind": "guards",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "372aa7685e18a44126bd",
+                  "upper_guard": false,
+                  "lower_guard": false,
+                  "unsupported_guard": false,
+                  "conditions": [],
+                  "fact_id": "a0820312d2bef274a4fa"
+                },
+                {
+                  "kind": "reachability",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "372aa7685e18a44126bd",
+                  "assumptions": [
+                    "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                  ],
+                  "fact_id": "bab6aa5a484ee4b0e01c"
+                },
+                {
+                  "kind": "call:observe",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "372aa7685e18a44126bd",
+                  "assumptions": [
+                    "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+                  ],
+                  "fact_id": "173eb60eb5547b4b4491"
+                }
+              ]
+            },
+            {
+              "access_id": "528a63f314f705817999",
+              "rule": "python.list.index_bounds",
+              "file": "helper.py",
+              "line": 14,
+              "column": 17,
+              "end_line": 14,
+              "end_column": 30,
+              "start_byte": 260,
+              "end_byte": 273,
+              "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+              "expression": "values[i + 1]",
+              "verdict": "SAFE",
+              "verification_result": "conditional_safe",
+              "terminal": true,
+              "missing": [],
+              "reason": "bounds_rule",
+              "assumptions": [
+                "标准 Python 内置 len/range 未被运行环境动态替换",
+                "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+                "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+              ],
+              "derivation": {
+                "rule": "affine_range_v1",
+                "length": "n",
+                "iteration": "0 <= i < n - 1",
+                "index": "i + (1)",
+                "valid": "-n <= index < n",
+                "upper_guard": false,
+                "lower_guard": false
+              },
+              "depends_on": [
+                "b509f1047ca87b9ee268",
+                "2a8994ae37eebfd29581",
+                "8a3a95429d942a3be90b",
+                "de18cadc0a356a956661",
+                "8be6cf1c6cecc2f33952",
+                "6a8148348e0fd8565b77",
+                "7e9d806b01323a5d3d60"
+              ],
+              "stop_reason": "resolved",
+              "facts": [
+                {
+                  "kind": "bindings",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "528a63f314f705817999",
+                  "assumptions": [
+                    "标准 Python 内置 len/range 未被运行环境动态替换"
+                  ],
+                  "fact_id": "b509f1047ca87b9ee268"
+                },
+                {
+                  "kind": "container",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "528a63f314f705817999",
+                  "assumptions": [
+                    "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                  ],
+                  "fact_id": "2a8994ae37eebfd29581"
+                },
+                {
+                  "kind": "domain",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "528a63f314f705817999",
+                  "trim": 1,
+                  "offset": 1,
+                  "constant": null,
+                  "counter": "i",
+                  "context_line": 12,
+                  "fact_id": "8a3a95429d942a3be90b"
+                },
+                {
+                  "kind": "effects",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "528a63f314f705817999",
+                  "calls": [
+                    "observe"
+                  ],
+                  "fact_id": "de18cadc0a356a956661"
+                },
+                {
+                  "kind": "guards",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "528a63f314f705817999",
+                  "upper_guard": false,
+                  "lower_guard": false,
+                  "unsupported_guard": false,
+                  "conditions": [],
+                  "fact_id": "8be6cf1c6cecc2f33952"
+                },
+                {
+                  "kind": "reachability",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "528a63f314f705817999",
+                  "assumptions": [
+                    "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                  ],
+                  "fact_id": "6a8148348e0fd8565b77"
+                },
+                {
+                  "kind": "call:observe",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+                  "file": "helper.py",
+                  "access_id": "528a63f314f705817999",
+                  "assumptions": [
+                    "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+                  ],
+                  "fact_id": "7e9d806b01323a5d3d60"
+                }
+              ]
+            }
+          ],
+          "limitations": [
+            "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+            "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+            "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+          ]
+        },
+        "program_conflicts": [],
+        "diagnostic_reviews": [],
+        "function_reviews": [
+          {
+            "function_id": "helper.py:8:17:loop-index",
+            "verdict": "issue_found",
+            "reason": "程序条件判定：VIOLATION；仅覆盖此处列表边界，前提见程序证据。",
+            "record_origin": "deterministic_analysis",
+            "access_id": "372aa7685e18a44126bd"
+          },
+          {
+            "function_id": "helper.py:14:17:loop-index",
+            "verdict": "no_issue_found",
+            "reason": "程序条件判定：SAFE；仅覆盖此处列表边界，前提见程序证据。",
+            "record_origin": "deterministic_analysis",
+            "access_id": "528a63f314f705817999"
+          },
+          {
+            "function_id": "helper.py:1:observe",
+            "verdict": "no_issue_found",
+            "reason": "函数 observe 无副作用，未发现缺陷。"
+          },
+          {
+            "function_id": "helper.py:5:case_a",
+            "verdict": "issue_found",
+            "reason": "存在列表下标越界问题。",
+            "basis_program": [
+              "372aa7685e18a44126bd"
+            ]
+          },
+          {
+            "function_id": "helper.py:11:case_b",
+            "verdict": "no_issue_found",
+            "reason": "循环条件确保不会越界。"
+          }
+        ],
+        "diagnostic_total": 0,
+        "function_total": 5,
+        "loop_index_total": 2,
+        "units": [
+          {
+            "function_id": "helper.py:1:observe",
+            "name": "observe",
+            "ranges": [
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          {
+            "function_id": "helper.py:5:case_a",
+            "name": "case_a",
+            "ranges": [
+              [
+                5,
+                8
+              ]
+            ]
+          },
+          {
+            "function_id": "helper.py:11:case_b",
+            "name": "case_b",
+            "ranges": [
+              [
+                11,
+                14
+              ]
+            ]
+          },
+          {
+            "function_id": "helper.py:8:17:loop-index",
+            "name": "循环下标访问",
+            "kind": "loop_index",
+            "ranges": [
+              [
+                8,
+                8
+              ]
+            ],
+            "context_ranges": [
+              [
+                6,
+                8
+              ]
+            ],
+            "access": "values[i + 1]",
+            "loop_controls": [
+              {
+                "line": 6,
+                "kind": "for_statement",
+                "target": "i",
+                "expression": "range(len(values))"
+              }
+            ],
+            "syntax_recovered": false,
+            "check": "独立核对本处访问：容器类型、循环首次/末次索引及偏移、空输入、保护条件、提前退出与容器变化。reason 简述实际边界或保护依据；不能以同函数的其他问题替代本处结论。区分 Python 负索引、切片和字典键语义。类型或可达性未知时注明条件或 inconclusive，语法错误后的风险须说明修复前置错误后才可能触发。"
+          },
+          {
+            "function_id": "helper.py:14:17:loop-index",
+            "name": "循环下标访问",
+            "kind": "loop_index",
+            "ranges": [
+              [
+                14,
+                14
+              ]
+            ],
+            "context_ranges": [
+              [
+                12,
+                14
+              ]
+            ],
+            "access": "values[i + 1]",
+            "loop_controls": [
+              {
+                "line": 12,
+                "kind": "for_statement",
+                "target": "i",
+                "expression": "range(len(values) - 1)"
+              }
+            ],
+            "syntax_recovered": false,
+            "check": "独立核对本处访问：容器类型、循环首次/末次索引及偏移、空输入、保护条件、提前退出与容器变化。reason 简述实际边界或保护依据；不能以同函数的其他问题替代本处结论。区分 Python 负索引、切片和字典键语义。类型或可达性未知时注明条件或 inconclusive，语法错误后的风险须说明修复前置错误后才可能触发。"
+          }
+        ],
+        "pending": {
+          "diagnostics": [],
+          "functions": []
+        },
+        "complete": true,
+        "followup_performed": false,
+        "program_reconciliations": [
+          {
+            "original": {
+              "file": "helper.py",
+              "line": 8,
+              "title": "列表下标越界",
+              "explanation": "在循环中访问 values[i + 1] 时，i 的最大值为 len(values) - 1，此时 i + 1 可能等于 len(values)，导致越界。",
+              "condition": "当 values 的长度为 1 时，i + 1 会等于 len(values)，导致越界。",
+              "suggestion": "检查 i 的范围，确保 i + 1 不超过 len(values) - 1。",
+              "issue_kind": "index_bounds",
+              "access_id": "372aa7685e18a44126bd",
+              "evidence_ids": [
+                "E2"
+              ],
+              "evidence_origin": "source_location"
+            },
+            "access_id": "372aa7685e18a44126bd",
+            "verdict": "VIOLATION",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+              "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+            ],
+            "resolution": "condition_from_program_witness"
+          },
+          {
+            "original": {
+              "file": "helper.py",
+              "line": 14,
+              "title": "列表下标越界",
+              "explanation": "在循环中访问 values[i + 1] 时，i 的最大值为 len(values) - 2，此时 i + 1 不会超过 len(values) - 1，因此不会越界。",
+              "condition": "当 values 的长度为 1 时，循环不会执行，因此不会越界。",
+              "suggestion": "确保循环条件正确，避免越界。",
+              "issue_kind": "index_bounds",
+              "access_id": "528a63f314f705817999",
+              "evidence_ids": [
+                "E2"
+              ],
+              "evidence_origin": "source_location"
+            },
+            "access_id": "528a63f314f705817999",
+            "verdict": "SAFE",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+              "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+            ],
+            "resolution": "safe_under_assumptions"
+          }
+        ],
+        "blocked_withdrawals": [],
+        "program_resolved_units": {
+          "helper.py:8:17:loop-index": "372aa7685e18a44126bd",
+          "helper.py:14:17:loop-index": "528a63f314f705817999"
+        },
+        "withdrawn_findings": [],
+        "ignored_records": [],
+        "limitation": "记录仅证明已逐项提交处理意见，不证明判断正确或没有遗漏。"
+      },
+      "context_chars": 699,
+      "source_coverage": {
+        "file": "helper.py",
+        "total_lines": 14,
+        "provided_lines": 14,
+        "complete": true
+      }
+    }
+  ],
+  "model_usage": {
+    "prompt_tokens": 3221,
+    "completion_tokens": 506,
+    "requests": 1,
+    "structured_requests": 1
+  },
+  "stage_timings": {
+    "index_seconds": 0.0023868329590186477,
+    "scanner_seconds": 0.626974291051738,
+    "candidate_seconds": 0.0008395829936489463,
+    "evidence_seconds": 0.002281790948472917,
+    "review_seconds": 45.39717699994799
+  },
+  "model_request_metrics": [
+    {
+      "wall_seconds": 45.39353299990762,
+      "request_bytes": 20644,
+      "thinking_requested": false,
+      "load_duration_seconds": 0.000689541,
+      "prompt_eval_duration_seconds": 6.45141,
+      "eval_duration_seconds": 38.836353,
+      "total_duration_seconds": 45.390622833
+    }
+  ],
+  "model_context": 40960,
+  "index_warnings": [],
+  "limitations": [
+    "支持 C、C++、Python、JavaScript、TypeScript；AST 不执行预处理或完整类型/别名分析。成员调用、动态分派和同名函数均可能存在歧义。",
+    "Python 使用 Bandit、Ruff 和 Pyright basic 类型检查；Pyright 仅分析导入源码快照，不加载目标配置，不推断第三方库实现；未知类型仍可能漏报。JS/TS 使用固定 ESLint 规则，TypeScript 尚未接入 tsc 类型检查。",
+    "内置 collect 目前仅支持简单 C 程序；其他语言可导入符合格式的逐测试覆盖 JSON 进行 SBFL。",
+    "candidates 模式只复核静态诊断和 SBFL 候选；files 模式也审查无报警文件。top-k、源码读取预算和模型能力均可能导致遗漏，源码提供不代表检查正确。",
+    "SBFL 使用 Ochiai，可疑度不等于缺陷概率。RRF 是排序策略，其有效性尚需对照实验。",
+    "模型引用校验仅验证证据确实已返回，不证明推理正确。模型不能将问题标记为已动态复现。",
+    "整文件模式记录每条诊断及每个函数/模块单元的处理意见；Python 显式 for/while 循环中的下标访问另建独立任务并复查，语法错误时尝试使用恢复语法树。处理记录完整不代表判断正确，也不是新的静态越界证明。",
+    "context_chars 统计返回的证据字符数，不是 Token 数，也不包含重复发送历史消息的费用。",
+    "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+    "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+    "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+  ],
+  "program_analysis": {
+    "schema_version": 1,
+    "rule": {
+      "id": "python.list.index_bounds",
+      "version": 2,
+      "language": "python",
+      "property": "IndexError at an integer list subscript",
+      "obligations": [
+        "bindings",
+        "container",
+        "domain",
+        "guards",
+        "effects",
+        "reachability"
+      ],
+      "supported": "unit-step range(len(list)-c), affine index, direct guards, one comprehension generator; bounded AST counterexamples for list mutations, helpers, nested/stepped loops and integer arithmetic"
+    },
+    "policy": "cost",
+    "verification_enabled": true,
+    "claims": [
+      {
+        "access_id": "372aa7685e18a44126bd",
+        "rule": "python.list.index_bounds",
+        "file": "helper.py",
+        "line": 8,
+        "column": 17,
+        "end_line": 8,
+        "end_column": 30,
+        "start_byte": 136,
+        "end_byte": 149,
+        "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+        "expression": "values[i + 1]",
+        "verdict": "VIOLATION",
+        "verification_result": "conditional_violation",
+        "terminal": true,
+        "missing": [],
+        "reason": "bounds_rule",
+        "assumptions": [
+          "标准 Python 内置 len/range 未被运行环境动态替换",
+          "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+          "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+          "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+        ],
+        "derivation": {
+          "rule": "affine_range_v1",
+          "length": "n",
+          "iteration": "0 <= i < n - 0",
+          "index": "i + (1)",
+          "valid": "-n <= index < n",
+          "upper_guard": false,
+          "lower_guard": false
+        },
+        "witness": {
+          "length": 1,
+          "counter": 0,
+          "index": 1,
+          "kind": "symbolic_bounds_witness_not_execution"
+        },
+        "depends_on": [
+          "7a53ce4c6c56e15f75cb",
+          "1c028d2e2acab830e3d6",
+          "c168a6e3f17baa5349a3",
+          "5f5e38c0669283952071",
+          "a0820312d2bef274a4fa",
+          "bab6aa5a484ee4b0e01c",
+          "173eb60eb5547b4b4491"
+        ],
+        "stop_reason": "resolved",
+        "facts": [
+          {
+            "kind": "bindings",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "372aa7685e18a44126bd",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换"
+            ],
+            "fact_id": "7a53ce4c6c56e15f75cb"
+          },
+          {
+            "kind": "container",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "372aa7685e18a44126bd",
+            "assumptions": [
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+            ],
+            "fact_id": "1c028d2e2acab830e3d6"
+          },
+          {
+            "kind": "domain",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "372aa7685e18a44126bd",
+            "trim": 0,
+            "offset": 1,
+            "constant": null,
+            "counter": "i",
+            "context_line": 6,
+            "fact_id": "c168a6e3f17baa5349a3"
+          },
+          {
+            "kind": "effects",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "372aa7685e18a44126bd",
+            "calls": [
+              "observe"
+            ],
+            "fact_id": "5f5e38c0669283952071"
+          },
+          {
+            "kind": "guards",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "372aa7685e18a44126bd",
+            "upper_guard": false,
+            "lower_guard": false,
+            "unsupported_guard": false,
+            "conditions": [],
+            "fact_id": "a0820312d2bef274a4fa"
+          },
+          {
+            "kind": "reachability",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "372aa7685e18a44126bd",
+            "assumptions": [
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "fact_id": "bab6aa5a484ee4b0e01c"
+          },
+          {
+            "kind": "call:observe",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "372aa7685e18a44126bd",
+            "assumptions": [
+              "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+            ],
+            "fact_id": "173eb60eb5547b4b4491"
+          }
+        ]
+      },
+      {
+        "access_id": "528a63f314f705817999",
+        "rule": "python.list.index_bounds",
+        "file": "helper.py",
+        "line": 14,
+        "column": 17,
+        "end_line": 14,
+        "end_column": 30,
+        "start_byte": 260,
+        "end_byte": 273,
+        "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+        "expression": "values[i + 1]",
+        "verdict": "SAFE",
+        "verification_result": "conditional_safe",
+        "terminal": true,
+        "missing": [],
+        "reason": "bounds_rule",
+        "assumptions": [
+          "标准 Python 内置 len/range 未被运行环境动态替换",
+          "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+          "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+          "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+        ],
+        "derivation": {
+          "rule": "affine_range_v1",
+          "length": "n",
+          "iteration": "0 <= i < n - 1",
+          "index": "i + (1)",
+          "valid": "-n <= index < n",
+          "upper_guard": false,
+          "lower_guard": false
+        },
+        "depends_on": [
+          "b509f1047ca87b9ee268",
+          "2a8994ae37eebfd29581",
+          "8a3a95429d942a3be90b",
+          "de18cadc0a356a956661",
+          "8be6cf1c6cecc2f33952",
+          "6a8148348e0fd8565b77",
+          "7e9d806b01323a5d3d60"
+        ],
+        "stop_reason": "resolved",
+        "facts": [
+          {
+            "kind": "bindings",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "528a63f314f705817999",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换"
+            ],
+            "fact_id": "b509f1047ca87b9ee268"
+          },
+          {
+            "kind": "container",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "528a63f314f705817999",
+            "assumptions": [
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+            ],
+            "fact_id": "2a8994ae37eebfd29581"
+          },
+          {
+            "kind": "domain",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "528a63f314f705817999",
+            "trim": 1,
+            "offset": 1,
+            "constant": null,
+            "counter": "i",
+            "context_line": 12,
+            "fact_id": "8a3a95429d942a3be90b"
+          },
+          {
+            "kind": "effects",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "528a63f314f705817999",
+            "calls": [
+              "observe"
+            ],
+            "fact_id": "de18cadc0a356a956661"
+          },
+          {
+            "kind": "guards",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "528a63f314f705817999",
+            "upper_guard": false,
+            "lower_guard": false,
+            "unsupported_guard": false,
+            "conditions": [],
+            "fact_id": "8be6cf1c6cecc2f33952"
+          },
+          {
+            "kind": "reachability",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "528a63f314f705817999",
+            "assumptions": [
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "fact_id": "6a8148348e0fd8565b77"
+          },
+          {
+            "kind": "call:observe",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+            "file": "helper.py",
+            "access_id": "528a63f314f705817999",
+            "assumptions": [
+              "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+            ],
+            "fact_id": "7e9d806b01323a5d3d60"
+          }
+        ]
+      }
+    ],
+    "trace": [
+      {
+        "access_id": "372aa7685e18a44126bd",
+        "tool": "bindings",
+        "missing_before": [
+          "bindings",
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 bindings 证据",
+        "fact_id": "7a53ce4c6c56e15f75cb",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 6.9e-05
+      },
+      {
+        "access_id": "528a63f314f705817999",
+        "tool": "bindings",
+        "missing_before": [
+          "bindings",
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 bindings 证据",
+        "fact_id": "b509f1047ca87b9ee268",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 3.8e-05
+      },
+      {
+        "access_id": "372aa7685e18a44126bd",
+        "tool": "container",
+        "missing_before": [
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 container 证据",
+        "fact_id": "1c028d2e2acab830e3d6",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 1.2e-05
+      },
+      {
+        "access_id": "528a63f314f705817999",
+        "tool": "container",
+        "missing_before": [
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 container 证据",
+        "fact_id": "2a8994ae37eebfd29581",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 8e-06
+      },
+      {
+        "access_id": "372aa7685e18a44126bd",
+        "tool": "domain",
+        "missing_before": [
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 domain 证据",
+        "fact_id": "c168a6e3f17baa5349a3",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 3.5e-05
+      },
+      {
+        "access_id": "528a63f314f705817999",
+        "tool": "domain",
+        "missing_before": [
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 domain 证据",
+        "fact_id": "8a3a95429d942a3be90b",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 2.4e-05
+      },
+      {
+        "access_id": "372aa7685e18a44126bd",
+        "tool": "effects",
+        "missing_before": [
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 effects 证据",
+        "fact_id": "5f5e38c0669283952071",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 0.000853
+      },
+      {
+        "access_id": "528a63f314f705817999",
+        "tool": "effects",
+        "missing_before": [
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 effects 证据",
+        "fact_id": "de18cadc0a356a956661",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 7.1e-05
+      },
+      {
+        "access_id": "372aa7685e18a44126bd",
+        "tool": "guards",
+        "missing_before": [
+          "guards",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 guards 证据",
+        "fact_id": "a0820312d2bef274a4fa",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 2.2e-05
+      },
+      {
+        "access_id": "528a63f314f705817999",
+        "tool": "guards",
+        "missing_before": [
+          "guards",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 guards 证据",
+        "fact_id": "8be6cf1c6cecc2f33952",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 1.5e-05
+      },
+      {
+        "access_id": "372aa7685e18a44126bd",
+        "tool": "reachability",
+        "missing_before": [
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 reachability 证据",
+        "fact_id": "bab6aa5a484ee4b0e01c",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 8.6e-05
+      },
+      {
+        "access_id": "528a63f314f705817999",
+        "tool": "reachability",
+        "missing_before": [
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 reachability 证据",
+        "fact_id": "6a8148348e0fd8565b77",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 8.2e-05
+      },
+      {
+        "access_id": "372aa7685e18a44126bd",
+        "tool": "call:observe",
+        "missing_before": [
+          "call:observe"
+        ],
+        "estimated_cost": 3,
+        "selection_reason": "cost: 补充 call:observe 证据",
+        "fact_id": "173eb60eb5547b4b4491",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 7.4e-05
+      },
+      {
+        "access_id": "528a63f314f705817999",
+        "tool": "call:observe",
+        "missing_before": [
+          "call:observe"
+        ],
+        "estimated_cost": 3,
+        "selection_reason": "cost: 补充 call:observe 证据",
+        "fact_id": "7e9d806b01323a5d3d60",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 6.8e-05
+      }
+    ],
+    "parse_errors": [],
+    "source_hashes": {
+      "helper.py": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11"
+    },
+    "selected_files": [
+      "helper.py"
+    ],
+    "summary": {
+      "accesses": 2,
+      "results": {
+        "conditional_violation": 1,
+        "conditional_safe": 1
+      },
+      "actions": 14,
+      "estimated_cost": 22,
+      "elapsed_seconds": 0.002246,
+      "model_requests": 0,
+      "model_tokens": null,
+      "budget_exhausted": 0
+    },
+    "limitations": [
+      "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+      "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+      "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+    ],
+    "coverage": {
+      "enumerated_accesses": 2,
+      "selected_accesses": 2,
+      "unselected_accesses": 0
+    }
+  },
+  "analysis_strategy": "evidence"
+}

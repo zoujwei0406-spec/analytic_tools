@@ -1,0 +1,1531 @@
+{
+  "schema_version": 3,
+  "project": "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix",
+  "created_at": "2026-10-25T04:11:20.643993+00:00",
+  "model": "qwen3:8b",
+  "context_mode": "adaptive",
+  "review_scope": "files",
+  "source_hashes": {
+    "offset.py": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6"
+  },
+  "languages": {
+    "offset.py": "python"
+  },
+  "summary": {
+    "files": 1,
+    "functions": 2,
+    "languages": {
+      "python": 1
+    },
+    "diagnostics": 0,
+    "candidates": 1,
+    "selected": 1,
+    "model_findings": 1,
+    "context_chars": 567,
+    "source_chars": 182,
+    "elapsed_seconds": 59.537
+  },
+  "scanner": {
+    "status": "completed",
+    "diagnostics": [],
+    "notes": [],
+    "tools": [
+      {
+        "tool": "bandit",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "bandit 1.9.4",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/bandit",
+          "--quiet",
+          "--ignore-nosec",
+          "--format",
+          "json",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/offset.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "ruff",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "ruff 0.17.1",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/ruff",
+          "check",
+          "--isolated",
+          "--no-cache",
+          "--ignore-noqa",
+          "--output-format",
+          "json",
+          "--select",
+          "E9,F63,F7,F82",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/offset.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "pyright",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "1.1.414",
+        "command": [
+          "/usr/local/bin/node",
+          "/Users/zoujingwei/analytic_tools/node_modules/pyright/index.js",
+          "--outputjson",
+          "--project",
+          "/var/folders/55/wd929yb13pggpy7z3cglvtp40000gn/T/evidence-pyright-r9kw365c/pyrightconfig.json"
+        ],
+        "diagnostics": [],
+        "notes": [],
+        "configuration": {
+          "mode": "basic",
+          "source": "imported-snapshots",
+          "target_config_loaded": false,
+          "library_code_inference": false
+        }
+      }
+    ],
+    "version": null,
+    "versions": {
+      "bandit": "bandit 1.9.4",
+      "ruff": "ruff 0.17.1",
+      "pyright": "1.1.414"
+    }
+  },
+  "sbfl": {
+    "status": "not_provided",
+    "lines": [],
+    "passed": 0,
+    "failed": 0,
+    "errors": 0
+  },
+  "candidates": [
+    {
+      "id": "offset.py:file-audit",
+      "function_id": null,
+      "file": "offset.py",
+      "line": 1,
+      "language": "python",
+      "name": "<整文件审查>",
+      "scope": "file",
+      "diagnostics": [],
+      "sbfl_lines": [],
+      "sbfl_score": 0.0,
+      "priority": 0.0
+    }
+  ],
+  "reviews": [
+    {
+      "candidate_id": "offset.py:file-audit",
+      "status": "completed",
+      "mode": "adaptive",
+      "review": {
+        "suggestion": "见各问题的修复建议。",
+        "evidence_ids": [
+          "E2"
+        ],
+        "verdict": "likely_issue",
+        "summary": "逐项审查列出 1 个问题，复核撤回 0 项；详见处理记录。",
+        "missing_evidence": [],
+        "findings": [
+          {
+            "file": "offset.py",
+            "line": 2,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[i + 2] 给出符号见证：下标 2 不在 [-2, 2) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=2，下标=2，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "2008c7e0f8121820f425",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "2008c7e0f8121820f425",
+            "finding_id": "F1"
+          }
+        ],
+        "withdrawn_findings": []
+      },
+      "trace": [
+        {
+          "round": 1,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "likely_issue",
+            "summary": "发现列表下标越界问题，需修复以确保索引合法。",
+            "missing_evidence": [],
+            "findings": [
+              {
+                "file": "offset.py",
+                "line": 2,
+                "title": "列表下标越界",
+                "explanation": "在 case_a 函数中，列表下标 i + 2 可能超出列表长度，导致 IndexError。",
+                "condition": "当 len(values) <= 2 时，i + 2 会超出列表长度。",
+                "suggestion": "确保列表长度足够，或在访问前检查索引合法性。",
+                "issue_kind": "index_bounds",
+                "access_id": "2008c7e0f8121820f425"
+              },
+              {
+                "file": "offset.py",
+                "line": 6,
+                "title": "列表下标越界",
+                "explanation": "在 case_b 函数中，列表下标 i + 2 可能超出列表长度，导致 IndexError。",
+                "condition": "当 len(values) <= 2 时，i + 2 会超出列表长度。",
+                "suggestion": "确保列表长度足够，或在访问前检查索引合法性。",
+                "issue_kind": "index_bounds",
+                "access_id": "f31728f66f29e43d4edd"
+              }
+            ],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "offset.py:1:case_a",
+                "verdict": "issue_found",
+                "reason": "列表下标 i + 2 可能越界，需检查索引合法性。"
+              },
+              {
+                "function_id": "offset.py:5:case_b",
+                "verdict": "issue_found",
+                "reason": "列表下标 i + 2 可能越界，需检查索引合法性。"
+              }
+            ]
+          },
+          "response": {
+            "accepted": true,
+            "complete": false,
+            "program_conflicts": [],
+            "conflict_instructions": "program_conflicts 列出了模型与程序的条件结论冲突。逐一核对；如果没有具体不同前提，将误报 finding_id 填入 withdraw_findings 撤回。安全说明不应作为新问题放入 findings。",
+            "task": "补查尚未逐项处理的诊断和函数；对无问题结论再核对一次。已有 findings 保留，只提交新增问题。同时复核已有问题，位置校验不证明判断正确。将误判填入 withdraw_findings（finding_id、reason）撤回。不能凭空要求函数接受任意错误类型，也不能把正常的显式容器修改或空结果当成漏洞。逐个核对操作数类型、空输入、状态和安全约定。循环下标任务须独立计算首次/末次索引与偏移，检查保护条件和容器变化，不能只重复其他报警。对于越界意见，写出实际索引与长度的比较：len(a)-1 是合法最大正索引，len(a) 才越过正向边界；range(len(a)) 中 a[i] 在长度不变时合法。撤回把合法边界或切片误判为越界的发现。也独立检查实际调用的元素类型和更早的阻断错误。用简短 reason 记录结果；不能用未读源码得出无问题结论。",
+            "pending": {
+              "diagnostics": [],
+              "functions": []
+            },
+            "recheck_functions": [
+              "offset.py:5:case_b"
+            ],
+            "verify_findings": [],
+            "requested_function_records": [
+              {
+                "function_id": "offset.py:5:case_b",
+                "name": "case_b",
+                "ranges": [
+                  [
+                    5,
+                    6
+                  ]
+                ]
+              }
+            ],
+            "submission_rules": "返回 findings、diagnostic_reviews、function_reviews 等提交字段；审查记录可只包含本次补充的条目，ID 必须来自 audit_plan。无新增问题时 findings=[]，verdict=inconclusive，不要重复已有问题。",
+            "program_reconciliations": [
+              {
+                "original": {
+                  "file": "offset.py",
+                  "line": 2,
+                  "title": "列表下标越界",
+                  "explanation": "在 case_a 函数中，列表下标 i + 2 可能超出列表长度，导致 IndexError。",
+                  "condition": "当 len(values) <= 2 时，i + 2 会超出列表长度。",
+                  "suggestion": "确保列表长度足够，或在访问前检查索引合法性。",
+                  "issue_kind": "index_bounds",
+                  "access_id": "2008c7e0f8121820f425",
+                  "evidence_ids": [
+                    "E2"
+                  ],
+                  "evidence_origin": "source_location"
+                },
+                "access_id": "2008c7e0f8121820f425",
+                "verdict": "VIOLATION",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换",
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "resolution": "condition_from_program_witness"
+              },
+              {
+                "original": {
+                  "file": "offset.py",
+                  "line": 6,
+                  "title": "列表下标越界",
+                  "explanation": "在 case_b 函数中，列表下标 i + 2 可能超出列表长度，导致 IndexError。",
+                  "condition": "当 len(values) <= 2 时，i + 2 会超出列表长度。",
+                  "suggestion": "确保列表长度足够，或在访问前检查索引合法性。",
+                  "issue_kind": "index_bounds",
+                  "access_id": "f31728f66f29e43d4edd",
+                  "evidence_ids": [
+                    "E2"
+                  ],
+                  "evidence_origin": "source_location"
+                },
+                "access_id": "f31728f66f29e43d4edd",
+                "verdict": "SAFE",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换",
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "resolution": "safe_under_assumptions"
+              }
+            ]
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 447,
+            "thinking_requested": false
+          }
+        },
+        {
+          "round": 2,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "inconclusive",
+            "summary": "未发现新的问题，现有问题需进一步验证。",
+            "missing_evidence": [],
+            "findings": [],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "offset.py:5:case_b",
+                "verdict": "no_issue_found",
+                "reason": "在 case_b 函数中，i 的范围是 0 <= i < len(values) - 2，i + 2 的最大值为 len(values) - 2 + 2 = len(values)，即索引合法。"
+              }
+            ],
+            "withdraw_findings": []
+          },
+          "response": {
+            "accepted": true,
+            "complete": true,
+            "program_reconciliations": [
+              {
+                "original": {
+                  "file": "offset.py",
+                  "line": 2,
+                  "title": "列表下标越界",
+                  "explanation": "在 case_a 函数中，列表下标 i + 2 可能超出列表长度，导致 IndexError。",
+                  "condition": "当 len(values) <= 2 时，i + 2 会超出列表长度。",
+                  "suggestion": "确保列表长度足够，或在访问前检查索引合法性。",
+                  "issue_kind": "index_bounds",
+                  "access_id": "2008c7e0f8121820f425",
+                  "evidence_ids": [
+                    "E2"
+                  ],
+                  "evidence_origin": "source_location"
+                },
+                "access_id": "2008c7e0f8121820f425",
+                "verdict": "VIOLATION",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换",
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "resolution": "condition_from_program_witness"
+              },
+              {
+                "original": {
+                  "file": "offset.py",
+                  "line": 6,
+                  "title": "列表下标越界",
+                  "explanation": "在 case_b 函数中，列表下标 i + 2 可能超出列表长度，导致 IndexError。",
+                  "condition": "当 len(values) <= 2 时，i + 2 会超出列表长度。",
+                  "suggestion": "确保列表长度足够，或在访问前检查索引合法性。",
+                  "issue_kind": "index_bounds",
+                  "access_id": "f31728f66f29e43d4edd",
+                  "evidence_ids": [
+                    "E2"
+                  ],
+                  "evidence_origin": "source_location"
+                },
+                "access_id": "f31728f66f29e43d4edd",
+                "verdict": "SAFE",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换",
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "resolution": "safe_under_assumptions"
+              }
+            ]
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 147,
+            "thinking_requested": false
+          }
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "kind": "candidate",
+          "candidate_id": "offset.py:file-audit",
+          "language": "python",
+          "diagnostics": [],
+          "sbfl_lines": []
+        },
+        {
+          "evidence_id": "E2",
+          "kind": "source",
+          "file": "offset.py",
+          "language": "python",
+          "start": 1,
+          "end": 6,
+          "code": "1: def case_a(values: list[int]):\n2:     return [values[i + 2] for i in range(len(values) - 1)]\n3: \n4: \n5: def case_b(values: list[int]):\n6:     return [values[i + 2] for i in range(len(values) - 2)]",
+          "total_lines": 6,
+          "requested_range": {
+            "start": 1,
+            "end": 6
+          },
+          "range_adjusted": false,
+          "next_start": null
+        }
+      ],
+      "program_analysis": {
+        "policy": "cost",
+        "claims": [
+          {
+            "access_id": "2008c7e0f8121820f425",
+            "rule": "python.list.index_bounds",
+            "file": "offset.py",
+            "line": 2,
+            "column": 13,
+            "end_line": 2,
+            "end_column": 26,
+            "start_byte": 43,
+            "end_byte": 56,
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "expression": "values[i + 2]",
+            "verdict": "VIOLATION",
+            "verification_result": "conditional_violation",
+            "terminal": true,
+            "missing": [],
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "derivation": {
+              "rule": "affine_range_v1",
+              "length": "n",
+              "iteration": "0 <= i < n - 1",
+              "index": "i + (2)",
+              "valid": "-n <= index < n",
+              "upper_guard": false,
+              "lower_guard": false
+            },
+            "witness": {
+              "length": 2,
+              "counter": 0,
+              "index": 2,
+              "kind": "symbolic_bounds_witness_not_execution"
+            },
+            "depends_on": [
+              "0c7db202b0203887df49",
+              "549e07763e28f91e5904",
+              "e7de7bc8bf78013909c1",
+              "87d85f22c162396fadbc",
+              "59e95d2c0a67ade06568",
+              "61f14f5be43358152c3e"
+            ],
+            "stop_reason": "resolved",
+            "facts": [
+              {
+                "kind": "bindings",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "2008c7e0f8121820f425",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换"
+                ],
+                "fact_id": "0c7db202b0203887df49"
+              },
+              {
+                "kind": "container",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "2008c7e0f8121820f425",
+                "assumptions": [
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                ],
+                "fact_id": "549e07763e28f91e5904"
+              },
+              {
+                "kind": "domain",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "2008c7e0f8121820f425",
+                "trim": 1,
+                "offset": 2,
+                "constant": null,
+                "counter": "i",
+                "context_line": 2,
+                "fact_id": "e7de7bc8bf78013909c1"
+              },
+              {
+                "kind": "effects",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "2008c7e0f8121820f425",
+                "calls": [],
+                "fact_id": "87d85f22c162396fadbc"
+              },
+              {
+                "kind": "guards",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "2008c7e0f8121820f425",
+                "upper_guard": false,
+                "lower_guard": false,
+                "unsupported_guard": false,
+                "conditions": [],
+                "fact_id": "59e95d2c0a67ade06568"
+              },
+              {
+                "kind": "reachability",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "2008c7e0f8121820f425",
+                "assumptions": [
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "fact_id": "61f14f5be43358152c3e"
+              }
+            ]
+          },
+          {
+            "access_id": "f31728f66f29e43d4edd",
+            "rule": "python.list.index_bounds",
+            "file": "offset.py",
+            "line": 6,
+            "column": 13,
+            "end_line": 6,
+            "end_column": 26,
+            "start_byte": 135,
+            "end_byte": 148,
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "expression": "values[i + 2]",
+            "verdict": "SAFE",
+            "verification_result": "conditional_safe",
+            "terminal": true,
+            "missing": [],
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "derivation": {
+              "rule": "affine_range_v1",
+              "length": "n",
+              "iteration": "0 <= i < n - 2",
+              "index": "i + (2)",
+              "valid": "-n <= index < n",
+              "upper_guard": false,
+              "lower_guard": false
+            },
+            "depends_on": [
+              "357646f70f15eca34615",
+              "788b5502beb8e0400ec4",
+              "f849fcb0ca4e8aa98df2",
+              "f462b786f8a58f98e94d",
+              "a2ab7e72350d34579f7b",
+              "eb56a4ee3bfd41028316"
+            ],
+            "stop_reason": "resolved",
+            "facts": [
+              {
+                "kind": "bindings",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "f31728f66f29e43d4edd",
+                "assumptions": [
+                  "标准 Python 内置 len/range 未被运行环境动态替换"
+                ],
+                "fact_id": "357646f70f15eca34615"
+              },
+              {
+                "kind": "container",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "f31728f66f29e43d4edd",
+                "assumptions": [
+                  "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                ],
+                "fact_id": "788b5502beb8e0400ec4"
+              },
+              {
+                "kind": "domain",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "f31728f66f29e43d4edd",
+                "trim": 2,
+                "offset": 2,
+                "constant": null,
+                "counter": "i",
+                "context_line": 6,
+                "fact_id": "f849fcb0ca4e8aa98df2"
+              },
+              {
+                "kind": "effects",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "f31728f66f29e43d4edd",
+                "calls": [],
+                "fact_id": "f462b786f8a58f98e94d"
+              },
+              {
+                "kind": "guards",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "f31728f66f29e43d4edd",
+                "upper_guard": false,
+                "lower_guard": false,
+                "unsupported_guard": false,
+                "conditions": [],
+                "fact_id": "a2ab7e72350d34579f7b"
+              },
+              {
+                "kind": "reachability",
+                "status": "supported",
+                "origin": "deterministic_analysis",
+                "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                "file": "offset.py",
+                "access_id": "f31728f66f29e43d4edd",
+                "assumptions": [
+                  "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                ],
+                "fact_id": "eb56a4ee3bfd41028316"
+              }
+            ]
+          }
+        ],
+        "limitations": [
+          "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+          "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+          "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+        ]
+      },
+      "audit": {
+        "program_analysis": {
+          "policy": "cost",
+          "claims": [
+            {
+              "access_id": "2008c7e0f8121820f425",
+              "rule": "python.list.index_bounds",
+              "file": "offset.py",
+              "line": 2,
+              "column": 13,
+              "end_line": 2,
+              "end_column": 26,
+              "start_byte": 43,
+              "end_byte": 56,
+              "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+              "expression": "values[i + 2]",
+              "verdict": "VIOLATION",
+              "verification_result": "conditional_violation",
+              "terminal": true,
+              "missing": [],
+              "reason": "bounds_rule",
+              "assumptions": [
+                "标准 Python 内置 len/range 未被运行环境动态替换",
+                "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+              ],
+              "derivation": {
+                "rule": "affine_range_v1",
+                "length": "n",
+                "iteration": "0 <= i < n - 1",
+                "index": "i + (2)",
+                "valid": "-n <= index < n",
+                "upper_guard": false,
+                "lower_guard": false
+              },
+              "witness": {
+                "length": 2,
+                "counter": 0,
+                "index": 2,
+                "kind": "symbolic_bounds_witness_not_execution"
+              },
+              "depends_on": [
+                "0c7db202b0203887df49",
+                "549e07763e28f91e5904",
+                "e7de7bc8bf78013909c1",
+                "87d85f22c162396fadbc",
+                "59e95d2c0a67ade06568",
+                "61f14f5be43358152c3e"
+              ],
+              "stop_reason": "resolved",
+              "facts": [
+                {
+                  "kind": "bindings",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "2008c7e0f8121820f425",
+                  "assumptions": [
+                    "标准 Python 内置 len/range 未被运行环境动态替换"
+                  ],
+                  "fact_id": "0c7db202b0203887df49"
+                },
+                {
+                  "kind": "container",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "2008c7e0f8121820f425",
+                  "assumptions": [
+                    "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                  ],
+                  "fact_id": "549e07763e28f91e5904"
+                },
+                {
+                  "kind": "domain",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "2008c7e0f8121820f425",
+                  "trim": 1,
+                  "offset": 2,
+                  "constant": null,
+                  "counter": "i",
+                  "context_line": 2,
+                  "fact_id": "e7de7bc8bf78013909c1"
+                },
+                {
+                  "kind": "effects",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "2008c7e0f8121820f425",
+                  "calls": [],
+                  "fact_id": "87d85f22c162396fadbc"
+                },
+                {
+                  "kind": "guards",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "2008c7e0f8121820f425",
+                  "upper_guard": false,
+                  "lower_guard": false,
+                  "unsupported_guard": false,
+                  "conditions": [],
+                  "fact_id": "59e95d2c0a67ade06568"
+                },
+                {
+                  "kind": "reachability",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "2008c7e0f8121820f425",
+                  "assumptions": [
+                    "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                  ],
+                  "fact_id": "61f14f5be43358152c3e"
+                }
+              ]
+            },
+            {
+              "access_id": "f31728f66f29e43d4edd",
+              "rule": "python.list.index_bounds",
+              "file": "offset.py",
+              "line": 6,
+              "column": 13,
+              "end_line": 6,
+              "end_column": 26,
+              "start_byte": 135,
+              "end_byte": 148,
+              "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+              "expression": "values[i + 2]",
+              "verdict": "SAFE",
+              "verification_result": "conditional_safe",
+              "terminal": true,
+              "missing": [],
+              "reason": "bounds_rule",
+              "assumptions": [
+                "标准 Python 内置 len/range 未被运行环境动态替换",
+                "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+                "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+              ],
+              "derivation": {
+                "rule": "affine_range_v1",
+                "length": "n",
+                "iteration": "0 <= i < n - 2",
+                "index": "i + (2)",
+                "valid": "-n <= index < n",
+                "upper_guard": false,
+                "lower_guard": false
+              },
+              "depends_on": [
+                "357646f70f15eca34615",
+                "788b5502beb8e0400ec4",
+                "f849fcb0ca4e8aa98df2",
+                "f462b786f8a58f98e94d",
+                "a2ab7e72350d34579f7b",
+                "eb56a4ee3bfd41028316"
+              ],
+              "stop_reason": "resolved",
+              "facts": [
+                {
+                  "kind": "bindings",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "f31728f66f29e43d4edd",
+                  "assumptions": [
+                    "标准 Python 内置 len/range 未被运行环境动态替换"
+                  ],
+                  "fact_id": "357646f70f15eca34615"
+                },
+                {
+                  "kind": "container",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "f31728f66f29e43d4edd",
+                  "assumptions": [
+                    "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+                  ],
+                  "fact_id": "788b5502beb8e0400ec4"
+                },
+                {
+                  "kind": "domain",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "f31728f66f29e43d4edd",
+                  "trim": 2,
+                  "offset": 2,
+                  "constant": null,
+                  "counter": "i",
+                  "context_line": 6,
+                  "fact_id": "f849fcb0ca4e8aa98df2"
+                },
+                {
+                  "kind": "effects",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "f31728f66f29e43d4edd",
+                  "calls": [],
+                  "fact_id": "f462b786f8a58f98e94d"
+                },
+                {
+                  "kind": "guards",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "f31728f66f29e43d4edd",
+                  "upper_guard": false,
+                  "lower_guard": false,
+                  "unsupported_guard": false,
+                  "conditions": [],
+                  "fact_id": "a2ab7e72350d34579f7b"
+                },
+                {
+                  "kind": "reachability",
+                  "status": "supported",
+                  "origin": "deterministic_analysis",
+                  "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+                  "file": "offset.py",
+                  "access_id": "f31728f66f29e43d4edd",
+                  "assumptions": [
+                    "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+                  ],
+                  "fact_id": "eb56a4ee3bfd41028316"
+                }
+              ]
+            }
+          ],
+          "limitations": [
+            "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+            "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+            "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+          ]
+        },
+        "program_conflicts": [],
+        "diagnostic_reviews": [],
+        "function_reviews": [
+          {
+            "function_id": "offset.py:1:case_a",
+            "verdict": "issue_found",
+            "reason": "列表下标 i + 2 可能越界，需检查索引合法性。",
+            "basis_program": [
+              "2008c7e0f8121820f425"
+            ]
+          },
+          {
+            "function_id": "offset.py:5:case_b",
+            "verdict": "no_issue_found",
+            "reason": "在 case_b 函数中，i 的范围是 0 <= i < len(values) - 2，i + 2 的最大值为 len(values) - 2 + 2 = len(values)，即索引合法。"
+          }
+        ],
+        "diagnostic_total": 0,
+        "function_total": 2,
+        "loop_index_total": 0,
+        "units": [
+          {
+            "function_id": "offset.py:1:case_a",
+            "name": "case_a",
+            "ranges": [
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          {
+            "function_id": "offset.py:5:case_b",
+            "name": "case_b",
+            "ranges": [
+              [
+                5,
+                6
+              ]
+            ]
+          }
+        ],
+        "pending": {
+          "diagnostics": [],
+          "functions": []
+        },
+        "complete": true,
+        "followup_performed": true,
+        "program_reconciliations": [
+          {
+            "original": {
+              "file": "offset.py",
+              "line": 2,
+              "title": "列表下标越界",
+              "explanation": "在 case_a 函数中，列表下标 i + 2 可能超出列表长度，导致 IndexError。",
+              "condition": "当 len(values) <= 2 时，i + 2 会超出列表长度。",
+              "suggestion": "确保列表长度足够，或在访问前检查索引合法性。",
+              "issue_kind": "index_bounds",
+              "access_id": "2008c7e0f8121820f425",
+              "evidence_ids": [
+                "E2"
+              ],
+              "evidence_origin": "source_location"
+            },
+            "access_id": "2008c7e0f8121820f425",
+            "verdict": "VIOLATION",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "resolution": "condition_from_program_witness"
+          },
+          {
+            "original": {
+              "file": "offset.py",
+              "line": 6,
+              "title": "列表下标越界",
+              "explanation": "在 case_b 函数中，列表下标 i + 2 可能超出列表长度，导致 IndexError。",
+              "condition": "当 len(values) <= 2 时，i + 2 会超出列表长度。",
+              "suggestion": "确保列表长度足够，或在访问前检查索引合法性。",
+              "issue_kind": "index_bounds",
+              "access_id": "f31728f66f29e43d4edd",
+              "evidence_ids": [
+                "E2"
+              ],
+              "evidence_origin": "source_location"
+            },
+            "access_id": "f31728f66f29e43d4edd",
+            "verdict": "SAFE",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "resolution": "safe_under_assumptions"
+          }
+        ],
+        "blocked_withdrawals": [],
+        "program_resolved_units": {},
+        "withdrawn_findings": [],
+        "ignored_records": [],
+        "limitation": "记录仅证明已逐项提交处理意见，不证明判断正确或没有遗漏。"
+      },
+      "context_chars": 567,
+      "source_coverage": {
+        "file": "offset.py",
+        "total_lines": 6,
+        "provided_lines": 6,
+        "complete": true
+      }
+    }
+  ],
+  "model_usage": {
+    "prompt_tokens": 8430,
+    "completion_tokens": 594,
+    "requests": 2,
+    "structured_requests": 2
+  },
+  "stage_timings": {
+    "index_seconds": 0.00047099997755140066,
+    "scanner_seconds": 0.6134667920414358,
+    "candidate_seconds": 0.0005670000100508332,
+    "evidence_seconds": 0.0010748329805210233,
+    "review_seconds": 58.92002583399881
+  },
+  "model_request_metrics": [
+    {
+      "wall_seconds": 33.0090079579968,
+      "request_bytes": 19872,
+      "thinking_requested": false,
+      "load_duration_seconds": 0.00083075,
+      "prompt_eval_duration_seconds": 1.90614,
+      "eval_duration_seconds": 31.068421,
+      "total_duration_seconds": 33.006449583
+    },
+    {
+      "wall_seconds": 25.900946583948098,
+      "request_bytes": 33375,
+      "thinking_requested": false,
+      "load_duration_seconds": 0.001967834,
+      "prompt_eval_duration_seconds": 12.565051,
+      "eval_duration_seconds": 13.305633,
+      "total_duration_seconds": 25.898947917
+    }
+  ],
+  "model_context": 40960,
+  "index_warnings": [],
+  "limitations": [
+    "支持 C、C++、Python、JavaScript、TypeScript；AST 不执行预处理或完整类型/别名分析。成员调用、动态分派和同名函数均可能存在歧义。",
+    "Python 使用 Bandit、Ruff 和 Pyright basic 类型检查；Pyright 仅分析导入源码快照，不加载目标配置，不推断第三方库实现；未知类型仍可能漏报。JS/TS 使用固定 ESLint 规则，TypeScript 尚未接入 tsc 类型检查。",
+    "内置 collect 目前仅支持简单 C 程序；其他语言可导入符合格式的逐测试覆盖 JSON 进行 SBFL。",
+    "candidates 模式只复核静态诊断和 SBFL 候选；files 模式也审查无报警文件。top-k、源码读取预算和模型能力均可能导致遗漏，源码提供不代表检查正确。",
+    "SBFL 使用 Ochiai，可疑度不等于缺陷概率。RRF 是排序策略，其有效性尚需对照实验。",
+    "模型引用校验仅验证证据确实已返回，不证明推理正确。模型不能将问题标记为已动态复现。",
+    "整文件模式记录每条诊断及每个函数/模块单元的处理意见；Python 显式 for/while 循环中的下标访问另建独立任务并复查，语法错误时尝试使用恢复语法树。处理记录完整不代表判断正确，也不是新的静态越界证明。",
+    "context_chars 统计返回的证据字符数，不是 Token 数，也不包含重复发送历史消息的费用。",
+    "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+    "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+    "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+  ],
+  "program_analysis": {
+    "schema_version": 1,
+    "rule": {
+      "id": "python.list.index_bounds",
+      "version": 2,
+      "language": "python",
+      "property": "IndexError at an integer list subscript",
+      "obligations": [
+        "bindings",
+        "container",
+        "domain",
+        "guards",
+        "effects",
+        "reachability"
+      ],
+      "supported": "unit-step range(len(list)-c), affine index, direct guards, one comprehension generator; bounded AST counterexamples for list mutations, helpers, nested/stepped loops and integer arithmetic"
+    },
+    "policy": "cost",
+    "verification_enabled": true,
+    "claims": [
+      {
+        "access_id": "2008c7e0f8121820f425",
+        "rule": "python.list.index_bounds",
+        "file": "offset.py",
+        "line": 2,
+        "column": 13,
+        "end_line": 2,
+        "end_column": 26,
+        "start_byte": 43,
+        "end_byte": 56,
+        "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+        "expression": "values[i + 2]",
+        "verdict": "VIOLATION",
+        "verification_result": "conditional_violation",
+        "terminal": true,
+        "missing": [],
+        "reason": "bounds_rule",
+        "assumptions": [
+          "标准 Python 内置 len/range 未被运行环境动态替换",
+          "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+          "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+        ],
+        "derivation": {
+          "rule": "affine_range_v1",
+          "length": "n",
+          "iteration": "0 <= i < n - 1",
+          "index": "i + (2)",
+          "valid": "-n <= index < n",
+          "upper_guard": false,
+          "lower_guard": false
+        },
+        "witness": {
+          "length": 2,
+          "counter": 0,
+          "index": 2,
+          "kind": "symbolic_bounds_witness_not_execution"
+        },
+        "depends_on": [
+          "0c7db202b0203887df49",
+          "549e07763e28f91e5904",
+          "e7de7bc8bf78013909c1",
+          "87d85f22c162396fadbc",
+          "59e95d2c0a67ade06568",
+          "61f14f5be43358152c3e"
+        ],
+        "stop_reason": "resolved",
+        "facts": [
+          {
+            "kind": "bindings",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "2008c7e0f8121820f425",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换"
+            ],
+            "fact_id": "0c7db202b0203887df49"
+          },
+          {
+            "kind": "container",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "2008c7e0f8121820f425",
+            "assumptions": [
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+            ],
+            "fact_id": "549e07763e28f91e5904"
+          },
+          {
+            "kind": "domain",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "2008c7e0f8121820f425",
+            "trim": 1,
+            "offset": 2,
+            "constant": null,
+            "counter": "i",
+            "context_line": 2,
+            "fact_id": "e7de7bc8bf78013909c1"
+          },
+          {
+            "kind": "effects",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "2008c7e0f8121820f425",
+            "calls": [],
+            "fact_id": "87d85f22c162396fadbc"
+          },
+          {
+            "kind": "guards",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "2008c7e0f8121820f425",
+            "upper_guard": false,
+            "lower_guard": false,
+            "unsupported_guard": false,
+            "conditions": [],
+            "fact_id": "59e95d2c0a67ade06568"
+          },
+          {
+            "kind": "reachability",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "2008c7e0f8121820f425",
+            "assumptions": [
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "fact_id": "61f14f5be43358152c3e"
+          }
+        ]
+      },
+      {
+        "access_id": "f31728f66f29e43d4edd",
+        "rule": "python.list.index_bounds",
+        "file": "offset.py",
+        "line": 6,
+        "column": 13,
+        "end_line": 6,
+        "end_column": 26,
+        "start_byte": 135,
+        "end_byte": 148,
+        "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+        "expression": "values[i + 2]",
+        "verdict": "SAFE",
+        "verification_result": "conditional_safe",
+        "terminal": true,
+        "missing": [],
+        "reason": "bounds_rule",
+        "assumptions": [
+          "标准 Python 内置 len/range 未被运行环境动态替换",
+          "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+          "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+        ],
+        "derivation": {
+          "rule": "affine_range_v1",
+          "length": "n",
+          "iteration": "0 <= i < n - 2",
+          "index": "i + (2)",
+          "valid": "-n <= index < n",
+          "upper_guard": false,
+          "lower_guard": false
+        },
+        "depends_on": [
+          "357646f70f15eca34615",
+          "788b5502beb8e0400ec4",
+          "f849fcb0ca4e8aa98df2",
+          "f462b786f8a58f98e94d",
+          "a2ab7e72350d34579f7b",
+          "eb56a4ee3bfd41028316"
+        ],
+        "stop_reason": "resolved",
+        "facts": [
+          {
+            "kind": "bindings",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "f31728f66f29e43d4edd",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换"
+            ],
+            "fact_id": "357646f70f15eca34615"
+          },
+          {
+            "kind": "container",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "f31728f66f29e43d4edd",
+            "assumptions": [
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证"
+            ],
+            "fact_id": "788b5502beb8e0400ec4"
+          },
+          {
+            "kind": "domain",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "f31728f66f29e43d4edd",
+            "trim": 2,
+            "offset": 2,
+            "constant": null,
+            "counter": "i",
+            "context_line": 6,
+            "fact_id": "f849fcb0ca4e8aa98df2"
+          },
+          {
+            "kind": "effects",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "f31728f66f29e43d4edd",
+            "calls": [],
+            "fact_id": "f462b786f8a58f98e94d"
+          },
+          {
+            "kind": "guards",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "f31728f66f29e43d4edd",
+            "upper_guard": false,
+            "lower_guard": false,
+            "unsupported_guard": false,
+            "conditions": [],
+            "fact_id": "a2ab7e72350d34579f7b"
+          },
+          {
+            "kind": "reachability",
+            "status": "supported",
+            "origin": "deterministic_analysis",
+            "source_hash": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+            "file": "offset.py",
+            "access_id": "f31728f66f29e43d4edd",
+            "assumptions": [
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "fact_id": "eb56a4ee3bfd41028316"
+          }
+        ]
+      }
+    ],
+    "trace": [
+      {
+        "access_id": "2008c7e0f8121820f425",
+        "tool": "bindings",
+        "missing_before": [
+          "bindings",
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 bindings 证据",
+        "fact_id": "0c7db202b0203887df49",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 6.8e-05
+      },
+      {
+        "access_id": "f31728f66f29e43d4edd",
+        "tool": "bindings",
+        "missing_before": [
+          "bindings",
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 bindings 证据",
+        "fact_id": "357646f70f15eca34615",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 3.2e-05
+      },
+      {
+        "access_id": "2008c7e0f8121820f425",
+        "tool": "container",
+        "missing_before": [
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 container 证据",
+        "fact_id": "549e07763e28f91e5904",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 1.2e-05
+      },
+      {
+        "access_id": "f31728f66f29e43d4edd",
+        "tool": "container",
+        "missing_before": [
+          "container",
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 container 证据",
+        "fact_id": "788b5502beb8e0400ec4",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 8e-06
+      },
+      {
+        "access_id": "2008c7e0f8121820f425",
+        "tool": "domain",
+        "missing_before": [
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 domain 证据",
+        "fact_id": "e7de7bc8bf78013909c1",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 2.4e-05
+      },
+      {
+        "access_id": "f31728f66f29e43d4edd",
+        "tool": "domain",
+        "missing_before": [
+          "domain",
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 domain 证据",
+        "fact_id": "f849fcb0ca4e8aa98df2",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 1.4e-05
+      },
+      {
+        "access_id": "2008c7e0f8121820f425",
+        "tool": "effects",
+        "missing_before": [
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 effects 证据",
+        "fact_id": "87d85f22c162396fadbc",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 5.2e-05
+      },
+      {
+        "access_id": "f31728f66f29e43d4edd",
+        "tool": "effects",
+        "missing_before": [
+          "guards",
+          "effects",
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 effects 证据",
+        "fact_id": "f462b786f8a58f98e94d",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 4.5e-05
+      },
+      {
+        "access_id": "2008c7e0f8121820f425",
+        "tool": "guards",
+        "missing_before": [
+          "guards",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 guards 证据",
+        "fact_id": "59e95d2c0a67ade06568",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 2.2e-05
+      },
+      {
+        "access_id": "f31728f66f29e43d4edd",
+        "tool": "guards",
+        "missing_before": [
+          "guards",
+          "reachability"
+        ],
+        "estimated_cost": 1,
+        "selection_reason": "cost: 补充 guards 证据",
+        "fact_id": "a2ab7e72350d34579f7b",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 1.2e-05
+      },
+      {
+        "access_id": "2008c7e0f8121820f425",
+        "tool": "reachability",
+        "missing_before": [
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 reachability 证据",
+        "fact_id": "61f14f5be43358152c3e",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 7.9e-05
+      },
+      {
+        "access_id": "f31728f66f29e43d4edd",
+        "tool": "reachability",
+        "missing_before": [
+          "reachability"
+        ],
+        "estimated_cost": 2,
+        "selection_reason": "cost: 补充 reachability 证据",
+        "fact_id": "eb56a4ee3bfd41028316",
+        "status": "supported",
+        "reason": null,
+        "elapsed_seconds": 6.7e-05
+      }
+    ],
+    "parse_errors": [],
+    "source_hashes": {
+      "offset.py": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6"
+    },
+    "selected_files": [
+      "offset.py"
+    ],
+    "summary": {
+      "accesses": 2,
+      "results": {
+        "conditional_violation": 1,
+        "conditional_safe": 1
+      },
+      "actions": 12,
+      "estimated_cost": 16,
+      "elapsed_seconds": 0.001032,
+      "model_requests": 0,
+      "model_tokens": null,
+      "budget_exhausted": 0
+    },
+    "limitations": [
+      "支持有限 Python 普通列表规则与有界 AST 反例搜索；不执行目标源码，搜索失败不能证明安全。",
+      "参数类型、运行环境与路径假设逐项列出；未知调用和不支持结构保持不确定。",
+      "cost 为可解释启发式成本策略，未实现训练式收益预测或组合动作搜索。"
+    ],
+    "coverage": {
+      "enumerated_accesses": 2,
+      "selected_accesses": 2,
+      "unselected_accesses": 0
+    }
+  },
+  "analysis_strategy": "evidence"
+}

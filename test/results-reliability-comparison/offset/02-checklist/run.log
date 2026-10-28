@@ -1,0 +1,22 @@
+
+[4/20] offset/02-checklist
+[1/4] 索引完成：1 个文件，2 个函数
+      语言：Python 1
+[2/4] 静态扫描：completed，0 条诊断
+      bandit：completed，0 条诊断
+      ruff：completed，0 条诊断
+      pyright：completed，0 条诊断
+[3/4] SBFL：not_provided，候选 1，选择前 1 个
+      模型复核（qwen3:8b） offset.py:file-audit
+        模型第 1/4 轮：发送请求，等待响应
+        模型第 1/4 轮：已等待 15 秒（服务尚未返回，可能在加载、排队或生成）
+        模型第 1/4 轮：已等待 30 秒（服务尚未返回，可能在加载、排队或生成）
+        模型第 1/4 轮：收到响应，耗时 40.9 秒
+        已保存问题，继续补查：未处理诊断 0 条、未处理审查单元 0 个、复查 0 个。
+        模型第 2/4 轮：发送请求，等待响应
+        模型第 2/4 轮：已等待 15 秒（服务尚未返回，可能在加载、排队或生成）
+        模型第 2/4 轮：已等待 30 秒（服务尚未返回，可能在加载、排队或生成）
+        模型第 2/4 轮：收到响应，耗时 37.5 秒
+        结论已接受；累计列出 0 个模型问题。
+[4/4] 报告：/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/offset/02-checklist/report.html
+整文件审查：模型列出 0 个问题（未经执行验证）；原始静态诊断 0 条。

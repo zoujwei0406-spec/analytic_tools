@@ -1,0 +1,541 @@
+{
+  "offset/01-checklist": {
+    "report_sha256": "04bd4571c3e8837b359f9a946b4a260a12b66aa6468e2a872e8d2e7dfa4dd946",
+    "final": {},
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "offset/01-evidence": {
+    "report_sha256": "28a30f85e4d178175b1c57ecce72f63b3009df79f39027d4ac207d7f0d1c30b0",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "range(n-1) 在 n=2 执行 i=0，i+2=2 超出长度2；case_b 的 range(n-2) 最大下标 n-1。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      },
+      "program:2008c7e0f8121820f425": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "range(n-1) 在 n=2 执行 i=0，i+2=2 超出长度2；case_b 的 range(n-2) 最大下标 n-1。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "offset/02-evidence": {
+    "report_sha256": "7c251a32d8f8594ab79c423f846488d43b12826201b15ebe1c9d19556b788e52",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "range(n-1) 在 n=2 执行 i=0，i+2=2 超出长度2；case_b 的 range(n-2) 最大下标 n-1。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      },
+      "program:2008c7e0f8121820f425": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "range(n-1) 在 n=2 执行 i=0，i+2=2 超出长度2；case_b 的 range(n-2) 最大下标 n-1。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "offset/02-checklist": {
+    "report_sha256": "7b19fda688c4644a67c822295a5714d1f1c40cf44fbd0b670dbff427b6e24f1e",
+    "final": {},
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "negative/01-checklist": {
+    "report_sha256": "65b27025df364087923b43665e98dd6549b5e5fdc0f3fd9bd951846f425b1576",
+    "final": {},
+    "rounds": {
+      "0": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      },
+      "2": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "negative/01-evidence": {
+    "report_sha256": "80da1abd3f3b3ef111f2eaf0f610ab534670361f60b438592a306603f1ac1a6c",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "n=1、i=0 时 i-2=-2 小于 -1；case_b 的 -1 在非空循环内合法，空输入不访问。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      },
+      "program:81b1f1bf4cfbd59f6c50": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "n=1、i=0 时 i-2=-2 小于 -1；case_b 的 -1 在非空循环内合法，空输入不访问。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "negative/02-evidence": {
+    "report_sha256": "3aa398eaa02dbade512ade919b4e03eda4f2a7220267c6e05dd3c1e6cb5717d0",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "n=1、i=0 时 i-2=-2 小于 -1；case_b 的 -1 在非空循环内合法，空输入不访问。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      },
+      "program:81b1f1bf4cfbd59f6c50": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "n=1、i=0 时 i-2=-2 小于 -1；case_b 的 -1 在非空循环内合法，空输入不访问。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "negative/02-checklist": {
+    "report_sha256": "79b01738e09671c28269215587788d2958e4c409532a8c2de2e7524df477d02b",
+    "final": {},
+    "rounds": {
+      "0": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      },
+      "2": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "guard/01-checklist": {
+    "report_sha256": "0de6812f5360ffcc15001cdbd7ab989c30eb279a19a327e2f23a1e50012d9c38",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "n=1、i=0、k=-2 的具体条件可达；上界 -2<1 成立而下界 -1 被违反。"
+      },
+      "model:0:1": {
+        "status": "fp",
+        "labels": [
+          "case_b"
+        ],
+        "issue_key": "guard.case_b.unreachable_last_iteration",
+        "category": "false_bounds_alarm",
+        "reason": "i=n-1 时 i+1<n 为假，源码已经含该保护，目标访问不执行；建议重复了已有条件。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "guard/01-evidence": {
+    "report_sha256": "bdc5b48870b0556041424ec1bff9b555ad5c6ed3c2e31185614f1fd9ee3881bf",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "n=1、i=0 时 -2<1 保护成立，但 -2 小于合法下界-1；case_b 的 i+1<n 充分保护上界。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      },
+      "program:74daa5d809f9ff9b51c5": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "n=1、i=0 时 -2<1 保护成立，但 -2 小于合法下界-1；case_b 的 i+1<n 充分保护上界。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "guard/02-evidence": {
+    "report_sha256": "f8e6f063f713169024dafb0c7ce0dcd5b6c25206c5c0dad64225d8a87f762c68",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "n=1、i=0 时 -2<1 保护成立，但 -2 小于合法下界-1；case_b 的 i+1<n 充分保护上界。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      },
+      "program:74daa5d809f9ff9b51c5": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "n=1、i=0 时 -2<1 保护成立，但 -2 小于合法下界-1；case_b 的 i+1<n 充分保护上界。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "guard/02-checklist": {
+    "report_sha256": "9e442ba778078215be6444557e03f900d646bfde4d3e9714d99c9f2cb4d8cb2b",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "n=1、i=0、k=-2 可达，满足原上界保护但违反 -n 下界。"
+      },
+      "model:0:1": {
+        "status": "fp",
+        "labels": [
+          "case_b"
+        ],
+        "issue_key": "guard.case_b.unreachable_last_iteration",
+        "category": "false_bounds_alarm",
+        "reason": "源码已有 i+1<n 保护，末轮分支为假，访问不会执行；模型保留了不可达路径的报警。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "helper/01-checklist": {
+    "report_sha256": "a2c37c5ceef12ff1b9b1712c0dbc8c8906f2bfa081eab73c8318b5bc3fe10fe3",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "observe 的函数体只有 pass，不改变列表；对任意非空普通列表，末轮 i=n-1，i+1=n 可达且越界。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      }
+    }
+  },
+  "helper/01-evidence": {
+    "report_sha256": "154b4928c851705ac64cc2672df040e2699251fdb4d312af051d0dc8d23f6f7a",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "observe 只有 pass，不修改列表；n=1、i=0 时 i+1=1 越界；case_b 缩短循环后最大下标 n-1。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      },
+      "program:372aa7685e18a44126bd": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "observe 只有 pass，不修改列表；n=1、i=0 时 i+1=1 越界；case_b 缩短循环后最大下标 n-1。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      }
+    }
+  },
+  "helper/02-evidence": {
+    "report_sha256": "efbc25a84c167adb6ffd44f76934ed52c8d1387573ce741ed3e590bcee20877c",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "observe 只有 pass，不修改列表；n=1、i=0 时 i+1=1 越界；case_b 缩短循环后最大下标 n-1。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      },
+      "program:372aa7685e18a44126bd": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "observe 只有 pass，不修改列表；n=1、i=0 时 i+1=1 越界；case_b 缩短循环后最大下标 n-1。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      }
+    }
+  },
+  "helper/02-checklist": {
+    "report_sha256": "8321649930ea1c4bbf9f6a70c0134d631f0afe40b46e8a5679eabd01a31df97f",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "observe 无副作用；非空普通列表最后一次迭代 i=n-1，实际访问 i+1=n，符合模型给出的触发条件。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      }
+    }
+  },
+  "local/01-checklist": {
+    "report_sha256": "1c8dc696e6073542da471e0f13f165e71b97f68f6be597e7a963d43cb144ad0c",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "case_a 将列表固定为 [1]，循环一次，-2 小于有效负下界 -1；模型说明了实际长度1，触发可达。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      }
+    }
+  },
+  "local/01-evidence": {
+    "report_sha256": "385cb7e2c4938999bc39cbd5e1d6423edd7fd76747eb39ed724f29ae75780933",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "case_a 固定列表[1]，循环一次，下标-2小于-1；case_b 固定空列表的循环不执行。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      },
+      "program:ea0909a7d6eee967244b": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "case_a 固定列表[1]，循环一次，下标-2小于-1；case_b 固定空列表的循环不执行。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "local/02-evidence": {
+    "report_sha256": "64d1e56927610e04e161d1af20ce95b8d5e4b829d04568203443ee945fc7a0c8",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "case_a 固定列表[1]，循环一次，下标-2小于-1；case_b 固定空列表的循环不执行。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      },
+      "program:ea0909a7d6eee967244b": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "case_a 固定列表[1]，循环一次，下标-2小于-1；case_b 固定空列表的循环不执行。 程序校正与独立程序条目按同一缺陷去重，不算模型独立正确。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [],
+        "reason": "本次无新增正确独立模型问题，或原条件不满足语义口径；已有程序见证/校正另外计分。"
+      }
+    }
+  },
+  "local/02-checklist": {
+    "report_sha256": "6763ab90c71bdbb685dba1a2f7d2f89df382780a84694d251ae1901c051097d1",
+    "final": {
+      "model:0:0": {
+        "status": "tp",
+        "labels": [
+          "case_a"
+        ],
+        "reason": "固定列表 [1]，range(1) 实际执行，values[-2] 超过负下界 -1；最终条件与可达路径一致。"
+      }
+    },
+    "rounds": {
+      "0": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      },
+      "1": {
+        "labels": [
+          "case_a"
+        ],
+        "reason": "人工核对本次原始提交的触发条件与实际路径，存在正确模型检出。"
+      }
+    }
+  },
+  "_interpretation": [
+    "公共修复进入两组，方案专属功能通过开关隔离；两组来自同一当前源码，不是历史提交还原。",
+    "本批开始前完整 pytest 290 项通过，真实 CLI 回归完成；可靠性前置检查为 40 访问、真实越界15/15，无安全误报或危险误判安全。",
+    "单独的规则修复前后结果是冻结旧规则/调度模块的离线重跑，不能替代本批 checklist/evidence 对照。",
+    "有限 AST 搜索的零漏检只限扩展集；当前12处UNKNOWN包括安全未证明、外部条件依赖和类型问题，不表示任意源码已无缺陷。",
+    "重复是检出机会，不是独立项目；耗时受本机运行状态和模型生成影响，跨批次差异不能单独归因某项修复。"
+  ]
+}

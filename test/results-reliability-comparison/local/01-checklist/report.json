@@ -1,0 +1,598 @@
+{
+  "schema_version": 2,
+  "project": "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix",
+  "created_at": "2026-10-25T04:43:03.185972+00:00",
+  "model": "qwen3:8b",
+  "context_mode": "adaptive",
+  "review_scope": "files",
+  "source_hashes": {
+    "local.py": "3398a352a55b386050d2de71e4b4a410b3efe5ee221c7af5616d28507cc70ea1"
+  },
+  "languages": {
+    "local.py": "python"
+  },
+  "summary": {
+    "files": 1,
+    "functions": 2,
+    "languages": {
+      "python": 1
+    },
+    "diagnostics": 0,
+    "candidates": 1,
+    "selected": 1,
+    "model_findings": 1,
+    "context_chars": 589,
+    "source_chars": 186,
+    "elapsed_seconds": 158.47
+  },
+  "scanner": {
+    "status": "completed",
+    "diagnostics": [],
+    "notes": [],
+    "tools": [
+      {
+        "tool": "bandit",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "bandit 1.9.4",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/bandit",
+          "--quiet",
+          "--ignore-nosec",
+          "--format",
+          "json",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/local.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "ruff",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "ruff 0.17.1",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/ruff",
+          "check",
+          "--isolated",
+          "--no-cache",
+          "--ignore-noqa",
+          "--output-format",
+          "json",
+          "--select",
+          "E9,F63,F7,F82",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/local.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "pyright",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "1.1.414",
+        "command": [
+          "/usr/local/bin/node",
+          "/Users/zoujingwei/analytic_tools/node_modules/pyright/index.js",
+          "--outputjson",
+          "--project",
+          "/var/folders/55/wd929yb13pggpy7z3cglvtp40000gn/T/evidence-pyright-boxwmv8j/pyrightconfig.json"
+        ],
+        "diagnostics": [],
+        "notes": [],
+        "configuration": {
+          "mode": "basic",
+          "source": "imported-snapshots",
+          "target_config_loaded": false,
+          "library_code_inference": false
+        }
+      }
+    ],
+    "version": null,
+    "versions": {
+      "bandit": "bandit 1.9.4",
+      "ruff": "ruff 0.17.1",
+      "pyright": "1.1.414"
+    }
+  },
+  "sbfl": {
+    "status": "not_provided",
+    "lines": [],
+    "passed": 0,
+    "failed": 0,
+    "errors": 0
+  },
+  "candidates": [
+    {
+      "id": "local.py:file-audit",
+      "function_id": null,
+      "file": "local.py",
+      "line": 1,
+      "language": "python",
+      "name": "<整文件审查>",
+      "scope": "file",
+      "diagnostics": [],
+      "sbfl_lines": [],
+      "sbfl_score": 0.0,
+      "priority": 0.0
+    }
+  ],
+  "reviews": [
+    {
+      "candidate_id": "local.py:file-audit",
+      "status": "completed",
+      "mode": "adaptive",
+      "review": {
+        "suggestion": "见各问题的修复建议。",
+        "evidence_ids": [
+          "E2"
+        ],
+        "verdict": "likely_issue",
+        "summary": "逐项审查列出 1 个问题，复核撤回 1 项；详见处理记录。",
+        "missing_evidence": [],
+        "findings": [
+          {
+            "file": "local.py",
+            "line": 4,
+            "title": "负索引越界访问",
+            "explanation": "values列表长度为1时，values[-2]的负索引超出有效范围（-1）",
+            "condition": "当values列表长度小于2时执行该行",
+            "suggestion": "改为使用values[-1]或添加长度检查",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F1"
+          }
+        ],
+        "withdrawn_findings": [
+          {
+            "file": "local.py",
+            "line": 10,
+            "title": "正向索引越界访问",
+            "explanation": "values列表初始化为空，循环不会执行导致该行未被触发",
+            "condition": "当values列表长度为0且循环体执行时",
+            "suggestion": "确保列表非空或添加索引边界检查",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F2",
+            "withdraw_reason": "values初始化为空列表，循环体未执行导致访问未发生"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "round": 1,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "likely_issue",
+            "summary": "发现两个循环下标访问越界问题，需修复索引计算逻辑",
+            "missing_evidence": [],
+            "findings": [
+              {
+                "file": "local.py",
+                "line": 4,
+                "title": "负索引越界访问",
+                "explanation": "values列表长度为1时，values[-2]的负索引超出有效范围（-1）",
+                "condition": "当values列表长度小于2时执行该行",
+                "suggestion": "改为使用values[-1]或添加长度检查"
+              },
+              {
+                "file": "local.py",
+                "line": 10,
+                "title": "正向索引越界访问",
+                "explanation": "values列表初始化为空，循环不会执行导致该行未被触发",
+                "condition": "当values列表长度为0且循环体执行时",
+                "suggestion": "确保列表非空或添加索引边界检查"
+              }
+            ],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "local.py:1:case_a",
+                "verdict": "issue_found",
+                "reason": "负索引访问未考虑列表长度边界"
+              },
+              {
+                "function_id": "local.py:7:case_b",
+                "verdict": "no_issue_found",
+                "reason": "空列表导致循环体未执行"
+              },
+              {
+                "function_id": "local.py:4:17:loop-index",
+                "verdict": "issue_found",
+                "reason": "负索引访问未验证列表长度"
+              },
+              {
+                "function_id": "local.py:10:17:loop-index",
+                "verdict": "no_issue_found",
+                "reason": "空列表导致循环体未执行"
+              }
+            ]
+          },
+          "response": {
+            "accepted": true,
+            "complete": false,
+            "program_conflicts": [],
+            "conflict_instructions": "program_conflicts 列出了模型与程序的条件结论冲突。逐一核对；如果没有具体不同前提，将误报 finding_id 填入 withdraw_findings 撤回。安全说明不应作为新问题放入 findings。",
+            "task": "补查尚未逐项处理的诊断和函数；对无问题结论再核对一次。已有 findings 保留，只提交新增问题。同时复核已有问题，位置校验不证明判断正确。将误判填入 withdraw_findings（finding_id、reason）撤回。不能凭空要求函数接受任意错误类型，也不能把正常的显式容器修改或空结果当成漏洞。逐个核对操作数类型、空输入、状态和安全约定。循环下标任务须独立计算首次/末次索引与偏移，检查保护条件和容器变化，不能只重复其他报警。对于越界意见，写出实际索引与长度的比较：len(a)-1 是合法最大正索引，len(a) 才越过正向边界；range(len(a)) 中 a[i] 在长度不变时合法。撤回把合法边界或切片误判为越界的发现。也独立检查实际调用的元素类型和更早的阻断错误。用简短 reason 记录结果；不能用未读源码得出无问题结论。",
+            "pending": {
+              "diagnostics": [],
+              "functions": []
+            },
+            "recheck_functions": [
+              "local.py:7:case_b",
+              "local.py:4:17:loop-index",
+              "local.py:10:17:loop-index"
+            ],
+            "verify_findings": [
+              {
+                "file": "local.py",
+                "line": 4,
+                "title": "负索引越界访问",
+                "explanation": "values列表长度为1时，values[-2]的负索引超出有效范围（-1）",
+                "condition": "当values列表长度小于2时执行该行",
+                "suggestion": "改为使用values[-1]或添加长度检查",
+                "evidence_ids": [
+                  "E2"
+                ],
+                "evidence_origin": "source_location",
+                "finding_id": "F1"
+              },
+              {
+                "file": "local.py",
+                "line": 10,
+                "title": "正向索引越界访问",
+                "explanation": "values列表初始化为空，循环不会执行导致该行未被触发",
+                "condition": "当values列表长度为0且循环体执行时",
+                "suggestion": "确保列表非空或添加索引边界检查",
+                "evidence_ids": [
+                  "E2"
+                ],
+                "evidence_origin": "source_location",
+                "finding_id": "F2"
+              }
+            ],
+            "requested_function_records": [
+              {
+                "function_id": "local.py:7:case_b",
+                "name": "case_b",
+                "ranges": [
+                  [
+                    7,
+                    10
+                  ]
+                ]
+              },
+              {
+                "function_id": "local.py:4:17:loop-index",
+                "name": "循环下标访问",
+                "kind": "loop_index",
+                "ranges": [
+                  [
+                    4,
+                    4
+                  ]
+                ],
+                "context_ranges": [
+                  [
+                    3,
+                    4
+                  ]
+                ],
+                "access": "values[-2]",
+                "loop_controls": [
+                  {
+                    "line": 3,
+                    "kind": "for_statement",
+                    "target": "i",
+                    "expression": "range(len(values))"
+                  }
+                ],
+                "syntax_recovered": false,
+                "check": "独立核对本处访问：容器类型、循环首次/末次索引及偏移、空输入、保护条件、提前退出与容器变化。reason 简述实际边界或保护依据；不能以同函数的其他问题替代本处结论。区分 Python 负索引、切片和字典键语义。类型或可达性未知时注明条件或 inconclusive，语法错误后的风险须说明修复前置错误后才可能触发。"
+              },
+              {
+                "function_id": "local.py:10:17:loop-index",
+                "name": "循环下标访问",
+                "kind": "loop_index",
+                "ranges": [
+                  [
+                    10,
+                    10
+                  ]
+                ],
+                "context_ranges": [
+                  [
+                    9,
+                    10
+                  ]
+                ],
+                "access": "values[i + 1]",
+                "loop_controls": [
+                  {
+                    "line": 9,
+                    "kind": "for_statement",
+                    "target": "i",
+                    "expression": "range(len(values))"
+                  }
+                ],
+                "syntax_recovered": false,
+                "check": "独立核对本处访问：容器类型、循环首次/末次索引及偏移、空输入、保护条件、提前退出与容器变化。reason 简述实际边界或保护依据；不能以同函数的其他问题替代本处结论。区分 Python 负索引、切片和字典键语义。类型或可达性未知时注明条件或 inconclusive，语法错误后的风险须说明修复前置错误后才可能触发。"
+              }
+            ],
+            "submission_rules": "返回 findings、diagnostic_reviews、function_reviews 等提交字段；审查记录可只包含本次补充的条目，ID 必须来自 audit_plan。无新增问题时 findings=[]，verdict=inconclusive，不要重复已有问题。"
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 1166,
+            "thinking_requested": true
+          }
+        },
+        {
+          "round": 2,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "likely_issue",
+            "summary": "修正越界访问误判，保留负索引越界问题",
+            "missing_evidence": [],
+            "findings": [
+              {
+                "file": "local.py",
+                "line": 4,
+                "title": "负索引越界访问",
+                "explanation": "values列表长度为1时，values[-2]的负索引超出有效范围（-1）",
+                "condition": "当values列表长度小于2时执行该行",
+                "suggestion": "改为使用values[-1]或添加长度检查"
+              }
+            ],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "local.py:7:case_b",
+                "verdict": "no_issue_found",
+                "reason": "空列表导致循环体未执行，values[i+1]未被触发"
+              },
+              {
+                "function_id": "local.py:4:17:loop-index",
+                "verdict": "issue_found",
+                "reason": "负索引访问未验证列表长度边界"
+              },
+              {
+                "function_id": "local.py:10:17:loop-index",
+                "verdict": "no_issue_found",
+                "reason": "空列表导致循环体未执行"
+              }
+            ],
+            "withdraw_findings": [
+              {
+                "finding_id": "F2",
+                "reason": "values初始化为空列表，循环体未执行导致访问未发生"
+              }
+            ]
+          },
+          "response": {
+            "accepted": true,
+            "complete": true
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 663,
+            "thinking_requested": true
+          }
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "kind": "candidate",
+          "candidate_id": "local.py:file-audit",
+          "language": "python",
+          "diagnostics": [],
+          "sbfl_lines": []
+        },
+        {
+          "evidence_id": "E2",
+          "kind": "source",
+          "file": "local.py",
+          "language": "python",
+          "start": 1,
+          "end": 10,
+          "code": "1: def case_a():\n2:     values = [1]\n3:     for i in range(len(values)):\n4:         _item = values[-2]\n5: \n6: \n7: def case_b():\n8:     values = []\n9:     for i in range(len(values)):\n10:         _item = values[i + 1]",
+          "total_lines": 10,
+          "requested_range": {
+            "start": 1,
+            "end": 10
+          },
+          "range_adjusted": false,
+          "next_start": null
+        }
+      ],
+      "audit": {
+        "diagnostic_reviews": [],
+        "function_reviews": [
+          {
+            "function_id": "local.py:1:case_a",
+            "verdict": "issue_found",
+            "reason": "负索引访问未考虑列表长度边界"
+          },
+          {
+            "function_id": "local.py:7:case_b",
+            "verdict": "no_issue_found",
+            "reason": "空列表导致循环体未执行，values[i+1]未被触发"
+          },
+          {
+            "function_id": "local.py:4:17:loop-index",
+            "verdict": "issue_found",
+            "reason": "负索引访问未验证列表长度边界"
+          },
+          {
+            "function_id": "local.py:10:17:loop-index",
+            "verdict": "no_issue_found",
+            "reason": "空列表导致循环体未执行"
+          }
+        ],
+        "diagnostic_total": 0,
+        "function_total": 4,
+        "loop_index_total": 2,
+        "units": [
+          {
+            "function_id": "local.py:1:case_a",
+            "name": "case_a",
+            "ranges": [
+              [
+                1,
+                4
+              ]
+            ]
+          },
+          {
+            "function_id": "local.py:7:case_b",
+            "name": "case_b",
+            "ranges": [
+              [
+                7,
+                10
+              ]
+            ]
+          },
+          {
+            "function_id": "local.py:4:17:loop-index",
+            "name": "循环下标访问",
+            "kind": "loop_index",
+            "ranges": [
+              [
+                4,
+                4
+              ]
+            ],
+            "context_ranges": [
+              [
+                3,
+                4
+              ]
+            ],
+            "access": "values[-2]",
+            "loop_controls": [
+              {
+                "line": 3,
+                "kind": "for_statement",
+                "target": "i",
+                "expression": "range(len(values))"
+              }
+            ],
+            "syntax_recovered": false,
+            "check": "独立核对本处访问：容器类型、循环首次/末次索引及偏移、空输入、保护条件、提前退出与容器变化。reason 简述实际边界或保护依据；不能以同函数的其他问题替代本处结论。区分 Python 负索引、切片和字典键语义。类型或可达性未知时注明条件或 inconclusive，语法错误后的风险须说明修复前置错误后才可能触发。"
+          },
+          {
+            "function_id": "local.py:10:17:loop-index",
+            "name": "循环下标访问",
+            "kind": "loop_index",
+            "ranges": [
+              [
+                10,
+                10
+              ]
+            ],
+            "context_ranges": [
+              [
+                9,
+                10
+              ]
+            ],
+            "access": "values[i + 1]",
+            "loop_controls": [
+              {
+                "line": 9,
+                "kind": "for_statement",
+                "target": "i",
+                "expression": "range(len(values))"
+              }
+            ],
+            "syntax_recovered": false,
+            "check": "独立核对本处访问：容器类型、循环首次/末次索引及偏移、空输入、保护条件、提前退出与容器变化。reason 简述实际边界或保护依据；不能以同函数的其他问题替代本处结论。区分 Python 负索引、切片和字典键语义。类型或可达性未知时注明条件或 inconclusive，语法错误后的风险须说明修复前置错误后才可能触发。"
+          }
+        ],
+        "pending": {
+          "diagnostics": [],
+          "functions": []
+        },
+        "complete": true,
+        "followup_performed": true,
+        "program_reconciliations": [],
+        "blocked_withdrawals": [],
+        "program_resolved_units": {},
+        "withdrawn_findings": [
+          {
+            "finding_id": "F2",
+            "reason": "values初始化为空列表，循环体未执行导致访问未发生"
+          }
+        ],
+        "ignored_records": [],
+        "limitation": "记录仅证明已逐项提交处理意见，不证明判断正确或没有遗漏。"
+      },
+      "context_chars": 589,
+      "source_coverage": {
+        "file": "local.py",
+        "total_lines": 10,
+        "provided_lines": 10,
+        "complete": true
+      }
+    }
+  ],
+  "model_usage": {
+    "prompt_tokens": 7501,
+    "completion_tokens": 1829,
+    "requests": 2,
+    "structured_requests": 2
+  },
+  "stage_timings": {
+    "index_seconds": 0.000743458978831768,
+    "scanner_seconds": 0.8251481670886278,
+    "candidate_seconds": 0.00013183301780372858,
+    "evidence_seconds": 1.25030055642128e-07,
+    "review_seconds": 157.64137954101898
+  },
+  "model_request_metrics": [
+    {
+      "wall_seconds": 92.01950279192533,
+      "request_bytes": 16933,
+      "thinking_requested": true,
+      "load_duration_seconds": 0.000971,
+      "prompt_eval_duration_seconds": 4.971061,
+      "eval_duration_seconds": 86.941079,
+      "total_duration_seconds": 92.018095875
+    },
+    {
+      "wall_seconds": 65.61510275001638,
+      "request_bytes": 32191,
+      "thinking_requested": true,
+      "load_duration_seconds": 0.001060459,
+      "prompt_eval_duration_seconds": 11.691213,
+      "eval_duration_seconds": 53.904971,
+      "total_duration_seconds": 65.61224875
+    }
+  ],
+  "model_context": 40960,
+  "index_warnings": [],
+  "limitations": [
+    "支持 C、C++、Python、JavaScript、TypeScript；AST 不执行预处理或完整类型/别名分析。成员调用、动态分派和同名函数均可能存在歧义。",
+    "Python 使用 Bandit、Ruff 和 Pyright basic 类型检查；Pyright 仅分析导入源码快照，不加载目标配置，不推断第三方库实现；未知类型仍可能漏报。JS/TS 使用固定 ESLint 规则，TypeScript 尚未接入 tsc 类型检查。",
+    "内置 collect 目前仅支持简单 C 程序；其他语言可导入符合格式的逐测试覆盖 JSON 进行 SBFL。",
+    "candidates 模式只复核静态诊断和 SBFL 候选；files 模式也审查无报警文件。top-k、源码读取预算和模型能力均可能导致遗漏，源码提供不代表检查正确。",
+    "SBFL 使用 Ochiai，可疑度不等于缺陷概率。RRF 是排序策略，其有效性尚需对照实验。",
+    "模型引用校验仅验证证据确实已返回，不证明推理正确。模型不能将问题标记为已动态复现。",
+    "整文件模式记录每条诊断及每个函数/模块单元的处理意见；Python 显式 for/while 循环中的下标访问另建独立任务并复查，语法错误时尝试使用恢复语法树。处理记录完整不代表判断正确，也不是新的静态越界证明。",
+    "context_chars 统计返回的证据字符数，不是 Token 数，也不包含重复发送历史消息的费用。"
+  ]
+}

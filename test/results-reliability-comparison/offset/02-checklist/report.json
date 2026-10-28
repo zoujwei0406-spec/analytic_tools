@@ -1,0 +1,446 @@
+{
+  "schema_version": 2,
+  "project": "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix",
+  "created_at": "2026-10-25T04:12:40.288180+00:00",
+  "model": "qwen3:8b",
+  "context_mode": "adaptive",
+  "review_scope": "files",
+  "source_hashes": {
+    "offset.py": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6"
+  },
+  "languages": {
+    "offset.py": "python"
+  },
+  "summary": {
+    "files": 1,
+    "functions": 2,
+    "languages": {
+      "python": 1
+    },
+    "diagnostics": 0,
+    "candidates": 1,
+    "selected": 1,
+    "model_findings": 0,
+    "context_chars": 567,
+    "source_chars": 182,
+    "elapsed_seconds": 79.22
+  },
+  "scanner": {
+    "status": "completed",
+    "diagnostics": [],
+    "notes": [],
+    "tools": [
+      {
+        "tool": "bandit",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "bandit 1.9.4",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/bandit",
+          "--quiet",
+          "--ignore-nosec",
+          "--format",
+          "json",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/offset.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "ruff",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "ruff 0.17.1",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/ruff",
+          "check",
+          "--isolated",
+          "--no-cache",
+          "--ignore-noqa",
+          "--output-format",
+          "json",
+          "--select",
+          "E9,F63,F7,F82",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/offset.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "pyright",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "1.1.414",
+        "command": [
+          "/usr/local/bin/node",
+          "/Users/zoujingwei/analytic_tools/node_modules/pyright/index.js",
+          "--outputjson",
+          "--project",
+          "/var/folders/55/wd929yb13pggpy7z3cglvtp40000gn/T/evidence-pyright-b3afh1bv/pyrightconfig.json"
+        ],
+        "diagnostics": [],
+        "notes": [],
+        "configuration": {
+          "mode": "basic",
+          "source": "imported-snapshots",
+          "target_config_loaded": false,
+          "library_code_inference": false
+        }
+      }
+    ],
+    "version": null,
+    "versions": {
+      "bandit": "bandit 1.9.4",
+      "ruff": "ruff 0.17.1",
+      "pyright": "1.1.414"
+    }
+  },
+  "sbfl": {
+    "status": "not_provided",
+    "lines": [],
+    "passed": 0,
+    "failed": 0,
+    "errors": 0
+  },
+  "candidates": [
+    {
+      "id": "offset.py:file-audit",
+      "function_id": null,
+      "file": "offset.py",
+      "line": 1,
+      "language": "python",
+      "name": "<整文件审查>",
+      "scope": "file",
+      "diagnostics": [],
+      "sbfl_lines": [],
+      "sbfl_score": 0.0,
+      "priority": 0.0
+    }
+  ],
+  "reviews": [
+    {
+      "candidate_id": "offset.py:file-audit",
+      "status": "completed",
+      "mode": "adaptive",
+      "review": {
+        "suggestion": "见各问题的修复建议。",
+        "evidence_ids": [
+          "E2"
+        ],
+        "verdict": "inconclusive",
+        "summary": "逐项审查列出 0 个问题，复核撤回 2 项；详见处理记录。",
+        "missing_evidence": [],
+        "findings": [],
+        "withdrawn_findings": [
+          {
+            "file": "offset.py",
+            "line": 2,
+            "title": "索引越界风险",
+            "explanation": "列表推导式中使用了 `i + 2` 作为索引，但未验证 `i + 2` 是否在列表的有效范围内。",
+            "condition": "当 `len(values) - 1` 小于 2 时，`i + 2` 可能超出列表长度。",
+            "suggestion": "添加边界检查，例如 `if i + 2 < len(values)`，或使用切片操作确保索引合法。",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F1",
+            "withdraw_reason": "经复核，`i + 2` 的最大值为 `len(values) - 1`，未越界。"
+          },
+          {
+            "file": "offset.py",
+            "line": 6,
+            "title": "索引越界风险",
+            "explanation": "列表推导式中使用了 `i + 2` 作为索引，但未验证 `i + 2` 是否在列表的有效范围内。",
+            "condition": "当 `len(values) - 2` 小于 2 时，`i + 2` 可能超出列表长度。",
+            "suggestion": "添加边界检查，例如 `if i + 2 < len(values)`，或使用切片操作确保索引合法。",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F2",
+            "withdraw_reason": "经复核，`i + 2` 的最大值为 `len(values) - 2`，未越界。"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "round": 1,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "likely_issue",
+            "summary": "发现潜在的索引越界问题，需进一步验证边界条件。",
+            "missing_evidence": [],
+            "findings": [
+              {
+                "file": "offset.py",
+                "line": 2,
+                "title": "索引越界风险",
+                "explanation": "列表推导式中使用了 `i + 2` 作为索引，但未验证 `i + 2` 是否在列表的有效范围内。",
+                "condition": "当 `len(values) - 1` 小于 2 时，`i + 2` 可能超出列表长度。",
+                "suggestion": "添加边界检查，例如 `if i + 2 < len(values)`，或使用切片操作确保索引合法。"
+              },
+              {
+                "file": "offset.py",
+                "line": 6,
+                "title": "索引越界风险",
+                "explanation": "列表推导式中使用了 `i + 2` 作为索引，但未验证 `i + 2` 是否在列表的有效范围内。",
+                "condition": "当 `len(values) - 2` 小于 2 时，`i + 2` 可能超出列表长度。",
+                "suggestion": "添加边界检查，例如 `if i + 2 < len(values)`，或使用切片操作确保索引合法。"
+              }
+            ],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "offset.py:1:case_a",
+                "verdict": "issue_found",
+                "reason": "存在索引越界风险，未验证 `i + 2` 是否在列表范围内。"
+              },
+              {
+                "function_id": "offset.py:5:case_b",
+                "verdict": "issue_found",
+                "reason": "存在索引越界风险，未验证 `i + 2` 是否在列表范围内。"
+              }
+            ],
+            "withdraw_findings": []
+          },
+          "response": {
+            "accepted": true,
+            "complete": false,
+            "program_conflicts": [],
+            "conflict_instructions": "program_conflicts 列出了模型与程序的条件结论冲突。逐一核对；如果没有具体不同前提，将误报 finding_id 填入 withdraw_findings 撤回。安全说明不应作为新问题放入 findings。",
+            "task": "补查尚未逐项处理的诊断和函数；对无问题结论再核对一次。已有 findings 保留，只提交新增问题。同时复核已有问题，位置校验不证明判断正确。将误判填入 withdraw_findings（finding_id、reason）撤回。不能凭空要求函数接受任意错误类型，也不能把正常的显式容器修改或空结果当成漏洞。逐个核对操作数类型、空输入、状态和安全约定。循环下标任务须独立计算首次/末次索引与偏移，检查保护条件和容器变化，不能只重复其他报警。对于越界意见，写出实际索引与长度的比较：len(a)-1 是合法最大正索引，len(a) 才越过正向边界；range(len(a)) 中 a[i] 在长度不变时合法。撤回把合法边界或切片误判为越界的发现。也独立检查实际调用的元素类型和更早的阻断错误。用简短 reason 记录结果；不能用未读源码得出无问题结论。",
+            "pending": {
+              "diagnostics": [],
+              "functions": []
+            },
+            "recheck_functions": [],
+            "verify_findings": [
+              {
+                "file": "offset.py",
+                "line": 2,
+                "title": "索引越界风险",
+                "explanation": "列表推导式中使用了 `i + 2` 作为索引，但未验证 `i + 2` 是否在列表的有效范围内。",
+                "condition": "当 `len(values) - 1` 小于 2 时，`i + 2` 可能超出列表长度。",
+                "suggestion": "添加边界检查，例如 `if i + 2 < len(values)`，或使用切片操作确保索引合法。",
+                "evidence_ids": [
+                  "E2"
+                ],
+                "evidence_origin": "source_location",
+                "finding_id": "F1"
+              },
+              {
+                "file": "offset.py",
+                "line": 6,
+                "title": "索引越界风险",
+                "explanation": "列表推导式中使用了 `i + 2` 作为索引，但未验证 `i + 2` 是否在列表的有效范围内。",
+                "condition": "当 `len(values) - 2` 小于 2 时，`i + 2` 可能超出列表长度。",
+                "suggestion": "添加边界检查，例如 `if i + 2 < len(values)`，或使用切片操作确保索引合法。",
+                "evidence_ids": [
+                  "E2"
+                ],
+                "evidence_origin": "source_location",
+                "finding_id": "F2"
+              }
+            ],
+            "requested_function_records": [],
+            "submission_rules": "返回 findings、diagnostic_reviews、function_reviews 等提交字段；审查记录可只包含本次补充的条目，ID 必须来自 audit_plan。无新增问题时 findings=[]，verdict=inconclusive，不要重复已有问题。"
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 449,
+            "thinking_requested": false
+          }
+        },
+        {
+          "round": 2,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "inconclusive",
+            "summary": "无法确认索引越界问题，需进一步验证边界条件和实际运行情况。",
+            "missing_evidence": [],
+            "findings": [],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "offset.py:1:case_a",
+                "verdict": "no_issue_found",
+                "reason": "在 `range(len(values) - 1)` 中，`i` 的最大值为 `len(values) - 2`，因此 `i + 2` 的最大值为 `len(values) - 1`，未越界。"
+              },
+              {
+                "function_id": "offset.py:5:case_b",
+                "verdict": "no_issue_found",
+                "reason": "在 `range(len(values) - 2)` 中，`i` 的最大值为 `len(values) - 3`，因此 `i + 2` 的最大值为 `len(values) - 2`，未越界。"
+              }
+            ],
+            "withdraw_findings": [
+              {
+                "finding_id": "F1",
+                "reason": "经复核，`i + 2` 的最大值为 `len(values) - 1`，未越界。"
+              },
+              {
+                "finding_id": "F2",
+                "reason": "经复核，`i + 2` 的最大值为 `len(values) - 2`，未越界。"
+              }
+            ]
+          },
+          "response": {
+            "accepted": true,
+            "complete": true
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 337,
+            "thinking_requested": false
+          }
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "kind": "candidate",
+          "candidate_id": "offset.py:file-audit",
+          "language": "python",
+          "diagnostics": [],
+          "sbfl_lines": []
+        },
+        {
+          "evidence_id": "E2",
+          "kind": "source",
+          "file": "offset.py",
+          "language": "python",
+          "start": 1,
+          "end": 6,
+          "code": "1: def case_a(values: list[int]):\n2:     return [values[i + 2] for i in range(len(values) - 1)]\n3: \n4: \n5: def case_b(values: list[int]):\n6:     return [values[i + 2] for i in range(len(values) - 2)]",
+          "total_lines": 6,
+          "requested_range": {
+            "start": 1,
+            "end": 6
+          },
+          "range_adjusted": false,
+          "next_start": null
+        }
+      ],
+      "audit": {
+        "diagnostic_reviews": [],
+        "function_reviews": [
+          {
+            "function_id": "offset.py:1:case_a",
+            "verdict": "no_issue_found",
+            "reason": "在 `range(len(values) - 1)` 中，`i` 的最大值为 `len(values) - 2`，因此 `i + 2` 的最大值为 `len(values) - 1`，未越界。"
+          },
+          {
+            "function_id": "offset.py:5:case_b",
+            "verdict": "no_issue_found",
+            "reason": "在 `range(len(values) - 2)` 中，`i` 的最大值为 `len(values) - 3`，因此 `i + 2` 的最大值为 `len(values) - 2`，未越界。"
+          }
+        ],
+        "diagnostic_total": 0,
+        "function_total": 2,
+        "loop_index_total": 0,
+        "units": [
+          {
+            "function_id": "offset.py:1:case_a",
+            "name": "case_a",
+            "ranges": [
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          {
+            "function_id": "offset.py:5:case_b",
+            "name": "case_b",
+            "ranges": [
+              [
+                5,
+                6
+              ]
+            ]
+          }
+        ],
+        "pending": {
+          "diagnostics": [],
+          "functions": []
+        },
+        "complete": true,
+        "followup_performed": true,
+        "program_reconciliations": [],
+        "blocked_withdrawals": [],
+        "program_resolved_units": {},
+        "withdrawn_findings": [
+          {
+            "finding_id": "F1",
+            "reason": "经复核，`i + 2` 的最大值为 `len(values) - 1`，未越界。"
+          },
+          {
+            "finding_id": "F2",
+            "reason": "经复核，`i + 2` 的最大值为 `len(values) - 2`，未越界。"
+          }
+        ],
+        "ignored_records": [],
+        "limitation": "记录仅证明已逐项提交处理意见，不证明判断正确或没有遗漏。"
+      },
+      "context_chars": 567,
+      "source_coverage": {
+        "file": "offset.py",
+        "total_lines": 6,
+        "provided_lines": 6,
+        "complete": true
+      }
+    }
+  ],
+  "model_usage": {
+    "prompt_tokens": 5904,
+    "completion_tokens": 786,
+    "requests": 2,
+    "structured_requests": 2
+  },
+  "stage_timings": {
+    "index_seconds": 0.00042741699144244194,
+    "scanner_seconds": 0.8082467500353232,
+    "candidate_seconds": 0.00015354203060269356,
+    "evidence_seconds": 1.25030055642128e-07,
+    "review_seconds": 78.40883887500968
+  },
+  "model_request_metrics": [
+    {
+      "wall_seconds": 40.86616899992805,
+      "request_bytes": 14428,
+      "thinking_requested": false,
+      "load_duration_seconds": 0.001165959,
+      "prompt_eval_duration_seconds": 3.847538,
+      "eval_duration_seconds": 36.908281,
+      "total_duration_seconds": 40.863057
+    },
+    {
+      "wall_seconds": 37.531545332982205,
+      "request_bytes": 25498,
+      "thinking_requested": false,
+      "load_duration_seconds": 0.001905,
+      "prompt_eval_duration_seconds": 9.585512,
+      "eval_duration_seconds": 27.912743,
+      "total_duration_seconds": 37.525739208
+    }
+  ],
+  "model_context": 40960,
+  "index_warnings": [],
+  "limitations": [
+    "支持 C、C++、Python、JavaScript、TypeScript；AST 不执行预处理或完整类型/别名分析。成员调用、动态分派和同名函数均可能存在歧义。",
+    "Python 使用 Bandit、Ruff 和 Pyright basic 类型检查；Pyright 仅分析导入源码快照，不加载目标配置，不推断第三方库实现；未知类型仍可能漏报。JS/TS 使用固定 ESLint 规则，TypeScript 尚未接入 tsc 类型检查。",
+    "内置 collect 目前仅支持简单 C 程序；其他语言可导入符合格式的逐测试覆盖 JSON 进行 SBFL。",
+    "candidates 模式只复核静态诊断和 SBFL 候选；files 模式也审查无报警文件。top-k、源码读取预算和模型能力均可能导致遗漏，源码提供不代表检查正确。",
+    "SBFL 使用 Ochiai，可疑度不等于缺陷概率。RRF 是排序策略，其有效性尚需对照实验。",
+    "模型引用校验仅验证证据确实已返回，不证明推理正确。模型不能将问题标记为已动态复现。",
+    "整文件模式记录每条诊断及每个函数/模块单元的处理意见；Python 显式 for/while 循环中的下标访问另建独立任务并复查，语法错误时尝试使用恢复语法树。处理记录完整不代表判断正确，也不是新的静态越界证明。",
+    "context_chars 统计返回的证据字符数，不是 Token 数，也不包含重复发送历史消息的费用。"
+  ]
+}

@@ -1,0 +1,523 @@
+{
+  "schema_version": 2,
+  "project": "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix",
+  "created_at": "2026-10-25T04:17:59.421622+00:00",
+  "model": "qwen3:8b",
+  "context_mode": "adaptive",
+  "review_scope": "files",
+  "source_hashes": {
+    "negative.py": "e7e3fb710e78735cf846c35c3399ae3659c31de13b8d52a69602271c48453a55"
+  },
+  "languages": {
+    "negative.py": "python"
+  },
+  "summary": {
+    "files": 1,
+    "functions": 2,
+    "languages": {
+      "python": 1
+    },
+    "diagnostics": 0,
+    "candidates": 1,
+    "selected": 1,
+    "model_findings": 0,
+    "context_chars": 560,
+    "source_chars": 171,
+    "elapsed_seconds": 91.737
+  },
+  "scanner": {
+    "status": "completed",
+    "diagnostics": [],
+    "notes": [],
+    "tools": [
+      {
+        "tool": "bandit",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "bandit 1.9.4",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/bandit",
+          "--quiet",
+          "--ignore-nosec",
+          "--format",
+          "json",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/negative.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "ruff",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "ruff 0.17.1",
+        "command": [
+          "/Users/zoujingwei/analytic_tools/.venv/bin/ruff",
+          "check",
+          "--isolated",
+          "--no-cache",
+          "--ignore-noqa",
+          "--output-format",
+          "json",
+          "--select",
+          "E9,F63,F7,F82",
+          "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/negative.py"
+        ],
+        "diagnostics": [],
+        "notes": []
+      },
+      {
+        "tool": "pyright",
+        "languages": [
+          "python"
+        ],
+        "status": "completed",
+        "version": "1.1.414",
+        "command": [
+          "/usr/local/bin/node",
+          "/Users/zoujingwei/analytic_tools/node_modules/pyright/index.js",
+          "--outputjson",
+          "--project",
+          "/var/folders/55/wd929yb13pggpy7z3cglvtp40000gn/T/evidence-pyright-fx3tbwnp/pyrightconfig.json"
+        ],
+        "diagnostics": [],
+        "notes": [],
+        "configuration": {
+          "mode": "basic",
+          "source": "imported-snapshots",
+          "target_config_loaded": false,
+          "library_code_inference": false
+        }
+      }
+    ],
+    "version": null,
+    "versions": {
+      "bandit": "bandit 1.9.4",
+      "ruff": "ruff 0.17.1",
+      "pyright": "1.1.414"
+    }
+  },
+  "sbfl": {
+    "status": "not_provided",
+    "lines": [],
+    "passed": 0,
+    "failed": 0,
+    "errors": 0
+  },
+  "candidates": [
+    {
+      "id": "negative.py:file-audit",
+      "function_id": null,
+      "file": "negative.py",
+      "line": 1,
+      "language": "python",
+      "name": "<整文件审查>",
+      "scope": "file",
+      "diagnostics": [],
+      "sbfl_lines": [],
+      "sbfl_score": 0.0,
+      "priority": 0.0
+    }
+  ],
+  "reviews": [
+    {
+      "candidate_id": "negative.py:file-audit",
+      "status": "completed",
+      "mode": "adaptive",
+      "review": {
+        "suggestion": "见各问题的修复建议。",
+        "evidence_ids": [
+          "E2"
+        ],
+        "verdict": "inconclusive",
+        "summary": "逐项审查列出 0 个问题，复核撤回 2 项；详见处理记录。",
+        "missing_evidence": [
+          "未提供函数调用关系和上下文信息"
+        ],
+        "findings": [],
+        "withdrawn_findings": [
+          {
+            "file": "negative.py",
+            "line": 2,
+            "title": "列表索引可能越界",
+            "explanation": "在列表推导式中，`i - 2` 可能导致索引小于 0，从而引发 IndexError。",
+            "condition": "当 `i` 为 0 或 1 时，`i - 2` 会小于 0，导致索引越界。",
+            "suggestion": "添加边界检查，确保索引在有效范围内。",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F1",
+            "withdraw_reason": "未发现越界访问，`i - 2` 在 `range(len(values))` 中不会导致索引小于 0。"
+          },
+          {
+            "file": "negative.py",
+            "line": 6,
+            "title": "列表索引可能越界",
+            "explanation": "在列表推导式中，`values[-1]` 是合法的，但 `range(len(values))` 中的 `i` 未被使用，可能导致逻辑错误。",
+            "condition": "`i` 未被使用，可能导致逻辑错误或未预期的行为。",
+            "suggestion": "检查 `i` 是否被误用，或是否应使用其他索引方式。",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F2",
+            "withdraw_reason": "`i` 未被使用不影响逻辑，`values[-1]` 是合法索引，不会导致错误。"
+          }
+        ]
+      },
+      "trace": [
+        {
+          "round": 1,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "inconclusive",
+            "summary": "审查发现潜在边界问题，但无法确认是否触发。需进一步检查源码。",
+            "missing_evidence": [
+              "未提供函数调用关系和上下文信息"
+            ],
+            "findings": [
+              {
+                "file": "negative.py",
+                "line": 2,
+                "title": "列表索引可能越界",
+                "explanation": "在列表推导式中，`i - 2` 可能导致索引小于 0，从而引发 IndexError。",
+                "condition": "当 `i` 为 0 或 1 时，`i - 2` 会小于 0，导致索引越界。",
+                "suggestion": "添加边界检查，确保索引在有效范围内。"
+              },
+              {
+                "file": "negative.py",
+                "line": 6,
+                "title": "列表索引可能越界",
+                "explanation": "在列表推导式中，`values[-1]` 是合法的，但 `range(len(values))` 中的 `i` 未被使用，可能导致逻辑错误。",
+                "condition": "`i` 未被使用，可能导致逻辑错误或未预期的行为。",
+                "suggestion": "检查 `i` 是否被误用，或是否应使用其他索引方式。"
+              }
+            ],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "negative.py:1:case_a",
+                "verdict": "issue_found",
+                "reason": "列表索引 `i - 2` 可能越界，需添加边界检查。"
+              },
+              {
+                "function_id": "negative.py:5:case_b",
+                "verdict": "inconclusive",
+                "reason": "未确认 `i` 是否被误用，需进一步检查逻辑。"
+              }
+            ]
+          },
+          "response": {
+            "accepted": true,
+            "complete": false,
+            "program_conflicts": [],
+            "conflict_instructions": "program_conflicts 列出了模型与程序的条件结论冲突。逐一核对；如果没有具体不同前提，将误报 finding_id 填入 withdraw_findings 撤回。安全说明不应作为新问题放入 findings。",
+            "task": "补查尚未逐项处理的诊断和函数；对无问题结论再核对一次。已有 findings 保留，只提交新增问题。同时复核已有问题，位置校验不证明判断正确。将误判填入 withdraw_findings（finding_id、reason）撤回。不能凭空要求函数接受任意错误类型，也不能把正常的显式容器修改或空结果当成漏洞。逐个核对操作数类型、空输入、状态和安全约定。循环下标任务须独立计算首次/末次索引与偏移，检查保护条件和容器变化，不能只重复其他报警。对于越界意见，写出实际索引与长度的比较：len(a)-1 是合法最大正索引，len(a) 才越过正向边界；range(len(a)) 中 a[i] 在长度不变时合法。撤回把合法边界或切片误判为越界的发现。也独立检查实际调用的元素类型和更早的阻断错误。用简短 reason 记录结果；不能用未读源码得出无问题结论。",
+            "pending": {
+              "diagnostics": [],
+              "functions": []
+            },
+            "recheck_functions": [
+              "negative.py:5:case_b"
+            ],
+            "verify_findings": [
+              {
+                "file": "negative.py",
+                "line": 2,
+                "title": "列表索引可能越界",
+                "explanation": "在列表推导式中，`i - 2` 可能导致索引小于 0，从而引发 IndexError。",
+                "condition": "当 `i` 为 0 或 1 时，`i - 2` 会小于 0，导致索引越界。",
+                "suggestion": "添加边界检查，确保索引在有效范围内。",
+                "evidence_ids": [
+                  "E2"
+                ],
+                "evidence_origin": "source_location",
+                "finding_id": "F1"
+              },
+              {
+                "file": "negative.py",
+                "line": 6,
+                "title": "列表索引可能越界",
+                "explanation": "在列表推导式中，`values[-1]` 是合法的，但 `range(len(values))` 中的 `i` 未被使用，可能导致逻辑错误。",
+                "condition": "`i` 未被使用，可能导致逻辑错误或未预期的行为。",
+                "suggestion": "检查 `i` 是否被误用，或是否应使用其他索引方式。",
+                "evidence_ids": [
+                  "E2"
+                ],
+                "evidence_origin": "source_location",
+                "finding_id": "F2"
+              }
+            ],
+            "requested_function_records": [
+              {
+                "function_id": "negative.py:5:case_b",
+                "name": "case_b",
+                "ranges": [
+                  [
+                    5,
+                    6
+                  ]
+                ]
+              }
+            ],
+            "submission_rules": "返回 findings、diagnostic_reviews、function_reviews 等提交字段；审查记录可只包含本次补充的条目，ID 必须来自 audit_plan。无新增问题时 findings=[]，verdict=inconclusive，不要重复已有问题。"
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 419,
+            "thinking_requested": false
+          }
+        },
+        {
+          "round": 2,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "inconclusive",
+            "summary": "审查发现潜在边界问题，但无法确认是否触发。需进一步检查源码。",
+            "missing_evidence": [
+              "未提供函数调用关系和上下文信息"
+            ],
+            "findings": [],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "negative.py:5:case_b",
+                "verdict": "no_issue_found",
+                "reason": "`values[-1]` 是合法的负索引，且 `range(len(values))` 中的 `i` 未被使用，但不会导致越界或逻辑错误。"
+              }
+            ],
+            "withdraw_findings": [
+              {
+                "finding_id": "F1",
+                "reason": "未发现越界访问，`i - 2` 在 `range(len(values))` 中不会导致索引小于 0。"
+              },
+              {
+                "finding_id": "F2",
+                "reason": "`i` 未被使用不影响逻辑，`values[-1]` 是合法索引，不会导致错误。"
+              }
+            ]
+          },
+          "response": {
+            "accepted": true,
+            "complete": false,
+            "program_conflicts": [],
+            "conflict_instructions": "program_conflicts 列出了模型与程序的条件结论冲突。逐一核对；如果没有具体不同前提，将误报 finding_id 填入 withdraw_findings 撤回。安全说明不应作为新问题放入 findings。",
+            "task": "补查尚未逐项处理的诊断和函数；对无问题结论再核对一次。已有 findings 保留，只提交新增问题。同时复核已有问题，位置校验不证明判断正确。将误判填入 withdraw_findings（finding_id、reason）撤回。不能凭空要求函数接受任意错误类型，也不能把正常的显式容器修改或空结果当成漏洞。逐个核对操作数类型、空输入、状态和安全约定。循环下标任务须独立计算首次/末次索引与偏移，检查保护条件和容器变化，不能只重复其他报警。对于越界意见，写出实际索引与长度的比较：len(a)-1 是合法最大正索引，len(a) 才越过正向边界；range(len(a)) 中 a[i] 在长度不变时合法。撤回把合法边界或切片误判为越界的发现。也独立检查实际调用的元素类型和更早的阻断错误。用简短 reason 记录结果；不能用未读源码得出无问题结论。",
+            "pending": {
+              "diagnostics": [],
+              "functions": [
+                "negative.py:1:case_a"
+              ]
+            },
+            "recheck_functions": [],
+            "verify_findings": [],
+            "requested_function_records": [
+              {
+                "function_id": "negative.py:1:case_a",
+                "name": "case_a",
+                "ranges": [
+                  [
+                    1,
+                    2
+                  ]
+                ]
+              }
+            ],
+            "submission_rules": "返回 findings、diagnostic_reviews、function_reviews 等提交字段；审查记录可只包含本次补充的条目，ID 必须来自 audit_plan。无新增问题时 findings=[]，verdict=inconclusive，不要重复已有问题。"
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 248,
+            "thinking_requested": false
+          }
+        },
+        {
+          "round": 3,
+          "tool": "submit_review",
+          "arguments": {
+            "verdict": "inconclusive",
+            "summary": "审查发现潜在边界问题，但无法确认是否触发。需进一步检查源码。",
+            "missing_evidence": [
+              "未提供函数调用关系和上下文信息"
+            ],
+            "findings": [],
+            "diagnostic_reviews": [],
+            "function_reviews": [
+              {
+                "function_id": "negative.py:1:case_a",
+                "verdict": "inconclusive",
+                "reason": "未确认 `i - 2` 是否会导致索引小于 0，需进一步检查 `range(len(values))` 中的索引范围。"
+              }
+            ],
+            "withdraw_findings": []
+          },
+          "response": {
+            "accepted": true,
+            "complete": true
+          },
+          "transport": {
+            "mode": "json_schema",
+            "done_reason": "stop",
+            "completion_tokens": 147,
+            "thinking_requested": false
+          }
+        }
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "kind": "candidate",
+          "candidate_id": "negative.py:file-audit",
+          "language": "python",
+          "diagnostics": [],
+          "sbfl_lines": []
+        },
+        {
+          "evidence_id": "E2",
+          "kind": "source",
+          "file": "negative.py",
+          "language": "python",
+          "start": 1,
+          "end": 6,
+          "code": "1: def case_a(values: list[int]):\n2:     return [values[i - 2] for i in range(len(values))]\n3: \n4: \n5: def case_b(values: list[int]):\n6:     return [values[-1] for i in range(len(values))]",
+          "total_lines": 6,
+          "requested_range": {
+            "start": 1,
+            "end": 6
+          },
+          "range_adjusted": false,
+          "next_start": null
+        }
+      ],
+      "audit": {
+        "diagnostic_reviews": [],
+        "function_reviews": [
+          {
+            "function_id": "negative.py:5:case_b",
+            "verdict": "no_issue_found",
+            "reason": "`values[-1]` 是合法的负索引，且 `range(len(values))` 中的 `i` 未被使用，但不会导致越界或逻辑错误。"
+          },
+          {
+            "function_id": "negative.py:1:case_a",
+            "verdict": "inconclusive",
+            "reason": "未确认 `i - 2` 是否会导致索引小于 0，需进一步检查 `range(len(values))` 中的索引范围。"
+          }
+        ],
+        "diagnostic_total": 0,
+        "function_total": 2,
+        "loop_index_total": 0,
+        "units": [
+          {
+            "function_id": "negative.py:1:case_a",
+            "name": "case_a",
+            "ranges": [
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          {
+            "function_id": "negative.py:5:case_b",
+            "name": "case_b",
+            "ranges": [
+              [
+                5,
+                6
+              ]
+            ]
+          }
+        ],
+        "pending": {
+          "diagnostics": [],
+          "functions": []
+        },
+        "complete": true,
+        "followup_performed": true,
+        "program_reconciliations": [],
+        "blocked_withdrawals": [],
+        "program_resolved_units": {},
+        "withdrawn_findings": [
+          {
+            "finding_id": "F1",
+            "reason": "未发现越界访问，`i - 2` 在 `range(len(values))` 中不会导致索引小于 0。"
+          },
+          {
+            "finding_id": "F2",
+            "reason": "`i` 未被使用不影响逻辑，`values[-1]` 是合法索引，不会导致错误。"
+          }
+        ],
+        "ignored_records": [],
+        "limitation": "记录仅证明已逐项提交处理意见，不证明判断正确或没有遗漏。"
+      },
+      "context_chars": 560,
+      "source_coverage": {
+        "file": "negative.py",
+        "total_lines": 6,
+        "provided_lines": 6,
+        "complete": true
+      }
+    }
+  ],
+  "model_usage": {
+    "prompt_tokens": 10092,
+    "completion_tokens": 814,
+    "requests": 3,
+    "structured_requests": 3
+  },
+  "stage_timings": {
+    "index_seconds": 0.0004201669944450259,
+    "scanner_seconds": 0.6667525409720838,
+    "candidate_seconds": 0.00012699991930276155,
+    "evidence_seconds": 8.393544703722e-08,
+    "review_seconds": 91.06787687493488
+  },
+  "model_request_metrics": [
+    {
+      "wall_seconds": 38.782312375027686,
+      "request_bytes": 14441,
+      "thinking_requested": false,
+      "load_duration_seconds": 0.00061125,
+      "prompt_eval_duration_seconds": 2.354839,
+      "eval_duration_seconds": 36.293928,
+      "total_duration_seconds": 38.773619458
+    },
+    {
+      "wall_seconds": 31.21868379204534,
+      "request_bytes": 25526,
+      "thinking_requested": false,
+      "load_duration_seconds": 0.007386375,
+      "prompt_eval_duration_seconds": 9.34322,
+      "eval_duration_seconds": 21.815715,
+      "total_duration_seconds": 31.212252541
+    },
+    {
+      "wall_seconds": 21.05148475000169,
+      "request_bytes": 28414,
+      "thinking_requested": false,
+      "load_duration_seconds": 0.002419333,
+      "prompt_eval_duration_seconds": 7.290094,
+      "eval_duration_seconds": 13.682204,
+      "total_duration_seconds": 21.046633708
+    }
+  ],
+  "model_context": 40960,
+  "index_warnings": [],
+  "limitations": [
+    "支持 C、C++、Python、JavaScript、TypeScript；AST 不执行预处理或完整类型/别名分析。成员调用、动态分派和同名函数均可能存在歧义。",
+    "Python 使用 Bandit、Ruff 和 Pyright basic 类型检查；Pyright 仅分析导入源码快照，不加载目标配置，不推断第三方库实现；未知类型仍可能漏报。JS/TS 使用固定 ESLint 规则，TypeScript 尚未接入 tsc 类型检查。",
+    "内置 collect 目前仅支持简单 C 程序；其他语言可导入符合格式的逐测试覆盖 JSON 进行 SBFL。",
+    "candidates 模式只复核静态诊断和 SBFL 候选；files 模式也审查无报警文件。top-k、源码读取预算和模型能力均可能导致遗漏，源码提供不代表检查正确。",
+    "SBFL 使用 Ochiai，可疑度不等于缺陷概率。RRF 是排序策略，其有效性尚需对照实验。",
+    "模型引用校验仅验证证据确实已返回，不证明推理正确。模型不能将问题标记为已动态复现。",
+    "整文件模式记录每条诊断及每个函数/模块单元的处理意见；Python 显式 for/while 循环中的下标访问另建独立任务并复查，语法错误时尝试使用恢复语法树。处理记录完整不代表判断正确，也不是新的静态越界证明。",
+    "context_chars 统计返回的证据字符数，不是 Token 数，也不包含重复发送历史消息的费用。"
+  ]
+}

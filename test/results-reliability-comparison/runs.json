@@ -1,0 +1,4623 @@
+{
+  "kind": "multi_group_real_end_to_end",
+  "manifest": {
+    "schema_version": 1,
+    "contract": "普通内置 list 与标准 len/range，无并发修改；评分 IndexError，空输入无操作是允许行为。安全样例的空路径/返回 None 不需要额外业务处理。",
+    "groups": [
+      {
+        "id": "offset",
+        "title": "正向偏移",
+        "source": "cases/evidence_bounds/matrix/offset.py",
+        "sha256": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6",
+        "labels": {
+          "case_a": {
+            "function": "case_a",
+            "line": 2,
+            "bug": true,
+            "reason": "n>=2 时最后一次 i=n-2，i+2=n 越界；最小示例 [0,1]。"
+          },
+          "case_b": {
+            "function": "case_b",
+            "line": 6,
+            "bug": false,
+            "reason": "n<=2 时不访问；n>=3 时最大 i+2=n-1，合法。"
+          }
+        }
+      },
+      {
+        "id": "negative",
+        "title": "负索引边界",
+        "source": "cases/evidence_bounds/matrix/negative.py",
+        "sha256": "e7e3fb710e78735cf846c35c3399ae3659c31de13b8d52a69602271c48453a55",
+        "labels": {
+          "case_a": {
+            "function": "case_a",
+            "line": 2,
+            "bug": true,
+            "reason": "n=1 时 i=0，下标 -2 小于合法下界 -1；n>=2 则均合法。"
+          },
+          "case_b": {
+            "function": "case_b",
+            "line": 6,
+            "bug": false,
+            "reason": "n=0 时不执行；n>=1 时 -1 是合法末元素索引。"
+          }
+        }
+      },
+      {
+        "id": "guard",
+        "title": "分支保护",
+        "source": "cases/evidence_bounds/matrix/guard.py",
+        "sha256": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49",
+        "labels": {
+          "case_a": {
+            "function": "case_a",
+            "line": 4,
+            "bug": true,
+            "reason": "上界保护不保证负向下界；n=1、i=0 时 -2<1 成立但下标越界。"
+          },
+          "case_b": {
+            "function": "case_b",
+            "line": 10,
+            "bug": false,
+            "reason": "分支保证 i+1<n，且 i+1>=1；空列表不执行。"
+          }
+        }
+      },
+      {
+        "id": "helper",
+        "title": "辅助函数副作用",
+        "source": "cases/evidence_bounds/matrix/helper.py",
+        "sha256": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11",
+        "labels": {
+          "case_a": {
+            "function": "case_a",
+            "line": 8,
+            "bug": true,
+            "reason": "observe 不修改列表；n>=1 最后一次 i+1=n 越界。"
+          },
+          "case_b": {
+            "function": "case_b",
+            "line": 14,
+            "bug": false,
+            "reason": "observe 无副作用；n<=1 不执行，n>=2 最大 i+1=n-1。"
+          }
+        }
+      },
+      {
+        "id": "local",
+        "title": "空循环与固定长度",
+        "source": "cases/evidence_bounds/matrix/local.py",
+        "sha256": "3398a352a55b386050d2de71e4b4a410b3efe5ee221c7af5616d28507cc70ea1",
+        "labels": {
+          "case_a": {
+            "function": "case_a",
+            "line": 4,
+            "bug": true,
+            "reason": "列表固定长度 1，循环执行一次，下标 -2 越界。"
+          },
+          "case_b": {
+            "function": "case_b",
+            "line": 10,
+            "bug": false,
+            "reason": "列表长度为 0，循环体不可达，不会访问 values[i+1]。"
+          }
+        }
+      }
+    ]
+  },
+  "manifest_sha256": "ad224a0f5156f87b8b45ecd183228172cd703b4bc7b5633d871efdb6df5ab8b2",
+  "model": {
+    "name": "qwen3:8b",
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen3",
+      "families": [
+        "qwen3"
+      ],
+      "parameter_size": "8.2B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 40960,
+      "embedding_length": 4096,
+      "runner": "ggml"
+    }
+  },
+  "model_context": 40960,
+  "max_rounds": 4,
+  "repeats": 2,
+  "code_hashes": {
+    "src/evidence_review/__init__.py": "a370791cb0934d30dd04bc2e58aeffc204be5167fd5eaba1a8306c32474c864f",
+    "src/evidence_review/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "src/evidence_review/agent.py": "0b8febad16fe8c45faa965e03180e9ffd436db8849f971ffac28cbf74271b9f2",
+    "src/evidence_review/audit.py": "3cbc73c62c286d307063b91b8a29c43af9ddc9ad4532d33b614f813ec4b51b29",
+    "src/evidence_review/cli.py": "69e23d92be72b6fa6334f97b8bbe672b466d7a4b85d897f1e5d7a17bbceee5b0",
+    "src/evidence_review/coverage.py": "b906699d966a78e931f4852743bca605430291549a13720f08987e6d94578be8",
+    "src/evidence_review/demo_multilang/unsafe.py": "0f145833cbf4a790e17f93a608320af9c42ec18c6b07091617c5e19f5c5ded54",
+    "src/evidence_review/evidence.py": "209c3643ccb08c87ab89f6cd328e823b8ae9c6613c8689ff298ef46d19f5be65",
+    "src/evidence_review/knowledge/__init__.py": "05759d78e6218322235d049ccf65cb88b92a96d1c6627d0bb365cfe727ba71d0",
+    "src/evidence_review/knowledge/python_subscript.py": "7652740f9eb3c6a270f8dea57d661d498953c15339b65f39aa4d372e3342dec6",
+    "src/evidence_review/knowledge/python_witness.py": "c1f43a8d563677ecb9cd11a20a975423518500e59275fe84d2c70d0c14fb0287",
+    "src/evidence_review/languages.py": "ce87c80bb7069592c428bec4fc42989c19b49abb8a7d5020099417d07ac6dda4",
+    "src/evidence_review/progress.py": "fedff770f1e4b13cf48f2c8485192fb63d44210bcd12af52359f19aaabc54b0a",
+    "src/evidence_review/project.py": "fb2e1bd77e4309ad315e31b9868a8e006ff4f5ba6c1f61d6d3352e175b8728ef",
+    "src/evidence_review/report.py": "4e004de777322ea4a01cd5840cf03fcd4765b0aca26ed136cfd9dec1ee87c7e4",
+    "src/evidence_review/sbfl.py": "05d6f9078610c04944e77cbcb9f78cbae32d28f3dc0fe13c75eaae08134d09e0",
+    "src/evidence_review/scanner.py": "b1480e09dfa48d1b92572b2f1ee7adeb5bf5c28707c5861ece1e74005c94a38d"
+  },
+  "runner_sha256": "8dcc2df4d6dbc51c80f942cf7903dc923d1b26e5e8ba34e3cf76ef12b3b04473",
+  "contract": "普通内置 list 与标准 len/range，无并发修改；评分 IndexError，空输入无操作是允许行为。安全样例的空路径/返回 None 不需要额外业务处理。",
+  "temperature": 0,
+  "preflight": {
+    "schema_version": 1,
+    "kind": "deterministic_reliability_regression",
+    "model": null,
+    "fixture_execution": false,
+    "contract": "普通内置 list 和标准 len/range；代码仅作分析输入。expected 是规则能力期望，bounds_truth 是独立语义标签；UNDECIDED 不等于安全或没有缺陷。非模型实验，不是开源真实缺陷。",
+    "manifest_sha256": "3fbd35c685574c029cdb3c831dc0f295b3efe7fa3673a6b01eecded3c082bfaf",
+    "input_hashes": {
+      "cases/evidence_bounds/reliability/defects.py": "2f3adcbe83c2c5d504e6f4e86fce26d8d194c91c0db689dfb4073e57734992bc",
+      "cases/evidence_bounds/reliability/safe_controls.py": "29fe1c57ee1aab02071c8deff56a3e487b67adbf4bad9f018ec4fc6cd7fce9f3",
+      "cases/evidence_bounds/reliability/capability_boundaries.py": "6e0182d27830de861c8c41b0f88a733e170788f196b7a38adf7364c64badc7c2",
+      "cases/evidence_bounds/reliability/other_properties.py": "15571de2159eea2e22081ec4e63befe044135257da1fb5467fe09149ef11c3cc"
+    },
+    "analyzer_hashes": {
+      "src/evidence_review/__init__.py": "a370791cb0934d30dd04bc2e58aeffc204be5167fd5eaba1a8306c32474c864f",
+      "src/evidence_review/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "src/evidence_review/agent.py": "0b8febad16fe8c45faa965e03180e9ffd436db8849f971ffac28cbf74271b9f2",
+      "src/evidence_review/audit.py": "3cbc73c62c286d307063b91b8a29c43af9ddc9ad4532d33b614f813ec4b51b29",
+      "src/evidence_review/cli.py": "69e23d92be72b6fa6334f97b8bbe672b466d7a4b85d897f1e5d7a17bbceee5b0",
+      "src/evidence_review/coverage.py": "b906699d966a78e931f4852743bca605430291549a13720f08987e6d94578be8",
+      "src/evidence_review/demo_multilang/unsafe.py": "0f145833cbf4a790e17f93a608320af9c42ec18c6b07091617c5e19f5c5ded54",
+      "src/evidence_review/evidence.py": "209c3643ccb08c87ab89f6cd328e823b8ae9c6613c8689ff298ef46d19f5be65",
+      "src/evidence_review/knowledge/__init__.py": "05759d78e6218322235d049ccf65cb88b92a96d1c6627d0bb365cfe727ba71d0",
+      "src/evidence_review/knowledge/python_subscript.py": "7652740f9eb3c6a270f8dea57d661d498953c15339b65f39aa4d372e3342dec6",
+      "src/evidence_review/knowledge/python_witness.py": "c1f43a8d563677ecb9cd11a20a975423518500e59275fe84d2c70d0c14fb0287",
+      "src/evidence_review/languages.py": "ce87c80bb7069592c428bec4fc42989c19b49abb8a7d5020099417d07ac6dda4",
+      "src/evidence_review/progress.py": "fedff770f1e4b13cf48f2c8485192fb63d44210bcd12af52359f19aaabc54b0a",
+      "src/evidence_review/project.py": "fb2e1bd77e4309ad315e31b9868a8e006ff4f5ba6c1f61d6d3352e175b8728ef",
+      "src/evidence_review/report.py": "4e004de777322ea4a01cd5840cf03fcd4765b0aca26ed136cfd9dec1ee87c7e4",
+      "src/evidence_review/sbfl.py": "05d6f9078610c04944e77cbcb9f78cbae32d28f3dc0fe13c75eaae08134d09e0",
+      "src/evidence_review/scanner.py": "b1480e09dfa48d1b92572b2f1ee7adeb5bf5c28707c5861ece1e74005c94a38d"
+    },
+    "cases": {
+      "functions": 37,
+      "accesses": 40,
+      "truths": {
+        "unsafe": 15,
+        "safe": 19,
+        "conditional": 3,
+        "out_of_scope": 3
+      }
+    },
+    "runs": [
+      {
+        "policy": "cost",
+        "metrics": {
+          "expectation_matches": 40,
+          "unknown": 12,
+          "resolved": 28,
+          "unsafe_as_safe": 0,
+          "safe_as_violation": 0,
+          "boundary_decisions": 0,
+          "program_tp": 15,
+          "program_fn": 0
+        },
+        "actions": 234,
+        "relative_cost": 443,
+        "predictions": [
+          {
+            "group": "defects",
+            "function": "forward_three",
+            "line": 2,
+            "column": 13,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "ce72262a8773aa264292",
+            "expression": "values[i + 3]",
+            "label_reason": "n=2 时 i=0、k=3 越界。",
+            "other_issue": null,
+            "witness": {
+              "length": 2,
+              "counter": 0,
+              "index": 3,
+              "kind": "symbolic_bounds_witness_not_execution"
+            },
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "defects",
+            "function": "negative_three",
+            "line": 7,
+            "column": 16,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "11d7d9e8073a8a5bc841",
+            "expression": "values[-3]",
+            "label_reason": "n=1 时 -3 超出负向下界。",
+            "other_issue": null,
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": -3,
+              "kind": "symbolic_bounds_witness_not_execution"
+            },
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "defects",
+            "function": "shrinking_loop",
+            "line": 13,
+            "column": 16,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounded_counterexample",
+            "stop_reason": "resolved",
+            "access_id": "6bff7a5d92583957dd02",
+            "expression": "values[i]",
+            "label_reason": "pop 修改列表；n=1 即越界，通过受控 AST 反例路径验证。",
+            "other_issue": null,
+            "witness": {
+              "kind": "bounded_ast_counterexample",
+              "entry_inputs": {
+                "values": [
+                  0
+                ]
+              },
+              "length": 0,
+              "index": 0,
+              "locals": {
+                "i": 0
+              },
+              "path": [
+                {
+                  "line": 11,
+                  "iteration": 0
+                },
+                {
+                  "line": 12,
+                  "effect": "pop",
+                  "resulting_length": 0
+                }
+              ],
+              "steps": 12
+            },
+            "assumptions": [
+              "入口参数采用报告给出的普通内置 list/int 值；标准 Python 内置未被替换",
+              "同文件辅助函数按当前源码绑定；无运行时替换、并发修改或资源异常"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "defects",
+            "function": "helper_shrinks",
+            "line": 23,
+            "column": 16,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "expected_by_policy": {
+              "rules": "UNDECIDED"
+            },
+            "actual": "VIOLATION",
+            "reason": "bounded_counterexample",
+            "stop_reason": "resolved",
+            "access_id": "a8adc92734dee56ce1e5",
+            "expression": "values[i]",
+            "label_reason": "辅助函数缩短列表；n=1 即越界，不能认证无副作用。",
+            "other_issue": null,
+            "witness": {
+              "kind": "bounded_ast_counterexample",
+              "entry_inputs": {
+                "values": [
+                  0
+                ]
+              },
+              "length": 0,
+              "index": 0,
+              "locals": {
+                "i": 0
+              },
+              "path": [
+                {
+                  "line": 21,
+                  "iteration": 0
+                },
+                {
+                  "line": 22,
+                  "call": "shrink"
+                },
+                {
+                  "line": 17,
+                  "effect": "pop",
+                  "resulting_length": 0
+                }
+              ],
+              "steps": 15
+            },
+            "assumptions": [
+              "入口参数采用报告给出的普通内置 list/int 值；标准 Python 内置未被替换",
+              "同文件辅助函数按当前源码绑定；无运行时替换、并发修改或资源异常"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "call:shrink",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "defects",
+            "function": "nested_offset",
+            "line": 29,
+            "column": 20,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounded_counterexample",
+            "stop_reason": "resolved",
+            "access_id": "a20e324b970162024b5b",
+            "expression": "values[j + 1]",
+            "label_reason": "n=1 时内部 j+1 越界；通过有界嵌套路径验证。",
+            "other_issue": null,
+            "witness": {
+              "kind": "bounded_ast_counterexample",
+              "entry_inputs": {
+                "values": [
+                  0
+                ]
+              },
+              "length": 1,
+              "index": 1,
+              "locals": {
+                "i": 0,
+                "j": 0
+              },
+              "path": [
+                {
+                  "line": 27,
+                  "iteration": 0
+                },
+                {
+                  "line": 28,
+                  "iteration": 0
+                }
+              ],
+              "steps": 16
+            },
+            "assumptions": [
+              "入口参数采用报告给出的普通内置 list/int 值；标准 Python 内置未被替换",
+              "同文件辅助函数按当前源码绑定；无运行时替换、并发修改或资源异常"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "defects",
+            "function": "paired_access",
+            "line": 34,
+            "column": 16,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "bf868c6486bbef490864",
+            "expression": "values[i]",
+            "label_reason": "同一行两处访问应独立绑定；后一处在末轮越界。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "defects",
+            "function": "paired_access",
+            "line": 34,
+            "column": 27,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "d0a64965d590ead29559",
+            "expression": "values[i + 1]",
+            "label_reason": "同一行两处访问应独立绑定；后一处在末轮越界。",
+            "other_issue": null,
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": 1,
+              "kind": "symbolic_bounds_witness_not_execution"
+            },
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "defects",
+            "function": "incomplete_lower_guard",
+            "line": 40,
+            "column": 20,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "a3890b19fe45e0546132",
+            "expression": "values[i - 3]",
+            "label_reason": "上界保护不保证下界；n=1、i=0、k=-3 越界。",
+            "other_issue": null,
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": -3,
+              "kind": "symbolic_bounds_witness_not_execution"
+            },
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "safe_controls",
+            "function": "chained_protection",
+            "line": 4,
+            "column": 20,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "afc33402e52a9ffa6e9d",
+            "expression": "values[i + 1]",
+            "label_reason": "链式比较约束上下界。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "safe_controls",
+            "function": "conjunction_protection",
+            "line": 10,
+            "column": 20,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "e4302256d0ad3861e2ed",
+            "expression": "values[i - 3]",
+            "label_reason": "合取条件保证 -n<=k<n。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "safe_controls",
+            "function": "skip_last",
+            "line": 17,
+            "column": 16,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "aa6f10f4e814762e7401",
+            "expression": "values[i + 1]",
+            "label_reason": "continue 排除危险末轮。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "safe_controls",
+            "function": "stop_at_last",
+            "line": 24,
+            "column": 16,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "3339c366254d5fea5570",
+            "expression": "values[i + 1]",
+            "label_reason": "return 排除危险末轮。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "safe_controls",
+            "function": "negated_exit",
+            "line": 31,
+            "column": 16,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "c286012813de96b7c4e9",
+            "expression": "values[i + 1]",
+            "label_reason": "否定的越界条件导致提前退出。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "safe_controls",
+            "function": "nested_protection",
+            "line": 38,
+            "column": 24,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "4c32632adce49eaf929c",
+            "expression": "values[i - 3]",
+            "label_reason": "两层分支共同约束上下界。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "safe_controls",
+            "function": "filtered_negative",
+            "line": 42,
+            "column": 13,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "cb2128d62470e0aaae5b",
+            "expression": "values[i - 3]",
+            "label_reason": "列表推导式过滤约束有效负索引。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "safe_controls",
+            "function": "empty_iteration",
+            "line": 48,
+            "column": 16,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "empty_iteration",
+            "stop_reason": "resolved",
+            "access_id": "c308bde4189790b6c59f",
+            "expression": "values[i + 20]",
+            "label_reason": "循环零次，访问不可达。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [
+              "标准内置与普通执行环境"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "safe_controls",
+            "function": "last_element",
+            "line": 53,
+            "column": 16,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "8d7a5139f7a89ca75a4b",
+            "expression": "values[-1]",
+            "label_reason": "仅非空时访问 -1。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "safe_controls",
+            "function": "standalone_return",
+            "line": 59,
+            "column": 12,
+            "expected": "UNDECIDED",
+            "bounds_truth": "safe",
+            "actual": "UNDECIDED",
+            "reason": "unsupported_iteration",
+            "stop_reason": "unsupported",
+            "access_id": "a26c6948c1ed3b7dc752",
+            "expression": "values[i + 1]",
+            "label_reason": "独立参数下标已保护，但当前域规则要求 range 循环。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "alias_change",
+            "line": 5,
+            "column": 16,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounded_counterexample",
+            "stop_reason": "resolved",
+            "access_id": "b2477ec10d9b9a882c55",
+            "expression": "values[i]",
+            "label_reason": "别名修改，n=1 即越界。",
+            "other_issue": null,
+            "witness": {
+              "kind": "bounded_ast_counterexample",
+              "entry_inputs": {
+                "values": [
+                  0
+                ]
+              },
+              "length": 0,
+              "index": 0,
+              "locals": {
+                "i": 0
+              },
+              "path": [
+                {
+                  "line": 3,
+                  "iteration": 0
+                },
+                {
+                  "line": 4,
+                  "effect": "pop",
+                  "resulting_length": 0
+                }
+              ],
+              "steps": 14
+            },
+            "assumptions": [
+              "入口参数采用报告给出的普通内置 list/int 值；标准 Python 内置未被替换",
+              "同文件辅助函数按当前源码绑定；无运行时替换、并发修改或资源异常"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "callback_change",
+            "line": 11,
+            "column": 16,
+            "expected": "UNDECIDED",
+            "bounds_truth": "conditional",
+            "actual": "UNDECIDED",
+            "reason": "unresolved_call",
+            "stop_reason": "unsupported",
+            "access_id": "89278106d7c16fd53954",
+            "expression": "values[i]",
+            "label_reason": "回调可缩短也可保留列表，缺少绑定和副作用。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "call:callback",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "nonlinear_index",
+            "line": 16,
+            "column": 16,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounded_counterexample",
+            "stop_reason": "resolved",
+            "access_id": "a03c7ddc62bbf15f33c3",
+            "expression": "values[i * i]",
+            "label_reason": "n=3、i=2 时下标4越界，通过有界整数反例验证。",
+            "other_issue": null,
+            "witness": {
+              "kind": "bounded_ast_counterexample",
+              "entry_inputs": {
+                "values": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              "length": 3,
+              "index": 4,
+              "locals": {
+                "i": 2,
+                "item": 1
+              },
+              "path": [
+                {
+                  "line": 15,
+                  "iteration": 0
+                },
+                {
+                  "line": 15,
+                  "iteration": 1
+                },
+                {
+                  "line": 15,
+                  "iteration": 2
+                }
+              ],
+              "steps": 25
+            },
+            "assumptions": [
+              "入口参数采用报告给出的普通内置 list/int 值；标准 Python 内置未被替换",
+              "同文件辅助函数按当前源码绑定；无运行时替换、并发修改或资源异常"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "custom_container",
+            "line": 21,
+            "column": 16,
+            "expected": "UNDECIDED",
+            "bounds_truth": "conditional",
+            "actual": "UNDECIDED",
+            "reason": "container_type_unknown",
+            "stop_reason": "unsupported",
+            "access_id": "b78543b5aa766e9df6a5",
+            "expression": "values[i + 1]",
+            "label_reason": "自定义 __getitem__ 不保证普通列表语义。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings",
+              "container"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "stepped_range",
+            "line": 26,
+            "column": 16,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounded_counterexample",
+            "stop_reason": "resolved",
+            "access_id": "d557808e2c04ec103b57",
+            "expression": "values[i + 1]",
+            "label_reason": "n=1 时访问1；通过受控 range 语义验证。",
+            "other_issue": null,
+            "witness": {
+              "kind": "bounded_ast_counterexample",
+              "entry_inputs": {
+                "values": [
+                  0
+                ]
+              },
+              "length": 1,
+              "index": 1,
+              "locals": {
+                "i": 0
+              },
+              "path": [
+                {
+                  "line": 25,
+                  "iteration": 0
+                }
+              ],
+              "steps": 13
+            },
+            "assumptions": [
+              "入口参数采用报告给出的普通内置 list/int 值；标准 Python 内置未被替换",
+              "同文件辅助函数按当前源码绑定；无运行时替换、并发修改或资源异常"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "conditional_access",
+            "line": 30,
+            "column": 13,
+            "expected": "UNDECIDED",
+            "bounds_truth": "safe",
+            "actual": "UNDECIDED",
+            "reason": "unsupported_control_flow",
+            "stop_reason": "unsupported",
+            "access_id": "9d169fc39faedfde3023",
+            "expression": "values[i + 1]",
+            "label_reason": "条件表达式保护下标，当前尚不分析 IfExp。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "unreachable_expression",
+            "line": 34,
+            "column": 13,
+            "expected": "UNDECIDED",
+            "bounds_truth": "safe",
+            "actual": "UNDECIDED",
+            "reason": "unsupported_control_flow",
+            "stop_reason": "unsupported",
+            "access_id": "7fc19cbbfe346030bac2",
+            "expression": "values[i + 1]",
+            "label_reason": "False 分支不执行该访问，不能伪造越界见证。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "same_line_return",
+            "line": 39,
+            "column": 24,
+            "expected": "UNDECIDED",
+            "bounds_truth": "safe",
+            "actual": "UNDECIDED",
+            "reason": "earlier_statement",
+            "stop_reason": "unsupported",
+            "access_id": "4cc0d0e231c395a196b5",
+            "expression": "values[i + 1]",
+            "label_reason": "同一行 return 后访问不可达。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "loop_rebinds_container",
+            "line": 44,
+            "column": 16,
+            "expected": "UNDECIDED",
+            "bounds_truth": "out_of_scope",
+            "actual": "UNDECIDED",
+            "reason": "container_rebound",
+            "stop_reason": "unsupported",
+            "access_id": "c7e55bb858a2a3d1b4c5",
+            "expression": "values[values]",
+            "label_reason": "for 将容器重绑定成 int，会 TypeError，不能认证列表边界。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "comprehension_rebinds_container",
+            "line": 48,
+            "column": 13,
+            "expected": "UNDECIDED",
+            "bounds_truth": "out_of_scope",
+            "actual": "UNDECIDED",
+            "reason": "container_rebound",
+            "stop_reason": "unsupported",
+            "access_id": "5403a015d9121d7cc5c6",
+            "expression": "values[values]",
+            "label_reason": "推导式目标遮蔽列表名，会 TypeError。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "imported_container",
+            "line": 54,
+            "column": 16,
+            "expected": "UNDECIDED",
+            "bounds_truth": "out_of_scope",
+            "actual": "UNDECIDED",
+            "reason": "container_rebound",
+            "stop_reason": "unsupported",
+            "access_id": "4c8dfa0b6e1a2d4f16b6",
+            "expression": "values[i]",
+            "label_reason": "导入覆盖容器名，len(module) TypeError。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "shadowed_range",
+            "line": 58,
+            "column": 13,
+            "expected": "UNDECIDED",
+            "bounds_truth": "conditional",
+            "actual": "UNDECIDED",
+            "reason": "shadowed_builtin",
+            "stop_reason": "unsupported",
+            "access_id": "cf403c2c5440c6cb14bf",
+            "expression": "values[i + 1]",
+            "label_reason": "range 参数未知，不能套用内置语义。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "unrelated_condition",
+            "line": 64,
+            "column": 20,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounded_counterexample",
+            "stop_reason": "resolved",
+            "access_id": "bbb442656c465c748c7e",
+            "expression": "values[i + 1]",
+            "label_reason": "i>=0 无法保护 i+1 的上界，通过真实分支路径验证。",
+            "other_issue": null,
+            "witness": {
+              "kind": "bounded_ast_counterexample",
+              "entry_inputs": {
+                "values": [
+                  0
+                ]
+              },
+              "length": 1,
+              "index": 1,
+              "locals": {
+                "i": 0
+              },
+              "path": [
+                {
+                  "line": 62,
+                  "iteration": 0
+                },
+                {
+                  "line": 63,
+                  "branch": true
+                }
+              ],
+              "steps": 15
+            },
+            "assumptions": [
+              "入口参数采用报告给出的普通内置 list/int 值；标准 Python 内置未被替换",
+              "同文件辅助函数按当前源码绑定；无运行时替换、并发修改或资源异常"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "compound_exit",
+            "line": 70,
+            "column": 20,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounded_counterexample",
+            "stop_reason": "resolved",
+            "access_id": "f91d5b97a7ed1216fd4e",
+            "expression": "values[i + 1]",
+            "label_reason": "退出前已有访问；不能把含副作用的分支当作纯提前退出。",
+            "other_issue": null,
+            "witness": {
+              "kind": "bounded_ast_counterexample",
+              "entry_inputs": {
+                "values": [
+                  0
+                ]
+              },
+              "length": 1,
+              "index": 1,
+              "locals": {
+                "i": 0
+              },
+              "path": [
+                {
+                  "line": 68,
+                  "iteration": 0
+                },
+                {
+                  "line": 69,
+                  "branch": true
+                }
+              ],
+              "steps": 18
+            },
+            "assumptions": [
+              "入口参数采用报告给出的普通内置 list/int 值；标准 Python 内置未被替换",
+              "同文件辅助函数按当前源码绑定；无运行时替换、并发修改或资源异常"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "compound_exit",
+            "line": 72,
+            "column": 16,
+            "expected": "UNDECIDED",
+            "bounds_truth": "safe",
+            "actual": "UNDECIDED",
+            "reason": "unsupported_control_flow",
+            "stop_reason": "unsupported",
+            "access_id": "e1fd53b489b4504e692a",
+            "expression": "values[i + 1]",
+            "label_reason": "退出前已有访问；不能把含副作用的分支当作纯提前退出。",
+            "other_issue": null,
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "stale_outer_guard",
+            "line": 78,
+            "column": 20,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounded_counterexample",
+            "stop_reason": "resolved",
+            "access_id": "80831d74e515a46fe656",
+            "expression": "values[i + 1]",
+            "label_reason": "保护在进入循环前使用旧 i，循环重新绑定 i 后保护失效；n=2、入参i=0时末轮越界。",
+            "other_issue": null,
+            "witness": {
+              "kind": "bounded_ast_counterexample",
+              "entry_inputs": {
+                "values": [
+                  0
+                ],
+                "i": -2
+              },
+              "length": 1,
+              "index": 1,
+              "locals": {
+                "i": 0
+              },
+              "path": [
+                {
+                  "line": 76,
+                  "branch": true
+                },
+                {
+                  "line": 77,
+                  "iteration": 0
+                }
+              ],
+              "steps": 18
+            },
+            "assumptions": [
+              "入口参数采用报告给出的普通内置 list/int 值；标准 Python 内置未被替换",
+              "同文件辅助函数按当前源码绑定；无运行时替换、并发修改或资源异常"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "capability_boundaries",
+            "function": "stale_exit_before_loop",
+            "line": 85,
+            "column": 16,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounded_counterexample",
+            "stop_reason": "resolved",
+            "access_id": "17aa8b3e61ed4ce11b76",
+            "expression": "values[i + 1]",
+            "label_reason": "保护在进入循环前使用旧 i，循环重新绑定 i 后保护失效；n=2、入参i=0时末轮越界。",
+            "other_issue": null,
+            "witness": {
+              "kind": "bounded_ast_counterexample",
+              "entry_inputs": {
+                "values": [
+                  0
+                ],
+                "i": -2
+              },
+              "length": 1,
+              "index": 1,
+              "locals": {
+                "i": 0
+              },
+              "path": [
+                {
+                  "line": 82,
+                  "branch": false
+                },
+                {
+                  "line": 84,
+                  "iteration": 0
+                }
+              ],
+              "steps": 18
+            },
+            "assumptions": [
+              "入口参数采用报告给出的普通内置 list/int 值；标准 Python 内置未被替换",
+              "同文件辅助函数按当前源码绑定；无运行时替换、并发修改或资源异常"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "other_properties",
+            "function": "undefined_after_read",
+            "line": 3,
+            "column": 16,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "a98827cfb7514ff0e928",
+            "expression": "values[i]",
+            "label_reason": "边界安全不代表 missing_name 已定义。",
+            "other_issue": "NameError",
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "other_properties",
+            "function": "attribute_after_read",
+            "line": 8,
+            "column": 16,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "163c8cc086cb49921175",
+            "expression": "values[i]",
+            "label_reason": "list[int] 元素没有 missing_attribute，边界安全不能删属性问题。",
+            "other_issue": "AttributeError",
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "other_properties",
+            "function": "divide_after_read",
+            "line": 13,
+            "column": 16,
+            "expected": "UNDECIDED",
+            "bounds_truth": "safe",
+            "actual": "UNDECIDED",
+            "reason": "earlier_expression_may_raise",
+            "stop_reason": "unsupported",
+            "access_id": "3bdfb7cfb996c4224030",
+            "expression": "values[i]",
+            "label_reason": "存在除零，保留未知及其他问题，不能全函数认证。",
+            "other_issue": "ZeroDivisionError",
+            "witness": null,
+            "assumptions": [],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability",
+              "counterexample"
+            ]
+          },
+          {
+            "group": "other_properties",
+            "function": "distinct_same_line",
+            "line": 18,
+            "column": 16,
+            "expected": "SAFE",
+            "bounds_truth": "safe",
+            "actual": "SAFE",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "c92d4ea51b107d709726",
+            "expression": "values[i]",
+            "label_reason": "同一行安全、越界和名称错误必须分开处理。",
+            "other_issue": "NameError",
+            "witness": null,
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          },
+          {
+            "group": "other_properties",
+            "function": "distinct_same_line",
+            "line": 18,
+            "column": 27,
+            "expected": "VIOLATION",
+            "bounds_truth": "unsafe",
+            "actual": "VIOLATION",
+            "reason": "bounds_rule",
+            "stop_reason": "resolved",
+            "access_id": "18434b60154c63f9b5f6",
+            "expression": "values[i + 1]",
+            "label_reason": "同一行安全、越界和名称错误必须分开处理。",
+            "other_issue": "NameError",
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": 1,
+              "kind": "symbolic_bounds_witness_not_execution"
+            },
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "tools": [
+              "bindings",
+              "container",
+              "domain",
+              "effects",
+              "guards",
+              "reachability"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "runs": [
+    {
+      "id": "offset/01-checklist",
+      "group": "offset",
+      "repeat": 1,
+      "strategy": "checklist",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/offset.py",
+        "--analysis-strategy",
+        "checklist",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/offset/01-checklist"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "offset/01-checklist/report.json",
+      "report_sha256": "04bd4571c3e8837b359f9a946b4a260a12b66aa6468e2a872e8d2e7dfa4dd946",
+      "source_hashes": {
+        "offset.py": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6"
+      },
+      "alerts": [],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 43.300367542076856,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 21.880807125009596,
+            "wall_seconds_at_response": 22.476089834002778,
+            "prompt_tokens": 2015,
+            "completion_tokens": 449,
+            "runtime": {
+              "wall_seconds": 21.88044058403466,
+              "request_bytes": 14428,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.000605875,
+              "prompt_eval_duration_seconds": 1.188528,
+              "eval_duration_seconds": 20.499013,
+              "total_duration_seconds": 21.877067292
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 21.41956041706726,
+            "wall_seconds_at_response": 43.90201329195406,
+            "prompt_tokens": 3889,
+            "completion_tokens": 337,
+            "runtime": {
+              "wall_seconds": 21.418969999998808,
+              "request_bytes": 25498,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.002302542,
+              "prompt_eval_duration_seconds": 5.265049,
+              "eval_duration_seconds": 16.123147,
+              "total_duration_seconds": 21.414839792
+            }
+          }
+        ],
+        "wall_seconds": 43.90964700002223
+      },
+      "usage": {
+        "prompt_tokens": 5904,
+        "completion_tokens": 786,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.000660124933347106,
+        "scanner_seconds": 0.5926712080836296,
+        "candidate_seconds": 0.00010820804163813591,
+        "evidence_seconds": 1.2491364032030106e-07,
+        "review_seconds": 43.3114881250076
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:14:39.777297+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 599250,
+        "total_duration": 191509791,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "offset/01-evidence",
+      "group": "offset",
+      "repeat": 1,
+      "strategy": "evidence",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/offset.py",
+        "--analysis-strategy",
+        "evidence",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/offset/01-evidence",
+        "--evidence-policy",
+        "cost",
+        "--max-evidence-actions",
+        "1000",
+        "--evidence-budget",
+        "2000"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "offset/01-evidence/report.json",
+      "report_sha256": "28a30f85e4d178175b1c57ecce72f63b3009df79f39027d4ac207d7f0d1c30b0",
+      "source_hashes": {
+        "offset.py": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "program",
+          "content": {
+            "file": "offset.py",
+            "line": 2,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[i + 2] 给出符号见证：下标 2 不在 [-2, 2) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=2，下标=2，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "2008c7e0f8121820f425",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "2008c7e0f8121820f425",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "program:2008c7e0f8121820f425",
+          "origin": "program",
+          "content": {
+            "file": "offset.py",
+            "line": 2,
+            "expression": "values[i + 2]",
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "witness": {
+              "length": 2,
+              "counter": 0,
+              "index": 2,
+              "kind": "symbolic_bounds_witness_not_execution"
+            }
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 40.13477254204918,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 23.4070872500306,
+            "wall_seconds_at_response": 23.99207679205574,
+            "prompt_tokens": 3017,
+            "completion_tokens": 447,
+            "runtime": {
+              "wall_seconds": 23.406859874958172,
+              "request_bytes": 19872,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.000656833,
+              "prompt_eval_duration_seconds": 1.604384,
+              "eval_duration_seconds": 21.532103,
+              "total_duration_seconds": 23.404692708
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 16.727685292018577,
+            "wall_seconds_at_response": 40.72522700007539,
+            "prompt_tokens": 5413,
+            "completion_tokens": 147,
+            "runtime": {
+              "wall_seconds": 16.72721579100471,
+              "request_bytes": 33375,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.001381875,
+              "prompt_eval_duration_seconds": 8.288782999,
+              "eval_duration_seconds": 8.408721,
+              "total_duration_seconds": 16.725341542
+            }
+          }
+        ],
+        "wall_seconds": 40.72997616697103
+      },
+      "usage": {
+        "prompt_tokens": 8430,
+        "completion_tokens": 594,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.0003807920729741454,
+        "scanner_seconds": 0.5818313750205562,
+        "candidate_seconds": 0.0005644590128213167,
+        "evidence_seconds": 0.0010759170399978757,
+        "review_seconds": 40.14179454208352
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:15:20.70443+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 721875,
+        "total_duration": 177166041,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "offset/02-evidence",
+      "group": "offset",
+      "repeat": 2,
+      "strategy": "evidence",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/offset.py",
+        "--analysis-strategy",
+        "evidence",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/offset/02-evidence",
+        "--evidence-policy",
+        "cost",
+        "--max-evidence-actions",
+        "1000",
+        "--evidence-budget",
+        "2000"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "offset/02-evidence/report.json",
+      "report_sha256": "7c251a32d8f8594ab79c423f846488d43b12826201b15ebe1c9d19556b788e52",
+      "source_hashes": {
+        "offset.py": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "program",
+          "content": {
+            "file": "offset.py",
+            "line": 2,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[i + 2] 给出符号见证：下标 2 不在 [-2, 2) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=2，下标=2，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "2008c7e0f8121820f425",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "2008c7e0f8121820f425",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "program:2008c7e0f8121820f425",
+          "origin": "program",
+          "content": {
+            "file": "offset.py",
+            "line": 2,
+            "expression": "values[i + 2]",
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "witness": {
+              "length": 2,
+              "counter": 0,
+              "index": 2,
+              "kind": "symbolic_bounds_witness_not_execution"
+            }
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 58.910940249916166,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 33.00949249998666,
+            "wall_seconds_at_response": 33.62833129207138,
+            "prompt_tokens": 3017,
+            "completion_tokens": 447,
+            "runtime": {
+              "wall_seconds": 33.0090079579968,
+              "request_bytes": 19872,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.00083075,
+              "prompt_eval_duration_seconds": 1.90614,
+              "eval_duration_seconds": 31.068421,
+              "total_duration_seconds": 33.006449583
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 25.901447749929503,
+            "wall_seconds_at_response": 59.53459312499035,
+            "prompt_tokens": 5413,
+            "completion_tokens": 147,
+            "runtime": {
+              "wall_seconds": 25.900946583948098,
+              "request_bytes": 33375,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.001967834,
+              "prompt_eval_duration_seconds": 12.565051,
+              "eval_duration_seconds": 13.305633,
+              "total_duration_seconds": 25.898947917
+            }
+          }
+        ],
+        "wall_seconds": 59.540976457996294
+      },
+      "usage": {
+        "prompt_tokens": 8430,
+        "completion_tokens": 594,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.00047099997755140066,
+        "scanner_seconds": 0.6134667920414358,
+        "candidate_seconds": 0.0005670000100508332,
+        "evidence_seconds": 0.0010748329805210233,
+        "review_seconds": 58.92002583399881
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:16:20.638502+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 805500,
+        "total_duration": 377423334,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "offset/02-checklist",
+      "group": "offset",
+      "repeat": 2,
+      "strategy": "checklist",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/offset.py",
+        "--analysis-strategy",
+        "checklist",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/offset/02-checklist"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "offset/02-checklist/report.json",
+      "report_sha256": "7b19fda688c4644a67c822295a5714d1f1c40cf44fbd0b670dbff427b6e24f1e",
+      "source_hashes": {
+        "offset.py": "6703c239f4e50459fd78cf219282b6d4b5d904628799d3a02811f59ab891bba6"
+      },
+      "alerts": [],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 78.39893674908672,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 40.86661366606131,
+            "wall_seconds_at_response": 41.677237584022805,
+            "prompt_tokens": 2015,
+            "completion_tokens": 449,
+            "runtime": {
+              "wall_seconds": 40.86616899992805,
+              "request_bytes": 14428,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.001165959,
+              "prompt_eval_duration_seconds": 3.847538,
+              "eval_duration_seconds": 36.908281,
+              "total_duration_seconds": 40.863057
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 37.5323230830254,
+            "wall_seconds_at_response": 79.21537483402062,
+            "prompt_tokens": 3889,
+            "completion_tokens": 337,
+            "runtime": {
+              "wall_seconds": 37.531545332982205,
+              "request_bytes": 25498,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.001905,
+              "prompt_eval_duration_seconds": 9.585512,
+              "eval_duration_seconds": 27.912743,
+              "total_duration_seconds": 37.525739208
+            }
+          }
+        ],
+        "wall_seconds": 79.2236634590663
+      },
+      "usage": {
+        "prompt_tokens": 5904,
+        "completion_tokens": 786,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.00042741699144244194,
+        "scanner_seconds": 0.8082467500353232,
+        "candidate_seconds": 0.00015354203060269356,
+        "evidence_seconds": 1.25030055642128e-07,
+        "review_seconds": 78.40883887500968
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:17:40.27935+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 1490667,
+        "total_duration": 412357625,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "negative/01-checklist",
+      "group": "negative",
+      "repeat": 1,
+      "strategy": "checklist",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/negative.py",
+        "--analysis-strategy",
+        "checklist",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/negative/01-checklist"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "negative/01-checklist/report.json",
+      "report_sha256": "65b27025df364087923b43665e98dd6549b5e5fdc0f3fd9bd951846f425b1576",
+      "source_hashes": {
+        "negative.py": "e7e3fb710e78735cf846c35c3399ae3659c31de13b8d52a69602271c48453a55"
+      },
+      "alerts": [],
+      "measurement": {
+        "attempts": 3,
+        "failed_requests": 0,
+        "model_seconds": 79.88634183397517,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 34.38324516697321,
+            "wall_seconds_at_response": 35.49685787491035,
+            "prompt_tokens": 2005,
+            "completion_tokens": 419,
+            "runtime": {
+              "wall_seconds": 34.382774624973536,
+              "request_bytes": 14441,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.00065775,
+              "prompt_eval_duration_seconds": 2.159774,
+              "eval_duration_seconds": 32.083654,
+              "total_duration_seconds": 34.379085125
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 27.190437208046205,
+            "wall_seconds_at_response": 62.689954082947224,
+            "prompt_tokens": 3844,
+            "completion_tokens": 248,
+            "runtime": {
+              "wall_seconds": 27.189912708010525,
+              "request_bytes": 25526,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.002081958,
+              "prompt_eval_duration_seconds": 8.440984,
+              "eval_duration_seconds": 18.717004,
+              "total_duration_seconds": 27.186958083
+            }
+          },
+          {
+            "round": 3,
+            "seconds": 18.31265945895575,
+            "wall_seconds_at_response": 81.00582545797806,
+            "prompt_tokens": 4243,
+            "completion_tokens": 147,
+            "runtime": {
+              "wall_seconds": 18.311954292003065,
+              "request_bytes": 28414,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.00168625,
+              "prompt_eval_duration_seconds": 6.453356,
+              "eval_duration_seconds": 11.833186,
+              "total_duration_seconds": 18.310658667
+            }
+          }
+        ],
+        "wall_seconds": 81.00876412494108
+      },
+      "usage": {
+        "prompt_tokens": 10092,
+        "completion_tokens": 814,
+        "requests": 3,
+        "structured_requests": 3
+      },
+      "stage_timings": {
+        "index_seconds": 0.010437458055093884,
+        "scanner_seconds": 1.0998787910211831,
+        "candidate_seconds": 0.00011849997099488974,
+        "evidence_seconds": 1.2491364032030106e-07,
+        "review_seconds": 79.8936918330146
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:19:01.398363+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 1377209,
+        "total_duration": 74133875,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "negative/01-evidence",
+      "group": "negative",
+      "repeat": 1,
+      "strategy": "evidence",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/negative.py",
+        "--analysis-strategy",
+        "evidence",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/negative/01-evidence",
+        "--evidence-policy",
+        "cost",
+        "--max-evidence-actions",
+        "1000",
+        "--evidence-budget",
+        "2000"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "negative/01-evidence/report.json",
+      "report_sha256": "80da1abd3f3b3ef111f2eaf0f610ab534670361f60b438592a306603f1ac1a6c",
+      "source_hashes": {
+        "negative.py": "e7e3fb710e78735cf846c35c3399ae3659c31de13b8d52a69602271c48453a55"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "program",
+          "content": {
+            "file": "negative.py",
+            "line": 2,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[i - 2] 给出符号见证：下标 -2 不在 [-1, 1) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=1，下标=-2，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "81b1f1bf4cfbd59f6c50",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "81b1f1bf4cfbd59f6c50",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "program:81b1f1bf4cfbd59f6c50",
+          "origin": "program",
+          "content": {
+            "file": "negative.py",
+            "line": 2,
+            "expression": "values[i - 2]",
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": -2,
+              "kind": "symbolic_bounds_witness_not_execution"
+            }
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 72.44458441692404,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 45.86693070898764,
+            "wall_seconds_at_response": 46.55976929096505,
+            "prompt_tokens": 2996,
+            "completion_tokens": 487,
+            "runtime": {
+              "wall_seconds": 45.866275375010446,
+              "request_bytes": 19883,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.001031916,
+              "prompt_eval_duration_seconds": 2.804219,
+              "eval_duration_seconds": 42.894665,
+              "total_duration_seconds": 45.862276041
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 26.577653707936406,
+            "wall_seconds_at_response": 73.1402364160167,
+            "prompt_tokens": 5548,
+            "completion_tokens": 130,
+            "runtime": {
+              "wall_seconds": 26.576360292034224,
+              "request_bytes": 34334,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.004297875,
+              "prompt_eval_duration_seconds": 14.358883,
+              "eval_duration_seconds": 12.177646,
+              "total_duration_seconds": 26.571100375
+            }
+          }
+        ],
+        "wall_seconds": 73.14831779093947
+      },
+      "usage": {
+        "prompt_tokens": 8544,
+        "completion_tokens": 617,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.0003897499991580844,
+        "scanner_seconds": 0.6891659160610288,
+        "candidate_seconds": 0.0006857500411570072,
+        "evidence_seconds": 0.0013206249568611383,
+        "review_seconds": 72.45116566703655
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:20:14.835884+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 350083,
+        "total_duration": 285267167,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "negative/02-evidence",
+      "group": "negative",
+      "repeat": 2,
+      "strategy": "evidence",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/negative.py",
+        "--analysis-strategy",
+        "evidence",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/negative/02-evidence",
+        "--evidence-policy",
+        "cost",
+        "--max-evidence-actions",
+        "1000",
+        "--evidence-budget",
+        "2000"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "negative/02-evidence/report.json",
+      "report_sha256": "3aa398eaa02dbade512ade919b4e03eda4f2a7220267c6e05dd3c1e6cb5717d0",
+      "source_hashes": {
+        "negative.py": "e7e3fb710e78735cf846c35c3399ae3659c31de13b8d52a69602271c48453a55"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "program",
+          "content": {
+            "file": "negative.py",
+            "line": 2,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[i - 2] 给出符号见证：下标 -2 不在 [-1, 1) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=1，下标=-2，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "81b1f1bf4cfbd59f6c50",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "81b1f1bf4cfbd59f6c50",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "program:81b1f1bf4cfbd59f6c50",
+          "origin": "program",
+          "content": {
+            "file": "negative.py",
+            "line": 2,
+            "expression": "values[i - 2]",
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": -2,
+              "kind": "symbolic_bounds_witness_not_execution"
+            }
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 70.72747941606212,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 43.9121989159612,
+            "wall_seconds_at_response": 44.93555179203395,
+            "prompt_tokens": 2996,
+            "completion_tokens": 487,
+            "runtime": {
+              "wall_seconds": 43.9116270840168,
+              "request_bytes": 19883,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.001779375,
+              "prompt_eval_duration_seconds": 2.901006,
+              "eval_duration_seconds": 40.948188,
+              "total_duration_seconds": 43.907416709
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 26.815280500100926,
+            "wall_seconds_at_response": 71.75805979198776,
+            "prompt_tokens": 5548,
+            "completion_tokens": 130,
+            "runtime": {
+              "wall_seconds": 26.814499916043133,
+              "request_bytes": 34334,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.002133333,
+              "prompt_eval_duration_seconds": 14.674253,
+              "eval_duration_seconds": 12.110878,
+              "total_duration_seconds": 26.812366333
+            }
+          }
+        ],
+        "wall_seconds": 71.76092079200316
+      },
+      "usage": {
+        "prompt_tokens": 8544,
+        "completion_tokens": 617,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.000700291944667697,
+        "scanner_seconds": 1.0180775000480935,
+        "candidate_seconds": 0.0008240829920396209,
+        "evidence_seconds": 0.0016242079436779022,
+        "review_seconds": 70.73641224997118
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:21:27.281411+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 978459,
+        "total_duration": 654645834,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "negative/02-checklist",
+      "group": "negative",
+      "repeat": 2,
+      "strategy": "checklist",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/negative.py",
+        "--analysis-strategy",
+        "checklist",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/negative/02-checklist"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "negative/02-checklist/report.json",
+      "report_sha256": "79b01738e09671c28269215587788d2958e4c409532a8c2de2e7524df477d02b",
+      "source_hashes": {
+        "negative.py": "e7e3fb710e78735cf846c35c3399ae3659c31de13b8d52a69602271c48453a55"
+      },
+      "alerts": [],
+      "measurement": {
+        "attempts": 3,
+        "failed_requests": 0,
+        "model_seconds": 91.05524783290457,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 38.782713957945816,
+            "wall_seconds_at_response": 39.45144812494982,
+            "prompt_tokens": 2005,
+            "completion_tokens": 419,
+            "runtime": {
+              "wall_seconds": 38.782312375027686,
+              "request_bytes": 14441,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.00061125,
+              "prompt_eval_duration_seconds": 2.354839,
+              "eval_duration_seconds": 36.293928,
+              "total_duration_seconds": 38.773619458
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 31.21996862499509,
+            "wall_seconds_at_response": 70.67536908295006,
+            "prompt_tokens": 3844,
+            "completion_tokens": 248,
+            "runtime": {
+              "wall_seconds": 31.21868379204534,
+              "request_bytes": 25526,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.007386375,
+              "prompt_eval_duration_seconds": 9.34322,
+              "eval_duration_seconds": 21.815715,
+              "total_duration_seconds": 31.212252541
+            }
+          },
+          {
+            "round": 3,
+            "seconds": 21.052565249963664,
+            "wall_seconds_at_response": 91.7336245829938,
+            "prompt_tokens": 4243,
+            "completion_tokens": 147,
+            "runtime": {
+              "wall_seconds": 21.05148475000169,
+              "request_bytes": 28414,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.002419333,
+              "prompt_eval_duration_seconds": 7.290094,
+              "eval_duration_seconds": 13.682204,
+              "total_duration_seconds": 21.046633708
+            }
+          }
+        ],
+        "wall_seconds": 91.74351604201365
+      },
+      "usage": {
+        "prompt_tokens": 10092,
+        "completion_tokens": 814,
+        "requests": 3,
+        "structured_requests": 3
+      },
+      "stage_timings": {
+        "index_seconds": 0.0004201669944450259,
+        "scanner_seconds": 0.6667525409720838,
+        "candidate_seconds": 0.00012699991930276155,
+        "evidence_seconds": 8.393544703722e-08,
+        "review_seconds": 91.06787687493488
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:22:59.415857+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 370459,
+        "total_duration": 390186917,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "guard/01-checklist",
+      "group": "guard",
+      "repeat": 1,
+      "strategy": "checklist",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/guard.py",
+        "--analysis-strategy",
+        "checklist",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/guard/01-checklist"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "guard/01-checklist/report.json",
+      "report_sha256": "0de6812f5360ffcc15001cdbd7ab989c30eb279a19a327e2f23a1e50012d9c38",
+      "source_hashes": {
+        "guard.py": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "model",
+          "content": {
+            "file": "guard.py",
+            "line": 4,
+            "title": "负索引越界风险",
+            "explanation": "当列表长度为1时，i=0时i-2=-2会越界（Python负索引范围为-1到0）",
+            "condition": "len(values) == 1 且 i=0",
+            "suggestion": "增加对i-2的边界检查：if i-2 >= -len(values) and i-2 < len(values)",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "model:0:1",
+          "origin": "model",
+          "content": {
+            "file": "guard.py",
+            "line": 10,
+            "title": "正索引越界风险",
+            "explanation": "当i=len(values)-1时，i+1=len(values)会越界",
+            "condition": "i == len(values)-1",
+            "suggestion": "修改条件为 i+1 < len(values) 或使用 i < len(values)-1",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F2"
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 346.6170753760962,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 183.14496033405885,
+            "wall_seconds_at_response": 183.9996897499077,
+            "prompt_tokens": 2485,
+            "completion_tokens": 2014,
+            "runtime": {
+              "wall_seconds": 183.14464137505274,
+              "request_bytes": 17012,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.000882667,
+              "prompt_eval_duration_seconds": 9.837333,
+              "eval_duration_seconds": 173.288763,
+              "total_duration_seconds": 183.142516167
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 163.47211504203733,
+            "wall_seconds_at_response": 347.4735076249344,
+            "prompt_tokens": 5155,
+            "completion_tokens": 1609,
+            "runtime": {
+              "wall_seconds": 163.4715974999126,
+              "request_bytes": 31717,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.002421917,
+              "prompt_eval_duration_seconds": 14.49243,
+              "eval_duration_seconds": 148.511891,
+              "total_duration_seconds": 163.468790875
+            }
+          }
+        ],
+        "wall_seconds": 347.4799164169235
+      },
+      "usage": {
+        "prompt_tokens": 7640,
+        "completion_tokens": 3623,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.002027333015576005,
+        "scanner_seconds": 0.8492619169410318,
+        "candidate_seconds": 0.00012491701636463404,
+        "evidence_seconds": 1.25030055642128e-07,
+        "review_seconds": 346.62403424992226
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:28:47.365928+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 1348958,
+        "total_duration": 439139875,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "guard/01-evidence",
+      "group": "guard",
+      "repeat": 1,
+      "strategy": "evidence",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/guard.py",
+        "--analysis-strategy",
+        "evidence",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/guard/01-evidence",
+        "--evidence-policy",
+        "cost",
+        "--max-evidence-actions",
+        "1000",
+        "--evidence-budget",
+        "2000"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "guard/01-evidence/report.json",
+      "report_sha256": "bdc5b48870b0556041424ec1bff9b555ad5c6ed3c2e31185614f1fd9ee3881bf",
+      "source_hashes": {
+        "guard.py": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "program",
+          "content": {
+            "file": "guard.py",
+            "line": 4,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[i - 2] 给出符号见证：下标 -2 不在 [-1, 1) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=1，下标=-2，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "74daa5d809f9ff9b51c5",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "74daa5d809f9ff9b51c5",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "program:74daa5d809f9ff9b51c5",
+          "origin": "program",
+          "content": {
+            "file": "guard.py",
+            "line": 4,
+            "expression": "values[i - 2]",
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": -2,
+              "kind": "symbolic_bounds_witness_not_execution"
+            }
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 83.53153979207855,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 50.55111491703428,
+            "wall_seconds_at_response": 51.40049337502569,
+            "prompt_tokens": 3128,
+            "completion_tokens": 508,
+            "runtime": {
+              "wall_seconds": 50.550858583068475,
+              "request_bytes": 20147,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.000893458,
+              "prompt_eval_duration_seconds": 7.041289,
+              "eval_duration_seconds": 43.3825,
+              "total_duration_seconds": 50.549101917
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 32.980424875044264,
+            "wall_seconds_at_response": 84.38460316706914,
+            "prompt_tokens": 5731,
+            "completion_tokens": 189,
+            "runtime": {
+              "wall_seconds": 32.97988137498032,
+              "request_bytes": 34237,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.001168833,
+              "prompt_eval_duration_seconds": 14.667477,
+              "eval_duration_seconds": 18.275814,
+              "total_duration_seconds": 32.969965875
+            }
+          }
+        ],
+        "wall_seconds": 84.40678775007837
+      },
+      "usage": {
+        "prompt_tokens": 8859,
+        "completion_tokens": 697,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.006784665980376303,
+        "scanner_seconds": 0.8377413750858977,
+        "candidate_seconds": 0.0010015410371124744,
+        "evidence_seconds": 0.0018954580882564187,
+        "review_seconds": 83.54031329206191
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:30:12.475314+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 801125,
+        "total_duration": 707276875,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "guard/02-evidence",
+      "group": "guard",
+      "repeat": 2,
+      "strategy": "evidence",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/guard.py",
+        "--analysis-strategy",
+        "evidence",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/guard/02-evidence",
+        "--evidence-policy",
+        "cost",
+        "--max-evidence-actions",
+        "1000",
+        "--evidence-budget",
+        "2000"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "guard/02-evidence/report.json",
+      "report_sha256": "f8e6f063f713169024dafb0c7ce0dcd5b6c25206c5c0dad64225d8a87f762c68",
+      "source_hashes": {
+        "guard.py": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "program",
+          "content": {
+            "file": "guard.py",
+            "line": 4,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[i - 2] 给出符号见证：下标 -2 不在 [-1, 1) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=1，下标=-2，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "74daa5d809f9ff9b51c5",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "74daa5d809f9ff9b51c5",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "program:74daa5d809f9ff9b51c5",
+          "origin": "program",
+          "content": {
+            "file": "guard.py",
+            "line": 4,
+            "expression": "values[i - 2]",
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": -2,
+              "kind": "symbolic_bounds_witness_not_execution"
+            }
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 80.15090554195922,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 47.24343137501273,
+            "wall_seconds_at_response": 48.22259179200046,
+            "prompt_tokens": 3128,
+            "completion_tokens": 508,
+            "runtime": {
+              "wall_seconds": 47.24315083294641,
+              "request_bytes": 20147,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.001117708,
+              "prompt_eval_duration_seconds": 3.410652,
+              "eval_duration_seconds": 43.662213,
+              "total_duration_seconds": 47.241052708
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 32.907474166946486,
+            "wall_seconds_at_response": 81.13525016710628,
+            "prompt_tokens": 5731,
+            "completion_tokens": 189,
+            "runtime": {
+              "wall_seconds": 32.90702862502076,
+              "request_bytes": 34237,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.001788542,
+              "prompt_eval_duration_seconds": 15.274682,
+              "eval_duration_seconds": 17.601167,
+              "total_duration_seconds": 32.905502375
+            }
+          }
+        ],
+        "wall_seconds": 81.14073062501848
+      },
+      "usage": {
+        "prompt_tokens": 8859,
+        "completion_tokens": 697,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.0010986669221892953,
+        "scanner_seconds": 0.972114291973412,
+        "candidate_seconds": 0.0016436660662293434,
+        "evidence_seconds": 0.0017628329806029797,
+        "review_seconds": 80.15938045806251
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:31:35.497277+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 1259000,
+        "total_duration": 1475585750,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "guard/02-checklist",
+      "group": "guard",
+      "repeat": 2,
+      "strategy": "checklist",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/guard.py",
+        "--analysis-strategy",
+        "checklist",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/guard/02-checklist"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "guard/02-checklist/report.json",
+      "report_sha256": "9e442ba778078215be6444557e03f900d646bfde4d3e9714d99c9f2cb4d8cb2b",
+      "source_hashes": {
+        "guard.py": "9f1245b7f11c423932f6815dedf90e435c0cb202b9345ea48c4f772269a04c49"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "model",
+          "content": {
+            "file": "guard.py",
+            "line": 4,
+            "title": "负索引越界风险",
+            "explanation": "当列表长度为1时，i=0时i-2=-2会越界（Python负索引范围为-1到0）",
+            "condition": "len(values) == 1 且 i=0",
+            "suggestion": "增加对i-2的边界检查：if i-2 >= -len(values) and i-2 < len(values)",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "model:0:1",
+          "origin": "model",
+          "content": {
+            "file": "guard.py",
+            "line": 10,
+            "title": "正索引越界风险",
+            "explanation": "当i=len(values)-1时，i+1=len(values)会越界",
+            "condition": "i == len(values)-1",
+            "suggestion": "修改条件为 i+1 < len(values) 或使用 i < len(values)-1",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F2"
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 348.1643634579377,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 179.76419345801696,
+            "wall_seconds_at_response": 180.51984087505843,
+            "prompt_tokens": 2485,
+            "completion_tokens": 2014,
+            "runtime": {
+              "wall_seconds": 179.76393824990373,
+              "request_bytes": 17012,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.000978417,
+              "prompt_eval_duration_seconds": 2.550854,
+              "eval_duration_seconds": 176.743566,
+              "total_duration_seconds": 179.759587792
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 168.40016999992076,
+            "wall_seconds_at_response": 348.92170516599435,
+            "prompt_tokens": 5155,
+            "completion_tokens": 1609,
+            "runtime": {
+              "wall_seconds": 168.39947950001806,
+              "request_bytes": 31717,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.0032875,
+              "prompt_eval_duration_seconds": 14.353661,
+              "eval_duration_seconds": 153.780484,
+              "total_duration_seconds": 168.39063225
+            }
+          }
+        ],
+        "wall_seconds": 348.93238487502094
+      },
+      "usage": {
+        "prompt_tokens": 7640,
+        "completion_tokens": 3623,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.001114416983909905,
+        "scanner_seconds": 0.7505189579678699,
+        "candidate_seconds": 0.00012320897076278925,
+        "evidence_seconds": 1.25030055642128e-07,
+        "review_seconds": 348.17001195799094
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:37:24.893458+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 449959,
+        "total_duration": 451675250,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "helper/01-checklist",
+      "group": "helper",
+      "repeat": 1,
+      "strategy": "checklist",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/helper.py",
+        "--analysis-strategy",
+        "checklist",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/helper/01-checklist"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "helper/01-checklist/report.json",
+      "report_sha256": "a2c37c5ceef12ff1b9b1712c0dbc8c8906f2bfa081eab73c8318b5bc3fe10fe3",
+      "source_hashes": {
+        "helper.py": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "model",
+          "content": {
+            "file": "helper.py",
+            "line": 8,
+            "title": "列表索引越界",
+            "explanation": "在case_a函数中，循环变量i的范围是0到len(values)-1，但访问values[i+1]时，当i等于len(values)-1时，i+1会超出列表边界",
+            "condition": "当values长度≥1时，循环最后一次迭代会触发越界访问",
+            "suggestion": "修改循环范围为range(len(values)-1)，或添加索引边界检查",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F1"
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 198.29414041806012,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 122.2699123340426,
+            "wall_seconds_at_response": 123.0383591670543,
+            "prompt_tokens": 2545,
+            "completion_tokens": 1479,
+            "runtime": {
+              "wall_seconds": 122.26953391707502,
+              "request_bytes": 17213,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.000871292,
+              "prompt_eval_duration_seconds": 9.477583,
+              "eval_duration_seconds": 112.777817,
+              "total_duration_seconds": 122.266758125
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 76.02422808401752,
+            "wall_seconds_at_response": 199.06560216704383,
+            "prompt_tokens": 5033,
+            "completion_tokens": 801,
+            "runtime": {
+              "wall_seconds": 76.02321362495422,
+              "request_bytes": 31686,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.001449,
+              "prompt_eval_duration_seconds": 11.000411,
+              "eval_duration_seconds": 64.717365,
+              "total_duration_seconds": 76.016132
+            }
+          }
+        ],
+        "wall_seconds": 199.07030020805541
+      },
+      "usage": {
+        "prompt_tokens": 7578,
+        "completion_tokens": 2280,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.0034247500589117408,
+        "scanner_seconds": 0.7624980829423293,
+        "candidate_seconds": 0.0001470409333705902,
+        "evidence_seconds": 8.300412446260452e-08,
+        "review_seconds": 198.30030629097018
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:40:44.912954+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 5574625,
+        "total_duration": 918348542,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "helper/01-evidence",
+      "group": "helper",
+      "repeat": 1,
+      "strategy": "evidence",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/helper.py",
+        "--analysis-strategy",
+        "evidence",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/helper/01-evidence",
+        "--evidence-policy",
+        "cost",
+        "--max-evidence-actions",
+        "1000",
+        "--evidence-budget",
+        "2000"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "helper/01-evidence/report.json",
+      "report_sha256": "154b4928c851705ac64cc2672df040e2699251fdb4d312af051d0dc8d23f6f7a",
+      "source_hashes": {
+        "helper.py": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "program",
+          "content": {
+            "file": "helper.py",
+            "line": 8,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[i + 1] 给出符号见证：下标 1 不在 [-1, 1) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=1，下标=1，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "372aa7685e18a44126bd",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "372aa7685e18a44126bd",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "program:372aa7685e18a44126bd",
+          "origin": "program",
+          "content": {
+            "file": "helper.py",
+            "line": 8,
+            "expression": "values[i + 1]",
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+              "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+            ],
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": 1,
+              "kind": "symbolic_bounds_witness_not_execution"
+            }
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 1,
+        "failed_requests": 0,
+        "model_seconds": 45.39389383303933,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 45.39389383303933,
+            "wall_seconds_at_response": 46.02909912506584,
+            "prompt_tokens": 3221,
+            "completion_tokens": 506,
+            "runtime": {
+              "wall_seconds": 45.39353299990762,
+              "request_bytes": 20644,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.000689541,
+              "prompt_eval_duration_seconds": 6.45141,
+              "eval_duration_seconds": 38.836353,
+              "total_duration_seconds": 45.390622833
+            }
+          }
+        ],
+        "wall_seconds": 46.03537854203023
+      },
+      "usage": {
+        "prompt_tokens": 3221,
+        "completion_tokens": 506,
+        "requests": 1,
+        "structured_requests": 1
+      },
+      "stage_timings": {
+        "index_seconds": 0.0023868329590186477,
+        "scanner_seconds": 0.626974291051738,
+        "candidate_seconds": 0.0008395829936489463,
+        "evidence_seconds": 0.002281790948472917,
+        "review_seconds": 45.39717699994799
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:41:31.34248+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 1542584,
+        "total_duration": 373971167,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "helper/02-evidence",
+      "group": "helper",
+      "repeat": 2,
+      "strategy": "evidence",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/helper.py",
+        "--analysis-strategy",
+        "evidence",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/helper/02-evidence",
+        "--evidence-policy",
+        "cost",
+        "--max-evidence-actions",
+        "1000",
+        "--evidence-budget",
+        "2000"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "helper/02-evidence/report.json",
+      "report_sha256": "efbc25a84c167adb6ffd44f76934ed52c8d1387573ce741ed3e590bcee20877c",
+      "source_hashes": {
+        "helper.py": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "program",
+          "content": {
+            "file": "helper.py",
+            "line": 8,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[i + 1] 给出符号见证：下标 1 不在 [-1, 1) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=1，下标=1，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "372aa7685e18a44126bd",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "372aa7685e18a44126bd",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "program:372aa7685e18a44126bd",
+          "origin": "program",
+          "content": {
+            "file": "helper.py",
+            "line": 8,
+            "expression": "values[i + 1]",
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "values 在此路径按普通内置 list 处理；类型注解不是运行时保证",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改",
+              "observe 调用绑定到当前文件的无副作用函数；无运行时替换"
+            ],
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": 1,
+              "kind": "symbolic_bounds_witness_not_execution"
+            }
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 1,
+        "failed_requests": 0,
+        "model_seconds": 38.96607891691383,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 38.96607891691383,
+            "wall_seconds_at_response": 39.54875179193914,
+            "prompt_tokens": 3221,
+            "completion_tokens": 506,
+            "runtime": {
+              "wall_seconds": 38.96592949994374,
+              "request_bytes": 20644,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.000770333,
+              "prompt_eval_duration_seconds": 0.045078,
+              "eval_duration_seconds": 38.882022,
+              "total_duration_seconds": 38.964902792
+            }
+          }
+        ],
+        "wall_seconds": 39.551755958935246
+      },
+      "usage": {
+        "prompt_tokens": 3221,
+        "completion_tokens": 506,
+        "requests": 1,
+        "structured_requests": 1
+      },
+      "stage_timings": {
+        "index_seconds": 0.0005903750425204635,
+        "scanner_seconds": 0.578088584006764,
+        "candidate_seconds": 0.0006116250297054648,
+        "evidence_seconds": 0.0018489588983356953,
+        "review_seconds": 38.967438374995254
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:42:11.052748+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 889666,
+        "total_duration": 135277041,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "helper/02-checklist",
+      "group": "helper",
+      "repeat": 2,
+      "strategy": "checklist",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/helper.py",
+        "--analysis-strategy",
+        "checklist",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/helper/02-checklist"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "helper/02-checklist/report.json",
+      "report_sha256": "8321649930ea1c4bbf9f6a70c0134d631f0afe40b46e8a5679eabd01a31df97f",
+      "source_hashes": {
+        "helper.py": "f4759b303c5b1047ae82a34d97bfd1efa2dc36780cb93b042b27a7ec2a2fca11"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "model",
+          "content": {
+            "file": "helper.py",
+            "line": 8,
+            "title": "列表索引越界",
+            "explanation": "在case_a函数中，循环变量i的范围是0到len(values)-1，但访问values[i+1]时，当i等于len(values)-1时，i+1会超出列表边界",
+            "condition": "当values长度≥1时，循环最后一次迭代会触发越界访问",
+            "suggestion": "修改循环范围为range(len(values)-1)，或添加索引边界检查",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F1"
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 192.3086039160844,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 114.87026049999986,
+            "wall_seconds_at_response": 115.546302541974,
+            "prompt_tokens": 2545,
+            "completion_tokens": 1479,
+            "runtime": {
+              "wall_seconds": 114.86993387492839,
+              "request_bytes": 17213,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.00115575,
+              "prompt_eval_duration_seconds": 2.331324,
+              "eval_duration_seconds": 112.381367,
+              "total_duration_seconds": 114.867255541
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 77.43834341608454,
+            "wall_seconds_at_response": 192.98683154198807,
+            "prompt_tokens": 5033,
+            "completion_tokens": 801,
+            "runtime": {
+              "wall_seconds": 77.43776637502015,
+              "request_bytes": 31686,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.002084542,
+              "prompt_eval_duration_seconds": 11.160995,
+              "eval_duration_seconds": 65.915020999,
+              "total_duration_seconds": 77.4351535
+            }
+          }
+        ],
+        "wall_seconds": 192.98938225000165
+      },
+      "usage": {
+        "prompt_tokens": 7578,
+        "completion_tokens": 2280,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.0004117090720683336,
+        "scanner_seconds": 0.6739550830097869,
+        "candidate_seconds": 0.0001213329378515482,
+        "evidence_seconds": 1.25030055642128e-07,
+        "review_seconds": 192.31259891705122
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:45:24.167857+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 544000,
+        "total_duration": 114189042,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "local/01-checklist",
+      "group": "local",
+      "repeat": 1,
+      "strategy": "checklist",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/local.py",
+        "--analysis-strategy",
+        "checklist",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/local/01-checklist"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "local/01-checklist/report.json",
+      "report_sha256": "1c8dc696e6073542da471e0f13f165e71b97f68f6be597e7a963d43cb144ad0c",
+      "source_hashes": {
+        "local.py": "3398a352a55b386050d2de71e4b4a410b3efe5ee221c7af5616d28507cc70ea1"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "model",
+          "content": {
+            "file": "local.py",
+            "line": 4,
+            "title": "负索引越界访问",
+            "explanation": "values列表长度为1时，values[-2]的负索引超出有效范围（-1）",
+            "condition": "当values列表长度小于2时执行该行",
+            "suggestion": "改为使用values[-1]或添加长度检查",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F1"
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 157.6353364159586,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 92.01978895801585,
+            "wall_seconds_at_response": 92.84804299997631,
+            "prompt_tokens": 2464,
+            "completion_tokens": 1166,
+            "runtime": {
+              "wall_seconds": 92.01950279192533,
+              "request_bytes": 16933,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.000971,
+              "prompt_eval_duration_seconds": 4.971061,
+              "eval_duration_seconds": 86.941079,
+              "total_duration_seconds": 92.018095875
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 65.61554745794274,
+            "wall_seconds_at_response": 158.46479050000198,
+            "prompt_tokens": 5037,
+            "completion_tokens": 663,
+            "runtime": {
+              "wall_seconds": 65.61510275001638,
+              "request_bytes": 32191,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.001060459,
+              "prompt_eval_duration_seconds": 11.691213,
+              "eval_duration_seconds": 53.904971,
+              "total_duration_seconds": 65.61224875
+            }
+          }
+        ],
+        "wall_seconds": 158.4730282499222
+      },
+      "usage": {
+        "prompt_tokens": 7501,
+        "completion_tokens": 1829,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.000743458978831768,
+        "scanner_seconds": 0.8251481670886278,
+        "candidate_seconds": 0.00013183301780372858,
+        "evidence_seconds": 1.25030055642128e-07,
+        "review_seconds": 157.64137954101898
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:48:03.178517+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 606375,
+        "total_duration": 531973958,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "local/01-evidence",
+      "group": "local",
+      "repeat": 1,
+      "strategy": "evidence",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/local.py",
+        "--analysis-strategy",
+        "evidence",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/local/01-evidence",
+        "--evidence-policy",
+        "cost",
+        "--max-evidence-actions",
+        "1000",
+        "--evidence-budget",
+        "2000"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "local/01-evidence/report.json",
+      "report_sha256": "385cb7e2c4938999bc39cbd5e1d6423edd7fd76747eb39ed724f29ae75780933",
+      "source_hashes": {
+        "local.py": "3398a352a55b386050d2de71e4b4a410b3efe5ee221c7af5616d28507cc70ea1"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "program",
+          "content": {
+            "file": "local.py",
+            "line": 4,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[-2] 给出符号见证：下标 -2 不在 [-1, 1) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=1，下标=-2，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "ea0909a7d6eee967244b",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "ea0909a7d6eee967244b",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "program:ea0909a7d6eee967244b",
+          "origin": "program",
+          "content": {
+            "file": "local.py",
+            "line": 4,
+            "expression": "values[-2]",
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": -2,
+              "kind": "symbolic_bounds_witness_not_execution"
+            }
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 65.53500633314252,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 45.30102341703605,
+            "wall_seconds_at_response": 45.91792679193895,
+            "prompt_tokens": 2970,
+            "completion_tokens": 451,
+            "runtime": {
+              "wall_seconds": 45.300756167038344,
+              "request_bytes": 19333,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.001549167,
+              "prompt_eval_duration_seconds": 10.748307,
+              "eval_duration_seconds": 34.533528,
+              "total_duration_seconds": 45.298043792
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 20.23398291610647,
+            "wall_seconds_at_response": 66.15476883295923,
+            "prompt_tokens": 5264,
+            "completion_tokens": 126,
+            "runtime": {
+              "wall_seconds": 20.23348445794545,
+              "request_bytes": 32155,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.002300875,
+              "prompt_eval_duration_seconds": 10.749288,
+              "eval_duration_seconds": 9.452623,
+              "total_duration_seconds": 20.231423209
+            }
+          }
+        ],
+        "wall_seconds": 66.15950662503019
+      },
+      "usage": {
+        "prompt_tokens": 8234,
+        "completion_tokens": 577,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.0006200839998200536,
+        "scanner_seconds": 0.6131220419192687,
+        "candidate_seconds": 0.0005785420071333647,
+        "evidence_seconds": 0.0011341250501573086,
+        "review_seconds": 65.53940912510734
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:49:09.907629+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 837541,
+        "total_duration": 545761083,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "local/02-evidence",
+      "group": "local",
+      "repeat": 2,
+      "strategy": "evidence",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/local.py",
+        "--analysis-strategy",
+        "evidence",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/local/02-evidence",
+        "--evidence-policy",
+        "cost",
+        "--max-evidence-actions",
+        "1000",
+        "--evidence-budget",
+        "2000"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "local/02-evidence/report.json",
+      "report_sha256": "64d1e56927610e04e161d1af20ce95b8d5e4b829d04568203443ee945fc7a0c8",
+      "source_hashes": {
+        "local.py": "3398a352a55b386050d2de71e4b4a410b3efe5ee221c7af5616d28507cc70ea1"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "program",
+          "content": {
+            "file": "local.py",
+            "line": 4,
+            "title": "列表下标存在条件越界",
+            "explanation": "程序规则为 values[-2] 给出符号见证：下标 -2 不在 [-1, 1) 内；这不是动态执行复现。",
+            "condition": "在程序列明的前提下，列表长度=1，下标=-2，循环变量=0。",
+            "suggestion": "核对循环范围与下标偏移，确保执行访问时下标满足 -len(列表) <= 下标 < len(列表)。",
+            "issue_kind": "index_bounds",
+            "access_id": "ea0909a7d6eee967244b",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "program_verified",
+            "program_access_id": "ea0909a7d6eee967244b",
+            "finding_id": "F1"
+          }
+        },
+        {
+          "id": "program:ea0909a7d6eee967244b",
+          "origin": "program",
+          "content": {
+            "file": "local.py",
+            "line": 4,
+            "expression": "values[-2]",
+            "reason": "bounds_rule",
+            "assumptions": [
+              "标准 Python 内置 len/range 未被运行环境动态替换",
+              "执行到此分析入口且普通整数/列表操作正常完成；未建模资源耗尽、并发或异步修改"
+            ],
+            "witness": {
+              "length": 1,
+              "counter": 0,
+              "index": -2,
+              "kind": "symbolic_bounds_witness_not_execution"
+            }
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 59.54838933295105,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 37.776458416949026,
+            "wall_seconds_at_response": 38.424461250077,
+            "prompt_tokens": 2970,
+            "completion_tokens": 451,
+            "runtime": {
+              "wall_seconds": 37.77607233298477,
+              "request_bytes": 19333,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.001547375,
+              "prompt_eval_duration_seconds": 2.804763,
+              "eval_duration_seconds": 34.934184,
+              "total_duration_seconds": 37.772002917
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 21.77193091600202,
+            "wall_seconds_at_response": 60.200395000050776,
+            "prompt_tokens": 5264,
+            "completion_tokens": 126,
+            "runtime": {
+              "wall_seconds": 21.770949042052962,
+              "request_bytes": 32155,
+              "thinking_requested": false,
+              "load_duration_seconds": 0.003112667,
+              "prompt_eval_duration_seconds": 11.77837,
+              "eval_duration_seconds": 9.936704,
+              "total_duration_seconds": 21.766115875
+            }
+          }
+        ],
+        "wall_seconds": 60.20721904200036
+      },
+      "usage": {
+        "prompt_tokens": 8234,
+        "completion_tokens": 577,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.0005188750801607966,
+        "scanner_seconds": 0.6437122920760885,
+        "candidate_seconds": 0.0006614170270040631,
+        "evidence_seconds": 0.0013822499895468354,
+        "review_seconds": 59.55517895903904
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:50:10.508336+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 854333,
+        "total_duration": 381273416,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    },
+    {
+      "id": "local/02-checklist",
+      "group": "local",
+      "repeat": 2,
+      "strategy": "checklist",
+      "command": [
+        "analyze",
+        "/Users/zoujingwei/analytic_tools/test/cases/evidence_bounds/matrix/local.py",
+        "--analysis-strategy",
+        "checklist",
+        "--review-scope",
+        "files",
+        "--model",
+        "qwen3:8b",
+        "--ollama-url",
+        "http://127.0.0.1:11435",
+        "--max-rounds",
+        "4",
+        "--max-calls",
+        "12",
+        "--context-chars",
+        "30000",
+        "--model-context",
+        "40960",
+        "--model-timeout",
+        "300",
+        "--output",
+        "/Users/zoujingwei/analytic_tools/test/results-reliability-comparison/local/02-checklist"
+      ],
+      "exit_code": 0,
+      "complete": true,
+      "report": "local/02-checklist/report.json",
+      "report_sha256": "6763ab90c71bdbb685dba1a2f7d2f89df382780a84694d251ae1901c051097d1",
+      "source_hashes": {
+        "local.py": "3398a352a55b386050d2de71e4b4a410b3efe5ee221c7af5616d28507cc70ea1"
+      },
+      "alerts": [
+        {
+          "id": "model:0:0",
+          "origin": "model",
+          "content": {
+            "file": "local.py",
+            "line": 4,
+            "title": "负索引越界访问",
+            "explanation": "values列表长度为1时，values[-2]的负索引超出有效范围（-1）",
+            "condition": "当values列表长度小于2时执行该行",
+            "suggestion": "改为使用values[-1]或添加长度检查",
+            "evidence_ids": [
+              "E2"
+            ],
+            "evidence_origin": "source_location",
+            "finding_id": "F1"
+          }
+        }
+      ],
+      "measurement": {
+        "attempts": 2,
+        "failed_requests": 0,
+        "model_seconds": 152.56489775003865,
+        "responses": [
+          {
+            "round": 1,
+            "seconds": 88.6284728749888,
+            "wall_seconds_at_response": 89.35183312511072,
+            "prompt_tokens": 2464,
+            "completion_tokens": 1166,
+            "runtime": {
+              "wall_seconds": 88.62818862497807,
+              "request_bytes": 16933,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.000754333,
+              "prompt_eval_duration_seconds": 2.013288,
+              "eval_duration_seconds": 86.469337,
+              "total_duration_seconds": 88.626091083
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 63.93642487504985,
+            "wall_seconds_at_response": 153.2905580000952,
+            "prompt_tokens": 5037,
+            "completion_tokens": 663,
+            "runtime": {
+              "wall_seconds": 63.93600125005469,
+              "request_bytes": 32191,
+              "thinking_requested": true,
+              "load_duration_seconds": 0.003105958,
+              "prompt_eval_duration_seconds": 11.860636,
+              "eval_duration_seconds": 52.047165,
+              "total_duration_seconds": 63.9332645
+            }
+          }
+        ],
+        "wall_seconds": 153.29482500010636
+      },
+      "usage": {
+        "prompt_tokens": 7501,
+        "completion_tokens": 1829,
+        "requests": 2,
+        "structured_requests": 2
+      },
+      "stage_timings": {
+        "index_seconds": 0.0008903749985620379,
+        "scanner_seconds": 0.719600582960993,
+        "candidate_seconds": 0.00011612498201429844,
+        "evidence_seconds": 1.25030055642128e-07,
+        "review_seconds": 152.57077524997294
+      },
+      "runtime_model": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 10669554401,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-10-25T12:52:44.42202+08:00",
+            "size_vram": 10669554401,
+            "context_length": 40960,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "warmup": {
+        "load_duration": 909708,
+        "total_duration": 592430375,
+        "eval_count": 1
+      },
+      "input_context_valid": true
+    }
+  ]
+}
